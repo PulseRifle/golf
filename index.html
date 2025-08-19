@@ -236,9 +236,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
     <script>
-        // Use a simple array to store booking data.
-        // In a real application, this would be handled by a database.
-        let bookings = [];
+        // 여기에 복사한 Apps Script URL을 붙여넣으세요
+        const SCRIPT_URL = '';
 
         // Simple user database for demonstration purposes
         const users = [
@@ -297,15 +296,13 @@
         
         // State variables
         let currentUser = null;
+        let bookings = []; // Now this will be populated from Google Sheets
 
         // Hardcoded Korean public holidays for 2024 and 2025.
-        // This is for demonstration purposes. In a real app, this data would likely come from an API.
         const holidays = new Set([
-            // 2024
             "2024-01-01", "2024-02-09", "2024-02-10", "2024-02-11", "2024-02-12", "2024-03-01", 
             "2024-04-10", "2024-05-05", "2024-05-06", "2024-05-15", "2024-06-06", "2024-08-15", 
             "2024-09-16", "2024-09-17", "2024-09-18", "2024-10-03", "2024-10-09", "2024-12-25",
-            // 2025
             "2025-01-01", "2025-01-28", "2025-01-29", "2025-01-30", "2025-03-01", "2025-05-05",
             "2025-05-06", "2025-05-22", "2025-06-06", "2025-08-15", "2025-10-03", "2025-10-06",
             "2025-10-07", "2025-10-08", "2025-12-25"
@@ -348,15 +345,31 @@
         const userNameInput = document.getElementById('userName');
         const logoutBtn = document.getElementById('logoutBtn');
 
-        // Initial setup to display the current date and generate the calendar
         const today = new Date();
         const endYear = 2025;
         const endMonth = 11; // December is month 11
 
+        // Fetch bookings from Google Sheets
+        async function fetchBookings() {
+            if (!SCRIPT_URL) {
+                // If SCRIPT_URL is not set, use local mock data
+                console.warn('Apps Script URL이 설정되지 않았습니다. 로컬 데이터를 사용합니다.');
+                return;
+            }
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=read`);
+                const data = await response.json();
+                bookings = data;
+            } catch (error) {
+                console.error('Error fetching bookings:', error);
+                alert('예약 데이터를 불러오는 데 실패했습니다.');
+            }
+        }
+
         // Helper function to get the week type (weekday/weekend) for a given date
         function getWeekType(dateString) {
             const date = new Date(dateString);
-            const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
+            const dayOfWeek = date.getDay();
             if (holidays.has(dateString) || dayOfWeek === 0 || dayOfWeek === 6) {
                 return 'weekend';
             }
@@ -367,15 +380,12 @@
         function updateGolfCourseDropdown() {
             const selectedDate = bookingDateInput.value;
             if (!selectedDate) {
-                // If no date is selected, show all options
                 golfCourseSelect.innerHTML = '<option value="">골프장 선택</option>' + 
                                             allGolfCourses.map(c => `<option value="${c}">${c}</option>`).join('');
                 return;
             }
 
-            const selectedMonth = selectedDate.substring(0, 7); // e.g., '2024-05'
-
-            // Get current booking counts for the selected month and day
+            const selectedMonth = selectedDate.substring(0, 7);
             const monthlyCounts = {};
             const dailyCounts = {};
             allGolfCourses.forEach(course => {
@@ -384,28 +394,23 @@
             });
 
             bookings.forEach(booking => {
-                // Monthly count
                 if (booking.bookingDate.startsWith(selectedMonth)) {
                     const weekType = getWeekType(booking.bookingDate);
                     monthlyCounts[booking.golfCourse][weekType]++;
                 }
-                // Daily count
                 if (booking.bookingDate === selectedDate) {
                     dailyCounts[booking.golfCourse]++;
                 }
             });
 
-            // Clear existing options
             golfCourseSelect.innerHTML = '<option value="">골프장 선택</option>';
 
-            // Populate with available courses
             allGolfCourses.forEach(course => {
                 const weekType = getWeekType(selectedDate);
                 const currentMonthlyCount = monthlyCounts[course][weekType];
                 const monthlyLimit = bookingLimits[course][weekType];
                 const currentDailyCount = dailyCounts[course];
 
-                // Check both monthly limit and daily limit (one booking per day per golf course)
                 if (currentMonthlyCount < monthlyLimit && currentDailyCount < 1) {
                     const option = document.createElement('option');
                     option.value = course;
@@ -422,9 +427,9 @@
             bookings.forEach(booking => {
                 const dateKey = booking.bookingDate;
                 if (!bookingMap.has(dateKey)) {
-                    bookingMap.set(dateKey, []);
+                    bookingMap.set(dateKey, new Set());
                 }
-                bookingMap.get(dateKey).push(booking.golfCourse);
+                bookingMap.get(dateKey).add(booking.golfCourse);
             });
 
             const renderEndDate = new Date(endYear, endMonth, 1);
@@ -498,24 +503,19 @@
                 dayGrid.className = 'day-grid';
                 monthContainer.appendChild(dayGrid);
                 
-                // Add blank cells for the first days of the week
                 for (let j = 0; j < firstDay; j++) {
                     dayGrid.innerHTML += '<div></div>';
                 }
 
-                // Add day cells
                 for (let day = 1; day <= daysInMonth; day++) {
                     const date = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                     const bookingsOnDay = bookingMap.get(date);
-                    
                     const dayCell = document.createElement('div');
                     dayCell.className = 'day-cell bg-gray-50';
-                    
                     const dayNumber = document.createElement('div');
                     dayNumber.className = 'day-number';
                     dayNumber.textContent = day;
                     
-                    // Check for holiday first
                     if (holidays.has(date)) {
                         dayNumber.classList.add('text-red-500');
                     } else if (new Date(date).getDay() === 0) {
@@ -523,11 +523,9 @@
                     } else if (new Date(date).getDay() === 6) {
                         dayNumber.classList.add('text-blue-500');
                     }
-
                     dayCell.appendChild(dayNumber);
 
-                    // Modified to show each golf course on a new line
-                    if (bookingsOnDay && bookingsOnDay.length > 0) {
+                    if (bookingsOnDay && bookingsOnDay.size > 0) {
                         dayCell.classList.add('bg-lime-100', 'border', 'border-lime-200');
                         bookingsOnDay.forEach(courseName => {
                             const bookingInfo = document.createElement('div');
@@ -536,13 +534,9 @@
                             dayCell.appendChild(bookingInfo);
                         });
                     }
-                    
                     dayGrid.appendChild(dayCell);
                 }
-
                 calendarEl.appendChild(monthContainer);
-
-                // Move to the next month
                 currentDate.setMonth(currentDate.getMonth() + 1);
             }
         }
@@ -550,8 +544,6 @@
         // Function to render the status list
         function renderStatus() {
             statusTableBody.innerHTML = '';
-            
-            // Filter bookings based on current user
             let filteredBookings = bookings;
             if (currentUser && currentUser.name !== '신석중') {
                 filteredBookings = bookings.filter(booking => booking.userName === currentUser.name);
@@ -587,24 +579,49 @@
             }
         }
         
-        // Function to delete selected bookings
-        function deleteSelectedBookings() {
+        // Function to add booking to Google Sheets
+        async function addBooking(bookingData) {
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    cache: 'no-cache',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: JSON.stringify({ action: 'add', booking: bookingData })
+                });
+                console.log('Booking added successfully.');
+            } catch (error) {
+                console.error('Error adding booking:', error);
+                alert('예약 저장에 실패했습니다.');
+            }
+        }
+
+        // Function to delete selected bookings from Google Sheets
+        async function deleteSelectedBookings() {
             const checkboxes = document.querySelectorAll('#statusTableBody input[type="checkbox"]:checked');
             if (checkboxes.length === 0) {
                 alert('삭제할 항목을 선택해 주세요.');
                 return;
             }
 
-            // Get indices of items to delete in reverse order to avoid issues
             const indicesToDelete = Array.from(checkboxes).map(cb => parseInt(cb.dataset.index, 10)).sort((a, b) => b - a);
-            
-            indicesToDelete.forEach(index => {
-                bookings.splice(index, 1);
-            });
+            const bookingsToDelete = indicesToDelete.map(index => bookings[index]);
 
-            renderCalendar();
-            renderStatus();
-            alert('선택한 항목이 삭제되었습니다.');
+            try {
+                // Now, send a request to Apps Script to delete these bookings.
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    cache: 'no-cache',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: JSON.stringify({ action: 'delete', bookings: bookingsToDelete })
+                });
+                await initializeApp();
+                alert('선택한 항목이 삭제되었습니다.');
+            } catch (error) {
+                console.error('Error deleting bookings:', error);
+                alert('선택한 항목 삭제에 실패했습니다.');
+            }
         }
 
         // Function to download data as a CSV file
@@ -613,7 +630,6 @@
                 alert('다운로드할 데이터가 없습니다.');
                 return;
             }
-            // Define headers and format data
             const headers = ["골프장", "이용자", "이용일자", "팀수", "시간", "현황", "비고"];
             const data = bookings.map(booking => [
                 `"${booking.golfCourse}"`,
@@ -637,27 +653,22 @@
         }
 
         // --- Event Listeners ---
-        
-        // Login Form Submission
-        loginForm.addEventListener('submit', (e) => {
+        loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('loginUsername').value.trim();
             const password = document.getElementById('loginPassword').value.trim();
-            
             const user = users.find(u => u.name === username && u.phone === password);
             
             if (user) {
                 currentUser = user;
                 loginScreen.classList.add('hidden');
                 mainApp.classList.remove('hidden');
-                renderCalendar();
-                renderStatus();
+                await initializeApp();
             } else {
                 alert('아이디 또는 비밀번호가 올바르지 않습니다.');
             }
         });
         
-        // Logout Button
         logoutBtn.addEventListener('click', () => {
             currentUser = null;
             loginScreen.classList.remove('hidden');
@@ -665,15 +676,12 @@
             loginForm.reset();
         });
 
-        // Booking Form Submission
-        bookingForm.addEventListener('submit', (e) => {
+        bookingForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const selectedDate = bookingDateInput.value;
             const selectedGolfCourse = golfCourseSelect.value;
             const selectedUserName = userNameInput.value.trim();
 
-            // Daily golf course limit check (one booking per day per golf course)
             const isCourseBookedOnDate = bookings.some(booking => 
                 booking.golfCourse === selectedGolfCourse && booking.bookingDate === selectedDate
             );
@@ -692,20 +700,15 @@
                 notes: document.getElementById('notes').value,
             };
             
-            bookings.push(newBooking);
+            await addBooking(newBooking);
+            await initializeApp();
             
-            // Re-render the UI
-            renderCalendar();
-            renderStatus();
-            
-            // Hide the modal and reset form
             bookingModal.style.display = 'none';
             bookingForm.reset();
         });
 
         openModalBtn.addEventListener('click', () => {
             bookingModal.style.display = 'flex';
-            // Initially, update dropdown with all options since no date is selected yet
             updateGolfCourseDropdown();
         });
 
@@ -714,7 +717,6 @@
             bookingForm.reset();
         });
 
-        // Add event listener to dynamically update dropdown based on date selection
         bookingDateInput.addEventListener('change', updateGolfCourseDropdown);
         userNameInput.addEventListener('input', updateGolfCourseDropdown);
 
@@ -737,32 +739,18 @@
             calendarTabBtn.classList.add('bg-gray-200', 'text-gray-700');
         });
         
-        // Event listener for the new "Download Excel" button
         downloadExcelBtn.addEventListener('click', downloadExcel);
-
-        // --- Excel Upload Functionality ---
-        uploadExcelBtn.addEventListener('click', () => {
-            uploadModal.style.display = 'flex';
-        });
-
-        closeUploadModalBtn.addEventListener('click', () => {
-            uploadModal.style.display = 'none';
-            uploadForm.reset();
-        });
-
-        uploadForm.addEventListener('submit', (e) => {
+        uploadExcelBtn.addEventListener('click', () => { uploadModal.style.display = 'flex'; });
+        closeUploadModalBtn.addEventListener('click', () => { uploadModal.style.display = 'none'; uploadForm.reset(); });
+        uploadForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const file = excelFile.files[0];
-            if (!file) {
-                alert('파일을 선택해 주세요.');
-                return;
-            }
+            if (!file) { alert('파일을 선택해 주세요.'); return; }
             
-            // Use PapaParse library to parse the CSV file
             Papa.parse(file, {
                 header: true,
                 skipEmptyLines: true,
-                complete: function(results) {
+                complete: async function(results) {
                     const newBookings = results.data.map(row => ({
                         golfCourse: row['골프장'],
                         userName: row['이용자'],
@@ -772,26 +760,31 @@
                         bookingStatus: row['현황'],
                         notes: row['비고']
                     }));
-                    bookings = bookings.concat(newBookings);
                     
-                    alert('파일 업로드가 완료되었습니다.');
-                    uploadModal.style.display = 'none';
-                    uploadForm.reset();
-                    
-                    renderCalendar();
-                    renderStatus();
+                    try {
+                        for (const booking of newBookings) {
+                            await addBooking(booking);
+                        }
+                        alert('파일 업로드가 완료되었습니다.');
+                        uploadModal.style.display = 'none';
+                        uploadForm.reset();
+                        await initializeApp();
+                    } catch (error) {
+                        alert('파일 업로드에 실패했습니다.');
+                    }
                 }
             });
         });
 
-        // Event listener for the new "Delete Selected" button
         deleteSelectedBtn.addEventListener('click', deleteSelectedBookings);
         
-        // Initial rendering
-        renderCalendar();
-        renderStatus();
-
+        async function initializeApp() {
+            if (currentUser) {
+                await fetchBookings();
+                renderCalendar();
+                renderStatus();
+            }
+        }
     </script>
-
 </body>
 </html>
