@@ -653,10 +653,13 @@
         }
 
         // --- Event Listeners ---
+        
+        // Login Form Submission
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('loginUsername').value.trim();
             const password = document.getElementById('loginPassword').value.trim();
+            
             const user = users.find(u => u.name === username && u.phone === password);
             
             if (user) {
@@ -669,6 +672,7 @@
             }
         });
         
+        // Logout Button
         logoutBtn.addEventListener('click', () => {
             currentUser = null;
             loginScreen.classList.remove('hidden');
@@ -676,6 +680,7 @@
             loginForm.reset();
         });
 
+        // Booking Form Submission
         bookingForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const selectedDate = bookingDateInput.value;
