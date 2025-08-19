@@ -141,18 +141,22 @@
                 <div id="calendar" class="calendar-container"></div>
             </div>
             <div id="statusView" class="tab-content hidden">
-                <div id="excelUploadContainer" class="flex justify-end mb-4 hidden">
-                    <button id="downloadExcelBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full shadow-lg transition-all transform hover:scale-105 mr-2">
+                <div id="excelUploadContainer" class="flex flex-col md:flex-row justify-end mb-4 gap-2 hidden">
+                    <button id="downloadExcelBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full shadow-lg transition-all transform hover:scale-105">
                         엑셀 다운로드
                     </button>
                     <button id="uploadExcelBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full shadow-lg transition-all transform hover:scale-105">
                         엑셀 업로드
+                    </button>
+                    <button id="deleteSelectedBtn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-full shadow-lg transition-all transform hover:scale-105">
+                        선택 삭제
                     </button>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full bg-white rounded-lg shadow-sm">
                         <thead>
                             <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                                <th class="py-3 px-6 text-left">선택</th>
                                 <th class="py-3 px-6 text-left">골프장</th>
                                 <th class="py-3 px-6 text-left">이용자</th>
                                 <th class="py-3 px-6 text-left">이용일자</th>
@@ -333,6 +337,7 @@
         const statusView = document.getElementById('statusView');
         const downloadExcelBtn = document.getElementById('downloadExcelBtn');
         const uploadExcelBtn = document.getElementById('uploadExcelBtn');
+        const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
         const excelUploadContainer = document.getElementById('excelUploadContainer');
         const uploadModal = document.getElementById('uploadModal');
         const closeUploadModalBtn = document.getElementById('closeUploadModalBtn');
@@ -551,14 +556,17 @@
             if (filteredBookings.length === 0) {
                 statusTableBody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="py-6 text-center text-gray-500">예약 기록이 없습니다.</td>
+                        <td colspan="8" class="py-6 text-center text-gray-500">예약 기록이 없습니다.</td>
                     </tr>
                 `;
             } else {
-                filteredBookings.forEach(booking => {
+                filteredBookings.forEach((booking, index) => {
                     const row = document.createElement('tr');
                     row.className = 'border-b border-gray-200 hover:bg-gray-100 transition-colors';
                     row.innerHTML = `
+                        <td class="py-4 px-6 text-left">
+                            <input type="checkbox" data-index="${index}" class="form-checkbox h-4 w-4 text-blue-600 rounded-sm">
+                        </td>
                         <td class="py-4 px-6 whitespace-nowrap">${booking.golfCourse}</td>
                         <td class="py-4 px-6 whitespace-nowrap">${booking.userName}</td>
                         <td class="py-4 px-6 whitespace-nowrap">${booking.bookingDate}</td>
@@ -570,6 +578,26 @@
                     statusTableBody.appendChild(row);
                 });
             }
+        }
+        
+        // Function to delete selected bookings
+        function deleteSelectedBookings() {
+            const checkboxes = document.querySelectorAll('#statusTableBody input[type="checkbox"]:checked');
+            if (checkboxes.length === 0) {
+                alert('삭제할 항목을 선택해 주세요.');
+                return;
+            }
+
+            // Get indices of items to delete in reverse order to avoid issues
+            const indicesToDelete = Array.from(checkboxes).map(cb => parseInt(cb.dataset.index, 10)).sort((a, b) => b - a);
+            
+            indicesToDelete.forEach(index => {
+                bookings.splice(index, 1);
+            });
+
+            renderCalendar();
+            renderStatus();
+            alert('선택한 항목이 삭제되었습니다.');
         }
 
         // Function to download data as a CSV file
@@ -748,6 +776,13 @@
                 }
             });
         });
+
+        // Event listener for the new "Delete Selected" button
+        deleteSelectedBtn.addEventListener('click', deleteSelectedBookings);
+        
+        // Initial rendering
+        renderCalendar();
+        renderStatus();
 
     </script>
 
