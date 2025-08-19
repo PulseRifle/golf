@@ -456,17 +456,24 @@
                     }
                 });
 
-                const exhaustedCourses = allGolfCourses.filter(course => {
+                const exhaustedCourses = [];
+                allGolfCourses.forEach(course => {
                     const weekdayRemaining = bookingLimits[course].weekday - monthlyCounts[course].weekday;
                     const weekendRemaining = bookingLimits[course].weekend - monthlyCounts[course].weekend;
-                    // Check if both weekday and weekend limits are exhausted
-                    return (weekdayRemaining <= 0) && (weekendRemaining <= 0);
+
+                    if (weekdayRemaining <= 0 && weekendRemaining <= 0) {
+                        exhaustedCourses.push(`${course} 횟수 소진`);
+                    } else if (weekdayRemaining <= 0) {
+                        exhaustedCourses.push(`${course} 주중 횟수 소진`);
+                    } else if (weekendRemaining <= 0) {
+                        exhaustedCourses.push(`${course} 주말 횟수 소진`);
+                    }
                 });
 
                 if (exhaustedCourses.length > 0) {
                     const exhaustedInfoContainer = document.createElement('div');
                     exhaustedInfoContainer.className = 'mt-4 text-sm text-center font-bold text-red-500';
-                    exhaustedInfoContainer.innerHTML = exhaustedCourses.map(course => `${course} 횟수 소진`).join(', ');
+                    exhaustedInfoContainer.innerHTML = exhaustedCourses.join('<br>');
                     monthContainer.appendChild(exhaustedInfoContainer);
 
                     const separator = document.createElement('hr');
