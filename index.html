@@ -16,8 +16,13 @@
         }
         .calendar-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(2, 1fr); /* PC: 2 months per row */
             gap: 24px;
+        }
+        @media (max-width: 768px) {
+            .calendar-container {
+                grid-template-columns: 1fr; /* Mobile: 1 month per row */
+            }
         }
         .calendar-month {
             background-color: white;
@@ -94,45 +99,73 @@
 </head>
 <body class="bg-gray-100 p-8 md:p-16">
 
-    <!-- Main Container -->
-    <div class="bg-white rounded-3xl shadow-lg p-6 md:p-12 max-w-7xl mx-auto">
-        <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-            <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900">골프 예약 시스템</h1>
-            <div class="flex items-center space-x-4">
-                <button id="calendarTabBtn" class="tab-button bg-lime-500 text-white shadow-md">캘린더</button>
-                <button id="statusTabBtn" class="tab-button bg-gray-200 text-gray-700 hover:bg-gray-300">현황</button>
-                <button id="openModalBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-all transform hover:scale-105">
-                    + 신청
+    <!-- Login Screen -->
+    <div id="loginScreen" class="flex flex-col items-center justify-center min-h-screen">
+        <div class="bg-white rounded-3xl shadow-lg p-8 w-full max-w-sm">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">로그인</h2>
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label for="loginUsername" class="block text-sm font-medium text-gray-700">아이디 (이름)</label>
+                    <input type="text" id="loginUsername" name="loginUsername" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="loginPassword" class="block text-sm font-medium text-gray-700">비밀번호 (핸드폰 뒷자리)</label>
+                    <input type="password" id="loginPassword" name="loginPassword" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-all transform hover:scale-105">
+                    로그인
                 </button>
-            </div>
-        </header>
-
-        <!-- Tab Content -->
-        <div id="calendarView" class="tab-content">
-            <div id="calendar" class="calendar-container"></div>
+            </form>
         </div>
-        <div id="statusView" class="tab-content hidden">
-            <div class="flex justify-end mb-4">
-                <button id="downloadExcelBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full shadow-lg transition-all transform hover:scale-105">
-                    엑셀 다운로드
-                </button>
+    </div>
+
+    <!-- Main App Content (Initially hidden) -->
+    <div id="mainApp" class="hidden">
+        <div class="bg-white rounded-3xl shadow-lg p-6 md:p-12 max-w-7xl mx-auto">
+            <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900">골프 예약 시스템</h1>
+                <div class="flex items-center space-x-4">
+                    <button id="calendarTabBtn" class="tab-button bg-lime-500 text-white shadow-md">캘린더</button>
+                    <button id="statusTabBtn" class="tab-button bg-gray-200 text-gray-700 hover:bg-gray-300">현황</button>
+                    <button id="openModalBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-all transform hover:scale-105">
+                        + 신청
+                    </button>
+                    <button id="logoutBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-6 rounded-full shadow-lg transition-all transform hover:scale-105">
+                        로그아웃
+                    </button>
+                </div>
+            </header>
+
+            <!-- Tab Content -->
+            <div id="calendarView" class="tab-content">
+                <div id="calendar" class="calendar-container"></div>
             </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full bg-white rounded-lg shadow-sm">
-                    <thead>
-                        <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                            <th class="py-3 px-6 text-left">골프장</th>
-                            <th class="py-3 px-6 text-left">이용자</th>
-                            <th class="py-3 px-6 text-left">이용일자</th>
-                            <th class="py-3 px-6 text-left">팀수</th>
-                            <th class="py-3 px-6 text-left">시간</th>
-                            <th class="py-3 px-6 text-left">현황</th>
-                            <th class="py-3 px-6 text-left">비고</th>
-                        </tr>
-                    </thead>
-                    <tbody id="statusTableBody" class="text-gray-600 text-sm font-light">
-                    </tbody>
-                </table>
+            <div id="statusView" class="tab-content hidden">
+                <div id="excelUploadContainer" class="flex justify-end mb-4 hidden">
+                    <button id="downloadExcelBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full shadow-lg transition-all transform hover:scale-105 mr-2">
+                        엑셀 다운로드
+                    </button>
+                    <button id="uploadExcelBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full shadow-lg transition-all transform hover:scale-105">
+                        엑셀 업로드
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white rounded-lg shadow-sm">
+                        <thead>
+                            <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                                <th class="py-3 px-6 text-left">골프장</th>
+                                <th class="py-3 px-6 text-left">이용자</th>
+                                <th class="py-3 px-6 text-left">이용일자</th>
+                                <th class="py-3 px-6 text-left">팀수</th>
+                                <th class="py-3 px-6 text-left">시간</th>
+                                <th class="py-3 px-6 text-left">현황</th>
+                                <th class="py-3 px-6 text-left">비고</th>
+                            </tr>
+                        </thead>
+                        <tbody id="statusTableBody" class="text-gray-600 text-sm font-light">
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -143,18 +176,18 @@
             <h2 class="text-2xl font-bold mb-6 text-gray-800">예약 신청</h2>
             <form id="bookingForm" class="space-y-4">
                 <div>
-                    <label for="golfCourse" class="block text-sm font-medium text-gray-700">골프장</label>
-                    <select id="golfCourse" name="golfCourse" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        <option value="">골프장 선택</option>
-                    </select>
-                </div>
-                <div>
                     <label for="userName" class="block text-sm font-medium text-gray-700">이용자</label>
                     <input type="text" id="userName" name="userName" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                 </div>
                 <div>
                     <label for="bookingDate" class="block text-sm font-medium text-gray-700">이용일자</label>
                     <input type="date" id="bookingDate" name="bookingDate" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="golfCourse" class="block text-sm font-medium text-gray-700">골프장</label>
+                    <select id="golfCourse" name="golfCourse" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">골프장 선택</option>
+                    </select>
                 </div>
                 <div>
                     <label for="numberOfTeams" class="block text-sm font-medium text-gray-700">팀수</label>
@@ -180,10 +213,86 @@
         </div>
     </div>
 
+    <!-- Excel Upload Modal (Popup) -->
+    <div id="uploadModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">엑셀 파일 업로드</h2>
+            <form id="uploadForm" class="space-y-4">
+                <div>
+                    <label for="excelFile" class="block text-sm font-medium text-gray-700">파일 선택 (.csv)</label>
+                    <input type="file" id="excelFile" name="excelFile" accept=".csv" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="flex justify-end space-x-4 pt-4">
+                    <button type="button" id="closeUploadModalBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-6 rounded-full transition-colors">취소</button>
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full transition-colors">업로드</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
     <script>
         // Use a simple array to store booking data.
         // In a real application, this would be handled by a database.
         let bookings = [];
+
+        // Simple user database for demonstration purposes
+        const users = [
+            { name: "강경민", phone: "5193" },
+            { name: "강민희", phone: "5307" },
+            { name: "권승수", phone: "9260" },
+            { name: "김기홍", phone: "2241" },
+            { name: "김동훈", phone: "0008" },
+            { name: "김성현", phone: "3258" },
+            { name: "김종배", phone: "7034" },
+            { name: "김준동", phone: "6150" },
+            { name: "김준식", phone: "5341" },
+            { name: "김태상", phone: "9295" },
+            { name: "나윤균", phone: "1734" },
+            { name: "문성훈", phone: "0011" },
+            { name: "박영우", phone: "6038" },
+            { name: "박진화", phone: "2717" },
+            { name: "박한수", phone: "3648" },
+            { name: "성지영", phone: "0286" },
+            { name: "손명기", phone: "4873" },
+            { name: "송명근", phone: "6063" },
+            { name: "신윤종", phone: "1755" },
+            { name: "신용섭", phone: "0916" },
+            { name: "양영진", phone: "4945" },
+            { name: "오세관", phone: "5382" },
+            { name: "옥혜은", phone: "8654" },
+            { name: "오실장", phone: "3208" },
+            { name: "최진실", phone: "6964" },
+            { name: "윤준하", phone: "5534" },
+            { name: "윤명익", phone: "2999" },
+            { name: "이명주", phone: "0055" },
+            { name: "이동재", phone: "6186" },
+            { name: "이재문", phone: "8845" },
+            { name: "이진형", phone: "1215" },
+            { name: "이진원", phone: "7980" },
+            { name: "이진형A", phone: "7663" },
+            { name: "이진형B", phone: "5649" },
+            { name: "이창우", phone: "1202" },
+            { name: "인태교", phone: "2002" },
+            { name: "장준", phone: "1655" },
+            { name: "전우정", phone: "6133" },
+            { name: "정관식", phone: "4902" },
+            { name: "정수진", phone: "6507" },
+            { name: "정우국", phone: "4356" },
+            { name: "최신석", phone: "3051" },
+            { name: "최원종", phone: "3497" },
+            { name: "최원종", phone: "3339" },
+            { name: "한승희", phone: "7710" },
+            { name: "하지한", phone: "3365" },
+            { name: "허수진", phone: "2157" },
+            { name: "홍석표", phone: "6857" },
+            { name: "황형준", phone: "7700" },
+            { name: "신석중", phone: "1010" }
+        ];
+
+        
+        // State variables
+        let currentUser = null;
 
         // Hardcoded Korean public holidays for 2024 and 2025.
         // This is for demonstration purposes. In a real app, this data would likely come from an API.
@@ -209,6 +318,9 @@
         const allGolfCourses = ['레이크우드', '스카이밸리', '세라지오', '힐드로사이'];
         
         // DOM Elements
+        const loginScreen = document.getElementById('loginScreen');
+        const loginForm = document.getElementById('loginForm');
+        const mainApp = document.getElementById('mainApp');
         const calendarEl = document.getElementById('calendar');
         const statusTableBody = document.getElementById('statusTableBody');
         const openModalBtn = document.getElementById('openModalBtn');
@@ -220,12 +332,21 @@
         const calendarView = document.getElementById('calendarView');
         const statusView = document.getElementById('statusView');
         const downloadExcelBtn = document.getElementById('downloadExcelBtn');
+        const uploadExcelBtn = document.getElementById('uploadExcelBtn');
+        const excelUploadContainer = document.getElementById('excelUploadContainer');
+        const uploadModal = document.getElementById('uploadModal');
+        const closeUploadModalBtn = document.getElementById('closeUploadModalBtn');
+        const uploadForm = document.getElementById('uploadForm');
+        const excelFile = document.getElementById('excelFile');
         const golfCourseSelect = document.getElementById('golfCourse');
         const bookingDateInput = document.getElementById('bookingDate');
         const userNameInput = document.getElementById('userName');
+        const logoutBtn = document.getElementById('logoutBtn');
 
         // Initial setup to display the current date and generate the calendar
         const today = new Date();
+        const endYear = 2025;
+        const endMonth = 11; // December is month 11
 
         // Helper function to get the week type (weekday/weekend) for a given date
         function getWeekType(dateString) {
@@ -289,7 +410,7 @@
             });
         }
         
-        // Function to render the 12-month calendar
+        // Function to render the calendar
         function renderCalendar() {
             calendarEl.innerHTML = '';
             const bookingMap = new Map();
@@ -301,30 +422,69 @@
                 bookingMap.get(dateKey).push(booking.golfCourse);
             });
 
-            for (let i = 0; i < 12; i++) {
-                const monthDate = new Date(today.getFullYear(), today.getMonth() + i, 1);
-                const month = monthDate.getMonth();
-                const year = monthDate.getFullYear();
-                const firstDay = monthDate.getDay();
+            const renderEndDate = new Date(endYear, endMonth, 1);
+            let currentDate = new Date(today.getFullYear(), today.getMonth(), 1);
+
+            while (currentDate <= renderEndDate) {
+                const month = currentDate.getMonth();
+                const year = currentDate.getFullYear();
+                const firstDay = currentDate.getDay();
                 const daysInMonth = new Date(year, month + 1, 0).getDate();
 
                 const monthContainer = document.createElement('div');
                 monthContainer.className = 'calendar-month';
-                monthContainer.innerHTML = `
-                    <div class="text-xl font-bold text-center mb-4 text-gray-800">${year}년 ${month + 1}월</div>
-                    <div class="day-grid mb-2 text-sm">
-                        <span class="day-name text-red-500">일</span>
-                        <span class="day-name">월</span>
-                        <span class="day-name">화</span>
-                        <span class="day-name">수</span>
-                        <span class="day-name">목</span>
-                        <span class="day-name">금</span>
-                        <span class="day-name text-blue-500">토</span>
-                    </div>
-                    <div class="day-grid"></div>
-                `;
+                
+                const monthHeading = document.createElement('div');
+                monthHeading.className = 'text-xl font-bold text-center mb-4 text-gray-800';
+                monthHeading.textContent = `${year}년 ${month + 1}월`;
+                monthContainer.appendChild(monthHeading);
 
-                const dayGrid = monthContainer.querySelector('.day-grid:last-child');
+                const monthStartStr = `${year}-${String(month + 1).padStart(2, '0')}`;
+                
+                const monthlyCounts = {};
+                allGolfCourses.forEach(course => monthlyCounts[course] = { weekday: 0, weekend: 0 });
+
+                bookings.forEach(booking => {
+                    if (booking.bookingDate.startsWith(monthStartStr)) {
+                        const weekType = getWeekType(booking.bookingDate);
+                        monthlyCounts[booking.golfCourse][weekType]++;
+                    }
+                });
+
+                const exhaustedCourses = allGolfCourses.filter(course => {
+                    const weekdayRemaining = bookingLimits[course].weekday - monthlyCounts[course].weekday;
+                    const weekendRemaining = bookingLimits[course].weekend - monthlyCounts[course].weekend;
+                    // Check if both weekday and weekend limits are exhausted
+                    return (weekdayRemaining <= 0) && (weekendRemaining <= 0);
+                });
+
+                if (exhaustedCourses.length > 0) {
+                    const exhaustedInfoContainer = document.createElement('div');
+                    exhaustedInfoContainer.className = 'mt-4 text-sm text-center font-bold text-red-500';
+                    exhaustedInfoContainer.innerHTML = exhaustedCourses.map(course => `${course} 횟수 소진`).join(', ');
+                    monthContainer.appendChild(exhaustedInfoContainer);
+
+                    const separator = document.createElement('hr');
+                    separator.className = 'my-4 border-gray-200';
+                    monthContainer.appendChild(separator);
+                }
+
+                const dayGridHeader = document.createElement('div');
+                dayGridHeader.className = 'day-grid mb-2 text-sm';
+                dayGridHeader.innerHTML = `
+                    <span class="day-name text-red-500">일</span>
+                    <span class="day-name">월</span>
+                    <span class="day-name">화</span>
+                    <span class="day-name">수</span>
+                    <span class="day-name">목</span>
+                    <span class="day-name">금</span>
+                    <span class="day-name text-blue-500">토</span>
+                `;
+                monthContainer.appendChild(dayGridHeader);
+
+                const dayGrid = document.createElement('div');
+                dayGrid.className = 'day-grid';
+                monthContainer.appendChild(dayGrid);
                 
                 // Add blank cells for the first days of the week
                 for (let j = 0; j < firstDay; j++) {
@@ -369,20 +529,33 @@
                 }
 
                 calendarEl.appendChild(monthContainer);
+
+                // Move to the next month
+                currentDate.setMonth(currentDate.getMonth() + 1);
             }
         }
 
         // Function to render the status list
         function renderStatus() {
             statusTableBody.innerHTML = '';
-            if (bookings.length === 0) {
+            
+            // Filter bookings based on current user
+            let filteredBookings = bookings;
+            if (currentUser && currentUser.name !== '신석중') {
+                filteredBookings = bookings.filter(booking => booking.userName === currentUser.name);
+                excelUploadContainer.classList.add('hidden');
+            } else {
+                excelUploadContainer.classList.remove('hidden');
+            }
+
+            if (filteredBookings.length === 0) {
                 statusTableBody.innerHTML = `
                     <tr>
                         <td colspan="7" class="py-6 text-center text-gray-500">예약 기록이 없습니다.</td>
                     </tr>
                 `;
             } else {
-                bookings.forEach(booking => {
+                filteredBookings.forEach(booking => {
                     const row = document.createElement('tr');
                     row.className = 'border-b border-gray-200 hover:bg-gray-100 transition-colors';
                     row.innerHTML = `
@@ -428,34 +601,47 @@
             document.body.removeChild(link);
         }
 
-        // Event Listeners
-        openModalBtn.addEventListener('click', () => {
-            bookingModal.style.display = 'flex';
-            // Initially, update dropdown with all options since no date is selected yet
-            updateGolfCourseDropdown();
+        // --- Event Listeners ---
+        
+        // Login Form Submission
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            
+            const user = users.find(u => u.name === username && u.phone === password);
+            
+            if (user) {
+                currentUser = user;
+                loginScreen.classList.add('hidden');
+                mainApp.classList.remove('hidden');
+                renderCalendar();
+                renderStatus();
+            } else {
+                alert('아이디 또는 비밀번호가 올바르지 않습니다.');
+            }
+        });
+        
+        // Logout Button
+        logoutBtn.addEventListener('click', () => {
+            currentUser = null;
+            loginScreen.classList.remove('hidden');
+            mainApp.classList.add('hidden');
+            loginForm.reset();
         });
 
-        closeModalBtn.addEventListener('click', () => {
-            bookingModal.style.display = 'none';
-            bookingForm.reset();
-        });
-
-        // Add event listener to dynamically update dropdown based on date selection
-        bookingDateInput.addEventListener('change', updateGolfCourseDropdown);
-        userNameInput.addEventListener('input', updateGolfCourseDropdown);
-
-
+        // Booking Form Submission
         bookingForm.addEventListener('submit', (e) => {
             e.preventDefault();
             
             const selectedDate = bookingDateInput.value;
             const selectedGolfCourse = golfCourseSelect.value;
+            const selectedUserName = userNameInput.value.trim();
 
             // Daily golf course limit check (one booking per day per golf course)
             const isCourseBookedOnDate = bookings.some(booking => 
                 booking.golfCourse === selectedGolfCourse && booking.bookingDate === selectedDate
             );
-
             if (isCourseBookedOnDate) {
                 alert('선택한 골프장은 해당 날짜에 이미 예약이 존재합니다.');
                 return;
@@ -463,7 +649,7 @@
 
             const newBooking = {
                 golfCourse: selectedGolfCourse,
-                userName: document.getElementById('userName').value.trim(),
+                userName: selectedUserName,
                 bookingDate: selectedDate,
                 numberOfTeams: document.getElementById('numberOfTeams').value,
                 bookingTime: document.getElementById('bookingTime').value,
@@ -481,6 +667,22 @@
             bookingModal.style.display = 'none';
             bookingForm.reset();
         });
+
+        openModalBtn.addEventListener('click', () => {
+            bookingModal.style.display = 'flex';
+            // Initially, update dropdown with all options since no date is selected yet
+            updateGolfCourseDropdown();
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            bookingModal.style.display = 'none';
+            bookingForm.reset();
+        });
+
+        // Add event listener to dynamically update dropdown based on date selection
+        bookingDateInput.addEventListener('change', updateGolfCourseDropdown);
+        userNameInput.addEventListener('input', updateGolfCourseDropdown);
+
 
         calendarTabBtn.addEventListener('click', () => {
             calendarView.classList.remove('hidden');
@@ -503,9 +705,50 @@
         // Event listener for the new "Download Excel" button
         downloadExcelBtn.addEventListener('click', downloadExcel);
 
-        // Initial rendering
-        renderCalendar();
-        renderStatus();
+        // --- Excel Upload Functionality ---
+        uploadExcelBtn.addEventListener('click', () => {
+            uploadModal.style.display = 'flex';
+        });
+
+        closeUploadModalBtn.addEventListener('click', () => {
+            uploadModal.style.display = 'none';
+            uploadForm.reset();
+        });
+
+        uploadForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const file = excelFile.files[0];
+            if (!file) {
+                alert('파일을 선택해 주세요.');
+                return;
+            }
+            
+            // Use PapaParse library to parse the CSV file
+            Papa.parse(file, {
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    const newBookings = results.data.map(row => ({
+                        golfCourse: row['골프장'],
+                        userName: row['이용자'],
+                        bookingDate: row['이용일자'],
+                        numberOfTeams: row['팀수'],
+                        bookingTime: row['시간'],
+                        bookingStatus: row['현황'],
+                        notes: row['비고']
+                    }));
+                    bookings = bookings.concat(newBookings);
+                    
+                    alert('파일 업로드가 완료되었습니다.');
+                    uploadModal.style.display = 'none';
+                    uploadForm.reset();
+                    
+                    renderCalendar();
+                    renderStatus();
+                }
+            });
+        });
+
     </script>
 
 </body>
