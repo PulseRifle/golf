@@ -237,7 +237,7 @@
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
     <script>
         // 여기에 복사한 Apps Script URL을 붙여넣으세요
-        const SCRIPT_URL = '';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwjx3plYZX2-EMMVXYBOscQDlgKB1oS0gZCHtQdbxuWqWbg-UbzzL_zwoaIg1nPoJHg/exec';
 
         // Simple user database for demonstration purposes
         const users = [
@@ -352,17 +352,19 @@
         // Fetch bookings from Google Sheets
         async function fetchBookings() {
             if (!SCRIPT_URL) {
-                // If SCRIPT_URL is not set, use local mock data
                 console.warn('Apps Script URL이 설정되지 않았습니다. 로컬 데이터를 사용합니다.');
                 return;
             }
             try {
                 const response = await fetch(`${SCRIPT_URL}?action=read`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const data = await response.json();
                 bookings = data;
             } catch (error) {
                 console.error('Error fetching bookings:', error);
-                alert('예약 데이터를 불러오는 데 실패했습니다.');
+                alert('예약 데이터를 불러오는 데 실패했습니다. Apps Script URL을 확인해주세요.');
             }
         }
 
@@ -581,23 +583,34 @@
         
         // Function to add booking to Google Sheets
         async function addBooking(bookingData) {
+            if (!SCRIPT_URL) {
+                alert('Apps Script URL이 설정되지 않았습니다.');
+                return;
+            }
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
-                    cache: 'no-cache',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'add', booking: bookingData })
                 });
-                console.log('Booking added successfully.');
+                const result = await response.json();
+                if (result.status === 'success') {
+                    console.log('Booking added successfully.');
+                } else {
+                    throw new Error(result.message);
+                }
             } catch (error) {
                 console.error('Error adding booking:', error);
-                alert('예약 저장에 실패했습니다.');
+                alert(`예약 저장에 실패했습니다: ${error.message}. Apps Script URL을 확인해주세요.`);
             }
         }
 
         // Function to delete selected bookings from Google Sheets
         async function deleteSelectedBookings() {
+            if (!SCRIPT_URL) {
+                alert('Apps Script URL이 설정되지 않았습니다.');
+                return;
+            }
             const checkboxes = document.querySelectorAll('#statusTableBody input[type="checkbox"]:checked');
             if (checkboxes.length === 0) {
                 alert('삭제할 항목을 선택해 주세요.');
@@ -608,19 +621,21 @@
             const bookingsToDelete = indicesToDelete.map(index => bookings[index]);
 
             try {
-                // Now, send a request to Apps Script to delete these bookings.
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
-                    cache: 'no-cache',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'delete', bookings: bookingsToDelete })
                 });
-                await initializeApp();
-                alert('선택한 항목이 삭제되었습니다.');
+                const result = await response.json();
+                if (result.status === 'success') {
+                    await initializeApp();
+                    alert('선택한 항목이 삭제되었습니다.');
+                } else {
+                    throw new Error(result.message);
+                }
             } catch (error) {
                 console.error('Error deleting bookings:', error);
-                alert('선택한 항목 삭제에 실패했습니다.');
+                alert(`선택한 항목 삭제에 실패했습니다: ${error.message}. Apps Script URL과 배포 설정을 확인해주세요.`);
             }
         }
 
@@ -752,33 +767,50 @@
             const file = excelFile.files[0];
             if (!file) { alert('파일을 선택해 주세요.'); return; }
             
-            Papa.parse(file, {
-                header: true,
-                skipEmptyLines: true,
-                complete: async function(results) {
-                    const newBookings = results.data.map(row => ({
-                        golfCourse: row['골프장'],
-                        userName: row['이용자'],
-                        bookingDate: row['이용일자'],
-                        numberOfTeams: row['팀수'],
-                        bookingTime: row['시간'],
-                        bookingStatus: row['현황'],
-                        notes: row['비고']
-                    }));
-                    
-                    try {
-                        for (const booking of newBookings) {
-                            await addBooking(booking);
+            const reader = new FileReader();
+            reader.onload = async function(event) {
+                const csvData = event.target.result;
+                Papa.parse(csvData, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: async function(results) {
+                        const newBookings = results.data.map(row => ({
+                            golfCourse: row['골프장'],
+                            userName: row['이용자'],
+                            bookingDate: row['이용일자'],
+                            numberOfTeams: row['팀수'],
+                            bookingTime: row['시간'],
+                            bookingStatus: row['현황'],
+                            notes: row['비고']
+                        }));
+                        
+                        if (newBookings.length > 0) {
+                            try {
+                                const response = await fetch(SCRIPT_URL, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ action: 'addMultiple', bookings: newBookings })
+                                });
+                                const result = await response.json();
+                                if (result.status === 'success') {
+                                    alert('파일 업로드가 완료되었습니다.');
+                                    uploadModal.style.display = 'none';
+                                    uploadForm.reset();
+                                    await initializeApp();
+                                } else {
+                                    throw new Error(result.message);
+                                }
+                            } catch (error) {
+                                console.error('Error adding multiple bookings:', error);
+                                alert(`파일 업로드에 실패했습니다: ${error.message}. Apps Script URL을 확인해주세요.`);
+                            }
+                        } else {
+                            alert('업로드할 데이터가 없습니다.');
                         }
-                        alert('파일 업로드가 완료되었습니다.');
-                        uploadModal.style.display = 'none';
-                        uploadForm.reset();
-                        await initializeApp();
-                    } catch (error) {
-                        alert('파일 업로드에 실패했습니다.');
                     }
-                }
-            });
+                });
+            };
+            reader.readAsText(file);
         });
 
         deleteSelectedBtn.addEventListener('click', deleteSelectedBookings);
