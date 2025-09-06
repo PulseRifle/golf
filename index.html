@@ -365,11 +365,11 @@
         const nextMonthBtn = document.getElementById('nextMonthBtn');
         const currentMonthDisplay = document.getElementById('currentMonthDisplay');
 
-        // --- NEW: Loader Functions ---
+        // --- Loader Functions ---
         function showLoader() { loader.classList.remove('hidden'); }
         function hideLoader() { loader.classList.add('hidden'); }
 
-        // Fetch bookings from Google Sheets
+        // --- UPDATED: Fetch bookings from Google Sheets using POST and removing explicit header ---
         async function fetchBookings() {
             if (!SCRIPT_URL) {
                 console.warn('Apps Script URL이 설정되지 않았습니다.');
@@ -377,14 +377,16 @@
             }
             showLoader();
             try {
-                const response = await fetch(`${SCRIPT_URL}?action=read`);
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'read' })
+                });
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const data = await response.json();
-                // Filter out any bookings from the sheet that are missing a date to prevent errors
                 bookings = data.filter(booking => booking && booking.bookingDate);
             } catch (error) {
                 console.error('Error fetching bookings:', error);
-                alert('예약 데이터를 불러오는 데 실패했습니다. Apps Script URL을 확인해주세요.');
+                alert('예약 데이터를 불러오는 데 실패했습니다. Apps Script 배포 설정을 확인해주세요.');
             } finally {
                 hideLoader();
             }
@@ -565,8 +567,7 @@
                 statusTableBody.innerHTML = `<tr><td colspan="8" class="py-6 text-center text-gray-500">예약 기록이 없습니다.</td></tr>`;
             } else {
                 filteredBookings.forEach((booking, index) => {
-                    // For admin, use the global index. For users, use the filtered index.
-                    const originalIndex = userIsAdmin ? index : bookings.findIndex(b => b === booking);
+                    const originalIndex = bookings.findIndex(b => b === booking);
                     const row = document.createElement('tr');
                     row.className = 'border-b border-gray-200 hover:bg-gray-100 transition-colors';
                     row.innerHTML = `
@@ -586,21 +587,23 @@
             }
         }
         
-        // Function to add booking to Google Sheets
+        // --- UPDATED: All Sheet interactions now use POST and handle responses ---
         async function addBooking(bookingData) {
             if (!SCRIPT_URL) { alert('Apps Script URL이 설정되지 않았습니다.'); return; }
             showLoader();
             try {
                 const response = await fetch(SCRIPT_URL, {
-                    method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+                    method: 'POST',
                     body: JSON.stringify({ action: 'add', booking: bookingData })
                 });
-                // Since mode is 'no-cors', we can't read the response. We assume success.
-                console.log('Booking added successfully (assumed).');
-                await initializeApp();
-                bookingModal.style.display = 'none';
-                bookingForm.reset();
-
+                const result = await response.json();
+                if (result.status === 'success') {
+                    await initializeApp();
+                    bookingModal.style.display = 'none';
+                    bookingForm.reset();
+                } else {
+                    throw new Error(result.message || 'Unknown error');
+                }
             } catch (error) {
                 console.error('Error adding booking:', error);
                 alert(`예약 저장에 실패했습니다: ${error.message}.`);
@@ -608,8 +611,7 @@
                 hideLoader();
             }
         }
-
-        // Function to delete selected bookings from Google Sheets
+        
         async function deleteSelectedBookings() {
             if (!SCRIPT_URL) { alert('Apps Script URL이 설정되지 않았습니다.'); return; }
             const checkboxes = document.querySelectorAll('#statusTableBody input[type="checkbox"]:checked');
@@ -621,11 +623,16 @@
             showLoader();
             try {
                 const response = await fetch(SCRIPT_URL, {
-                    method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+                    method: 'POST',
                     body: JSON.stringify({ action: 'delete', bookings: bookingsToDelete })
                 });
-                alert('선택한 항목 삭제 요청을 보냈습니다. 잠시 후 새로고침 됩니다.');
-                await initializeApp();
+                const result = await response.json();
+                if (result.status === 'success') {
+                    alert('선택한 항목이 삭제되었습니다.');
+                    await initializeApp();
+                } else {
+                    throw new Error(result.message || 'Unknown error');
+                }
             } catch (error) {
                 console.error('Error deleting bookings:', error);
                 alert(`삭제에 실패했습니다: ${error.message}.`);
@@ -754,14 +761,19 @@
                     
                     if (newBookings.length > 0) {
                         try {
-                            await fetch(SCRIPT_URL, {
-                                method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+                             const response = await fetch(SCRIPT_URL, {
+                                method: 'POST',
                                 body: JSON.stringify({ action: 'addMultiple', bookings: newBookings })
                             });
-                            alert('파일 업로드 요청을 보냈습니다. 잠시 후 새로고침 됩니다.');
-                            uploadModal.style.display = 'none';
-                            uploadForm.reset();
-                            await initializeApp();
+                            const result = await response.json();
+                            if(result.status === 'success') {
+                                alert('파일 업로드가 완료되었습니다.');
+                                uploadModal.style.display = 'none';
+                                uploadForm.reset();
+                                await initializeApp();
+                            } else {
+                                throw new Error(result.message || 'Unknown error');
+                            }
                         } catch (error) {
                             console.error('Error adding multiple bookings:', error);
                             alert(`파일 업로드에 실패했습니다: ${error.message}.`);
