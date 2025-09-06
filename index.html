@@ -7,7 +7,7 @@
     <!-- Tailwind CSS: 스타일링을 위한 라이브러리 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- PapaParse: CSV 파일 처리를 위한 라이브러리 -->
-    <script src="https://cdn.jsdelivr.net/npm/paparse@5.3.0/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -142,15 +142,14 @@
             { name: "권승수", phone: "9260" }, { name: "김기홍", phone: "2241" }, { name: "김동훈", phone: "0008" }, { name: "김성현", phone: "3258" },
         ];
         
-        const CALENDAR_GOLF_COURSES = ['레이크우드', '세라지오', '스카이밸리', '힐드로사이'];
+        const CALENDAR_GOLF_COURSES = ['레이크우드', '스카이밸리', '세라지오', '힐드로사이'];
         const MODAL_GOLF_COURSES = ['레이크우드', '스카이밸리', '세라지오', '힐드로사이'];
 
-        // [수정됨] 골프장별 색상 설정
         const GOLF_COURSE_COLORS = {
             '레이크우드': 'text-black',
             '스카이밸리': 'text-blue-600',
-            '세라지오': 'text-yellow-700',
-            '힐드로사이': 'text-amber-800'
+            '세라지오': 'text-green-600',
+            '힐드로사이': 'text-red-600'
         };
 
         const holidays = {
@@ -321,12 +320,15 @@
                     dayCell.className = 'day-cell p-1 rounded-md';
                     let bookingHtml = '';
                     if (bookingMap.has(dateStr)) {
-                        // [수정됨] 예약 있는 날 배경색 변경
-                        dayCell.classList.add('bg-gray-200');
-                        bookingMap.get(dateStr).forEach(course => { 
+                        dayCell.classList.add('bg-gray-100');
+                        
+                        // [수정됨] 예약건 정렬 로직 추가
+                        const coursesOnDate = Array.from(bookingMap.get(dateStr));
+                        coursesOnDate.sort((a, b) => CALENDAR_GOLF_COURSES.indexOf(a) - CALENDAR_GOLF_COURSES.indexOf(b));
+
+                        coursesOnDate.forEach(course => { 
                             const displayName = isMobile ? (courseAbbr[course] || course) : course;
                             const textColor = GOLF_COURSE_COLORS[course] || 'text-gray-800';
-                            // [수정됨] 골프장별 텍스트 색상 적용
                             bookingHtml += `<div class="booking-info ${textColor} font-semibold rounded px-1 truncate">${displayName}</div>`; 
                         });
                     }
