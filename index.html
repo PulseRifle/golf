@@ -11,31 +11,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
-        .calendar-container {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr); /* PC: 2개월씩 표시 */
-            gap: 24px;
-        }
-        @media (max-width: 768px) {
-            .calendar-container { grid-template-columns: 1fr; } /* 모바일: 1개월씩 표시 */
-        }
-        .day-cell {
-            min-height: 50px;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            align-items: center;
-        }
+        .calendar-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+        @media (max-width: 768px) { .calendar-container { grid-template-columns: 1fr; } }
+        .day-cell { min-height: 50px; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; }
         .booking-info { font-size: 10px; }
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: none; justify-content: center; align-items: center; z-index: 1000;
-        }
-        .modal-content {
-            background-color: white; padding: 32px; border-radius: 16px;
-            width: 90%; max-width: 480px;
-        }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background-color: white; padding: 32px; border-radius: 16px; width: 90%; max-width: 480px; }
     </style>
 </head>
 <body class="bg-gray-100 p-8 md:p-16">
@@ -52,9 +33,7 @@
                     <label for="loginPassword" class="block text-sm font-medium text-gray-700">비밀번호 (핸드폰 뒷자리)</label>
                     <input type="password" id="loginPassword" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500">
                 </div>
-                <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full shadow-lg">
-                    로그인
-                </button>
+                <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full shadow-lg">로그인</button>
             </form>
         </div>
     </div>
@@ -68,18 +47,13 @@
                     <button id="logoutBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-6 rounded-full shadow-lg">로그아웃</button>
                 </div>
             </header>
-
             <div class="mb-4 border-b border-gray-200">
                 <nav class="flex space-x-4" aria-label="Tabs">
                     <button id="calendarTabBtn" class="px-3 py-2 font-medium text-sm rounded-md text-white bg-lime-500">캘린더</button>
                     <button id="statusTabBtn" class="px-3 py-2 font-medium text-sm rounded-md text-gray-500 hover:text-gray-700">현황</button>
                 </nav>
             </div>
-
-            <div id="calendarView" class="tab-content">
-                <div id="calendar" class="calendar-container"></div>
-            </div>
-
+            <div id="calendarView" class="tab-content"><div id="calendar" class="calendar-container"></div></div>
             <div id="statusView" class="tab-content hidden">
                  <div id="adminControls" class="flex justify-end mb-4 gap-2 hidden">
                     <button id="downloadExcelBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full">엑셀 다운로드</button>
@@ -91,13 +65,13 @@
                         <thead class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
                             <tr>
                                 <th class="py-3 px-6 text-left">선택</th>
-                                <th class="py-3 px-6 text-left">골프장</th>
-                                <th class="py-3 px-6 text-left">이용자</th>
-                                <th class="py-3 px-6 text-left">이용일자</th>
-                                <th class="py-3 px-6 text-left">팀수</th>
-                                <th class="py-3 px-6 text-left">시간</th>
-                                <th class="py-3 px-6 text-left">현황</th>
-                                <th class="py-3 px-6 text-left">비고</th>
+                                <th class="py-3 px-6 text-left">Golf Course</th>
+                                <th class="py-3 px-6 text-left">Name</th>
+                                <th class="py-3 px-6 text-left">Date</th>
+                                <th class="py-3 px-6 text-left">Team</th>
+                                <th class="py-3 px-6 text-left">Time</th>
+                                <th class="py-3 px-6 text-left">Status</th>
+                                <th class="py-3 px-6 text-left">Comment</th>
                             </tr>
                         </thead>
                         <tbody id="statusTableBody" class="text-gray-600 text-sm font-light"></tbody>
@@ -111,35 +85,14 @@
         <div class="modal-content">
             <h2 id="modalTitle" class="text-2xl font-bold mb-6 text-gray-800">예약 신청</h2>
             <form id="bookingForm" class="space-y-4">
-                <input type="hidden" id="bookingId" name="bookingId">
-                <div>
-                    <label for="golfCourse" class="block text-sm font-medium text-gray-700">골프장</label>
-                    <input type="text" id="golfCourse" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-                </div>
-                <div>
-                    <label for="userName" class="block text-sm font-medium text-gray-700">이용자</label>
-                    <input type="text" id="userName" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-                </div>
-                <div>
-                    <label for="bookingDate" class="block text-sm font-medium text-gray-700">이용일자</label>
-                    <input type="date" id="bookingDate" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-                </div>
-                <div>
-                    <label for="numberOfTeams" class="block text-sm font-medium text-gray-700">팀수</label>
-                    <input type="number" id="numberOfTeams" min="1" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-                </div>
-                <div>
-                    <label for="bookingTime" class="block text-sm font-medium text-gray-700">시간</label>
-                    <input type="time" id="bookingTime" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-                </div>
-                 <div>
-                    <label for="bookingStatus" class="block text-sm font-medium text-gray-700">현황</label>
-                    <input type="text" id="bookingStatus" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-                </div>
-                <div>
-                    <label for="notes" class="block text-sm font-medium text-gray-700">비고</label>
-                    <input type="text" id="notes" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-                </div>
+                <input type="hidden" id="bookingId">
+                <div><label for="golfCourse" class="block text-sm font-medium text-gray-700">Golf Course</label><input type="text" id="golfCourse" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
+                <div><label for="userName" class="block text-sm font-medium text-gray-700">Name</label><input type="text" id="userName" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
+                <div><label for="bookingDate" class="block text-sm font-medium text-gray-700">Date</label><input type="date" id="bookingDate" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
+                <div><label for="numberOfTeams" class="block text-sm font-medium text-gray-700">Team</label><input type="number" id="numberOfTeams" min="1" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
+                <div><label for="bookingTime" class="block text-sm font-medium text-gray-700">Time</label><input type="time" id="bookingTime" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
+                <div><label for="bookingStatus" class="block text-sm font-medium text-gray-700">Status</label><input type="text" id="bookingStatus" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
+                <div><label for="notes" class="block text-sm font-medium text-gray-700">Comment</label><input type="text" id="notes" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
                 <div class="flex justify-end space-x-4 pt-4">
                     <button type="button" id="closeModalBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-6 rounded-full">취소</button>
                     <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full">저장</button>
@@ -161,49 +114,30 @@
         </div>
     </div>
 
-
     <script>
         // ##### 설정 #####
-        // [수정됨] 요청하신 새 URL로 교체되었습니다.
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbypANRQj0iVm0gxo9YA88LjcSEWMEPuzIwYvLaAqjmNGg5kyPV0yJ0rkTZcUeK8iXow/exec';
         
-        // 데모용 사용자 데이터 (이름, 핸드폰 뒷자리)
         const users = [
-            { name: "신석중", phone: "1010" }, // 관리자 계정
-            { name: "강경민", phone: "5193" }, { name: "강민희", phone: "5307" },
-            { name: "권승수", phone: "9260" }, { name: "김기홍", phone: "2241" },
-            { name: "김동훈", phone: "0008" }, { name: "김성현", phone: "3258" },
+            { name: "신석중", phone: "1010" }, { name: "강경민", phone: "5193" }, { name: "강민희", phone: "5307" },
+            { name: "권승수", phone: "9260" }, { name: "김기홍", phone: "2241" }, { name: "김동훈", phone: "0008" }, { name: "김성현", phone: "3258" },
         ];
 
-        // ##### 전역 변수 및 DOM 요소 #####
         let currentUser = null;
-        let bookings = []; // 구글 시트에서 가져온 예약 데이터 저장
+        let bookings = [];
         
-        const loginScreen = document.getElementById('loginScreen');
-        const mainApp = document.getElementById('mainApp');
-        const loginForm = document.getElementById('loginForm');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const calendarEl = document.getElementById('calendar');
-        const statusTableBody = document.getElementById('statusTableBody');
-        const openModalBtn = document.getElementById('openModalBtn');
-        const bookingModal = document.getElementById('bookingModal');
-        const closeModalBtn = document.getElementById('closeModalBtn');
-        const bookingForm = document.getElementById('bookingForm');
-        const calendarTabBtn = document.getElementById('calendarTabBtn');
-        const statusTabBtn = document.getElementById('statusTabBtn');
-        const calendarView = document.getElementById('calendarView');
-        const statusView = document.getElementById('statusView');
-        const adminControls = document.getElementById('adminControls');
-        const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
-        const downloadExcelBtn = document.getElementById('downloadExcelBtn');
-        const uploadExcelBtn = document.getElementById('uploadExcelBtn');
-        const uploadModal = document.getElementById('uploadModal');
-        const closeUploadModalBtn = document.getElementById('closeUploadModalBtn');
+        const loginScreen = document.getElementById('loginScreen'), mainApp = document.getElementById('mainApp');
+        const loginForm = document.getElementById('loginForm'), logoutBtn = document.getElementById('logoutBtn');
+        const calendarEl = document.getElementById('calendar'), statusTableBody = document.getElementById('statusTableBody');
+        const openModalBtn = document.getElementById('openModalBtn'), bookingModal = document.getElementById('bookingModal');
+        const closeModalBtn = document.getElementById('closeModalBtn'), bookingForm = document.getElementById('bookingForm');
+        const calendarTabBtn = document.getElementById('calendarTabBtn'), statusTabBtn = document.getElementById('statusTabBtn');
+        const calendarView = document.getElementById('calendarView'), statusView = document.getElementById('statusView');
+        const adminControls = document.getElementById('adminControls'), deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+        const downloadExcelBtn = document.getElementById('downloadExcelBtn'), uploadExcelBtn = document.getElementById('uploadExcelBtn');
+        const uploadModal = document.getElementById('uploadModal'), closeUploadModalBtn = document.getElementById('closeUploadModalBtn');
         const uploadForm = document.getElementById('uploadForm');
 
-        // ##### 핵심 기능 함수 #####
-
-        // 앱 초기화
         async function initializeApp() {
             if (!currentUser) return;
             showLoading(true);
@@ -213,80 +147,49 @@
             showLoading(false);
         }
 
-        // 로딩 화면 표시/숨기기
-        function showLoading(isLoading) {
-            document.body.style.cursor = isLoading ? 'wait' : 'default';
-        }
+        function showLoading(isLoading) { document.body.style.cursor = isLoading ? 'wait' : 'default'; }
 
-        // 구글 시트에서 예약 데이터 가져오기
         async function fetchBookings() {
             try {
                 const response = await fetch(`${SCRIPT_URL}?action=read`);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                const data = await response.json();
-                bookings = data; // 가져온 데이터 전역 변수에 저장
+                bookings = await response.json();
             } catch (error) {
                 console.error('Error fetching bookings:', error);
                 alert('데이터를 불러오는 데 실패했습니다.');
             }
         }
 
-        // 캘린더 렌더링
         function renderCalendar() {
             calendarEl.innerHTML = '';
             const bookingMap = new Map();
             bookings.forEach(booking => {
-                const dateKey = booking.bookingDate;
-                if (!bookingMap.has(dateKey)) {
-                    bookingMap.set(dateKey, []);
-                }
-                bookingMap.get(dateKey).push(booking.golfCourse);
+                const dateKey = booking['Date'];
+                if (!bookingMap.has(dateKey)) bookingMap.set(dateKey, []);
+                bookingMap.get(dateKey).push(booking['Golf Course']);
             });
-
-            const today = new Date();
-            let currentDate = new Date(today.getFullYear(), today.getMonth(), 1);
-
-            for(let i = 0; i < 12; i++) { // 현재 달부터 12개월 표시
-                const month = currentDate.getMonth();
-                const year = currentDate.getFullYear();
-                
+            let currentDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+            for(let i = 0; i < 12; i++) {
+                const year = currentDate.getFullYear(), month = currentDate.getMonth();
                 const monthContainer = document.createElement('div');
                 monthContainer.className = 'calendar-month bg-white p-6 rounded-lg shadow';
-                monthContainer.innerHTML = `
-                    <div class="text-xl font-bold text-center mb-4">${year}년 ${month + 1}월</div>
-                    <div class="grid grid-cols-7 gap-1 text-center text-sm font-semibold text-gray-600 mb-2">
-                        <div class="text-red-500">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="text-blue-500">토</div>
-                    </div>
-                `;
+                monthContainer.innerHTML = `<div class="text-xl font-bold text-center mb-4">${year}년 ${month + 1}월</div><div class="grid grid-cols-7 gap-1 text-center text-sm font-semibold text-gray-600 mb-2"><div class="text-red-500">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="text-blue-500">토</div></div>`;
                 const dayGrid = document.createElement('div');
                 dayGrid.className = 'grid grid-cols-7 gap-1 text-center';
-                
-                const firstDay = new Date(year, month, 1).getDay();
-                for (let j = 0; j < firstDay; j++) {
-                    dayGrid.innerHTML += '<div></div>';
-                }
-
+                for (let j = 0; j < new Date(year, month, 1).getDay(); j++) dayGrid.innerHTML += '<div></div>';
                 const daysInMonth = new Date(year, month + 1, 0).getDate();
                 for (let day = 1; day <= daysInMonth; day++) {
                     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                     const dayOfWeek = new Date(year, month, day).getDay();
-                    
-                    let dayColor = '';
-                    if (dayOfWeek === 0) dayColor = 'text-red-500';
-                    if (dayOfWeek === 6) dayColor = 'text-blue-500';
-
+                    let dayColor = (dayOfWeek === 0) ? 'text-red-500' : (dayOfWeek === 6) ? 'text-blue-500' : '';
                     const dayCell = document.createElement('div');
                     dayCell.className = 'day-cell p-1 rounded-md';
-                    
-                    const dayNumber = `<div class="day-number font-medium ${dayColor}">${day}</div>`;
                     let bookingHtml = '';
                     if (bookingMap.has(dateStr)) {
                         dayCell.classList.add('bg-lime-100');
-                        bookingMap.get(dateStr).forEach(course => {
-                            bookingHtml += `<div class="booking-info bg-lime-500 text-white rounded px-1 truncate">${course}</div>`;
-                        });
+                        bookingMap.get(dateStr).forEach(course => { bookingHtml += `<div class="booking-info bg-lime-500 text-white rounded px-1 truncate">${course}</div>`; });
                     }
-                    dayCell.innerHTML = dayNumber + bookingHtml;
+                    dayCell.innerHTML = `<div class="day-number font-medium ${dayColor}">${day}</div>` + bookingHtml;
                     dayGrid.appendChild(dayCell);
                 }
                 monthContainer.appendChild(dayGrid);
@@ -295,93 +198,68 @@
             }
         }
 
-        // 현황 테이블 렌더링
         function renderStatus() {
             statusTableBody.innerHTML = '';
             const isManager = currentUser && currentUser.name === '신석중';
             adminControls.classList.toggle('hidden', !isManager);
-
-            let filteredBookings = isManager ? bookings : bookings.filter(b => b.userName === currentUser.name);
-            
+            let filteredBookings = isManager ? bookings : bookings.filter(b => b['Name'] === currentUser.name);
             if (filteredBookings.length === 0) {
                  statusTableBody.innerHTML = `<tr><td colspan="8" class="text-center py-10">예약 내역이 없습니다.</td></tr>`;
                  return;
             }
-
             filteredBookings.forEach(booking => {
                 const row = document.createElement('tr');
                 row.className = 'border-b border-gray-200 hover:bg-gray-100';
-                row.innerHTML = `
-                    <td class="py-3 px-6"><input type="checkbox" class="booking-checkbox" data-id="${booking.id}"></td>
-                    <td class="py-3 px-6">${booking.golfCourse}</td>
-                    <td class="py-3 px-6">${booking.userName}</td>
-                    <td class="py-3 px-6">${booking.bookingDate}</td>
-                    <td class="py-3 px-6">${booking.numberOfTeams}</td>
-                    <td class="py-3 px-6">${booking.bookingTime || '-'}</td>
-                    <td class="py-3 px-6">${booking.bookingStatus || '-'}</td>
-                    <td class="py-3 px-6">${booking.notes || '-'}</td>
-                `;
-                 // 관리자이거나 본인 예약일 경우에만 수정 기능 추가
-                if (isManager || booking.userName === currentUser.name) {
+                row.innerHTML = `<td class="py-3 px-6"><input type="checkbox" class="booking-checkbox" data-id="${booking.id}"></td>
+                    <td class="py-3 px-6">${booking['Golf Course']}</td><td class="py-3 px-6">${booking['Name']}</td>
+                    <td class="py-3 px-6">${booking['Date']}</td><td class="py-3 px-6">${booking['Team']}</td>
+                    <td class="py-3 px-6">${booking['Time'] || '-'}</td><td class="py-3 px-6">${booking['Status'] || '-'}</td>
+                    <td class="py-3 px-6">${booking['Comment'] || '-'}</td>`;
+                if (isManager || booking['Name'] === currentUser.name) {
                     row.style.cursor = 'pointer';
-                    row.addEventListener('click', (e) => {
-                        if (e.target.type === 'checkbox') return; // 체크박스 클릭시에는 모달 안띄움
-                        openBookingModal(booking);
-                    });
+                    row.addEventListener('click', (e) => { if (e.target.type !== 'checkbox') openBookingModal(booking); });
                 }
                 statusTableBody.appendChild(row);
             });
         }
         
-        // 예약 추가/수정/삭제 요청
         async function postData(action, data) {
-             showLoading(true);
+            showLoading(true);
             try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action, ...data })
-                });
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action, ...data }) });
                 const result = await response.json();
                 if (result.status !== 'success') throw new Error(result.message);
                 alert(result.message);
-                await initializeApp(); // 성공 후 데이터 다시 로드
+                await initializeApp();
             } catch (error) {
                 console.error(`Error with action ${action}:`, error);
                 alert(`오류가 발생했습니다: ${error.message}`);
-            } finally {
-                showLoading(false);
-            }
+            } finally { showLoading(false); }
         }
 
-        // 예약 신청/수정 모달 열기
         function openBookingModal(booking = null) {
             bookingForm.reset();
-            if (booking) { // 수정 모드
+            if (booking) {
                 document.getElementById('modalTitle').textContent = '예약 수정';
                 document.getElementById('bookingId').value = booking.id;
-                document.getElementById('golfCourse').value = booking.golfCourse;
-                document.getElementById('userName').value = booking.userName;
-                document.getElementById('bookingDate').value = booking.bookingDate;
-                document.getElementById('numberOfTeams').value = booking.numberOfTeams;
-                document.getElementById('bookingTime').value = booking.bookingTime;
-                document.getElementById('bookingStatus').value = booking.bookingStatus;
-                document.getElementById('notes').value = booking.notes;
-            } else { // 신규 모드
+                document.getElementById('golfCourse').value = booking['Golf Course'];
+                document.getElementById('userName').value = booking['Name'];
+                document.getElementById('bookingDate').value = booking['Date'];
+                document.getElementById('numberOfTeams').value = booking['Team'];
+                document.getElementById('bookingTime').value = booking['Time'];
+                document.getElementById('bookingStatus').value = booking['Status'];
+                document.getElementById('notes').value = booking['Comment'];
+            } else {
                 document.getElementById('modalTitle').textContent = '예약 신청';
-                document.getElementById('userName').value = currentUser.name; // 기본값으로 현재 사용자 이름
+                document.getElementById('userName').value = currentUser.name;
             }
             bookingModal.style.display = 'flex';
         }
 
-        // 엑셀(CSV) 다운로드
         function downloadExcel() {
-            if (bookings.length === 0) {
-                alert('다운로드할 데이터가 없습니다.');
-                return;
-            }
-            const headers = ["id", "golfCourse", "userName", "bookingDate", "numberOfTeams", "bookingTime", "bookingStatus", "notes"];
+            if (bookings.length === 0) return alert('다운로드할 데이터가 없습니다.');
+            const headers = ["id", "Golf Course", "Name", "Date", "Team", "Time", "Status", "Comment"];
             const csv = Papa.unparse({ fields: headers, data: bookings });
-            
             const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
@@ -389,26 +267,19 @@
             link.click();
         }
 
-        // ##### 이벤트 리스너 #####
-
-        // 로그인
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('loginUsername').value;
             const password = document.getElementById('loginPassword').value;
             const user = users.find(u => u.name === username && u.phone === password);
-
             if (user) {
                 currentUser = user;
                 loginScreen.classList.add('hidden');
                 mainApp.classList.remove('hidden');
                 await initializeApp();
-            } else {
-                alert('아이디 또는 비밀번호가 일치하지 않습니다.');
-            }
+            } else { alert('아이디 또는 비밀번호가 일치하지 않습니다.'); }
         });
 
-        // 로그아웃
         logoutBtn.addEventListener('click', () => {
             currentUser = null;
             mainApp.classList.add('hidden');
@@ -416,78 +287,60 @@
             loginForm.reset();
         });
 
-        // 탭 전환
         calendarTabBtn.addEventListener('click', () => {
-            calendarView.classList.remove('hidden');
-            statusView.classList.add('hidden');
+            calendarView.classList.remove('hidden'); statusView.classList.add('hidden');
             calendarTabBtn.classList.add('bg-lime-500', 'text-white');
             statusTabBtn.classList.remove('bg-lime-500', 'text-white');
         });
-
         statusTabBtn.addEventListener('click', () => {
-            statusView.classList.remove('hidden');
-            calendarView.classList.add('hidden');
+            statusView.classList.remove('hidden'); calendarView.classList.add('hidden');
             statusTabBtn.classList.add('bg-lime-500', 'text-white');
             calendarTabBtn.classList.remove('bg-lime-500', 'text-white');
         });
         
-        // 모달 열기/닫기
         openModalBtn.addEventListener('click', () => openBookingModal());
         closeModalBtn.addEventListener('click', () => bookingModal.style.display = 'none');
         
-        // 예약 폼 제출 (추가/수정)
         bookingForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const bookingData = {
-                id: document.getElementById('bookingId').value,
-                golfCourse: document.getElementById('golfCourse').value,
-                userName: document.getElementById('userName').value,
-                bookingDate: document.getElementById('bookingDate').value,
-                numberOfTeams: document.getElementById('numberOfTeams').value,
-                bookingTime: document.getElementById('bookingTime').value,
-                bookingStatus: document.getElementById('bookingStatus').value,
-                notes: document.getElementById('notes').value
+                'id': document.getElementById('bookingId').value,
+                'Golf Course': document.getElementById('golfCourse').value,
+                'Name': document.getElementById('userName').value,
+                'Date': document.getElementById('bookingDate').value,
+                'Team': document.getElementById('numberOfTeams').value,
+                'Time': document.getElementById('bookingTime').value,
+                'Status': document.getElementById('bookingStatus').value,
+                'Comment': document.getElementById('notes').value
             };
-            const action = bookingData.id ? 'update' : 'add'; // ID가 있으면 수정, 없으면 추가
-            await postData(action, { booking: bookingData });
+            await postData(bookingData.id ? 'update' : 'add', { booking: bookingData });
             bookingModal.style.display = 'none';
         });
 
-        // 선택 삭제
         deleteSelectedBtn.addEventListener('click', async () => {
             const checkedBoxes = document.querySelectorAll('.booking-checkbox:checked');
-            if (checkedBoxes.length === 0) {
-                alert('삭제할 항목을 선택하세요.');
-                return;
-            }
+            if (checkedBoxes.length === 0) return alert('삭제할 항목을 선택하세요.');
             if (confirm(`선택한 ${checkedBoxes.length}개의 항목을 정말 삭제하시겠습니까?`)) {
                 const idsToDelete = Array.from(checkedBoxes).map(cb => cb.dataset.id);
                 await postData('delete', { ids: idsToDelete });
             }
         });
 
-        // 엑셀 업로드
         uploadExcelBtn.addEventListener('click', () => uploadModal.style.display = 'flex');
         closeUploadModalBtn.addEventListener('click', () => uploadModal.style.display = 'none');
         uploadForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const file = document.getElementById('excelFile').files[0];
-            if (!file) { alert('파일을 선택해주세요.'); return; }
-            
+            if (!file) return alert('파일을 선택해주세요.');
             Papa.parse(file, {
-                header: true,
-                skipEmptyLines: true,
+                header: true, skipEmptyLines: true,
                 complete: async (results) => {
                     await postData('addMultiple', { bookings: results.data });
                     uploadModal.style.display = 'none';
                 },
-                error: (err) => {
-                    alert('파일을 읽는 중 오류가 발생했습니다.');
-                    console.error(err);
-                }
+                error: (err) => { alert('파일을 읽는 중 오류가 발생했습니다.'); console.error(err); }
             });
         });
-
     </script>
 </body>
 </html>
