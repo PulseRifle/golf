@@ -164,11 +164,12 @@
 
     <script>
         // ##### 설정 #####
+        // [수정됨] 요청하신 새 URL로 교체되었습니다.
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbypANRQj0iVm0gxo9YA88LjcSEWMEPuzIwYvLaAqjmNGg5kyPV0yJ0rkTZcUeK8iXow/exec';
         
         // 데모용 사용자 데이터 (이름, 핸드폰 뒷자리)
         const users = [
-            { name: "관리자", phone: "0000" }, // 관리자 계정
+            { name: "신석중", phone: "1010" }, // 관리자 계정
             { name: "강경민", phone: "5193" }, { name: "강민희", phone: "5307" },
             { name: "권승수", phone: "9260" }, { name: "김기홍", phone: "2241" },
             { name: "김동훈", phone: "0008" }, { name: "김성현", phone: "3258" },
@@ -214,7 +215,6 @@
 
         // 로딩 화면 표시/숨기기
         function showLoading(isLoading) {
-            // 간단한 로딩 표시 (필요 시 더 정교하게 구현 가능)
             document.body.style.cursor = isLoading ? 'wait' : 'default';
         }
 
@@ -298,7 +298,7 @@
         // 현황 테이블 렌더링
         function renderStatus() {
             statusTableBody.innerHTML = '';
-            const isManager = currentUser && currentUser.name === '관리자';
+            const isManager = currentUser && currentUser.name === '신석중';
             adminControls.classList.toggle('hidden', !isManager);
 
             let filteredBookings = isManager ? bookings : bookings.filter(b => b.userName === currentUser.name);
