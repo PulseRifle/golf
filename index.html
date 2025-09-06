@@ -159,7 +159,11 @@
                     <label for="loginPassword" class="block text-sm font-medium text-gray-700">비밀번호 (핸드폰 뒷자리)</label>
                     <input type="password" id="loginPassword" name="loginPassword" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                 </div>
-                <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-all transform hover:scale-105">
+                <div class="flex items-center">
+                    <input id="rememberMe" name="rememberMe" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                    <label for="rememberMe" class="ml-2 block text-sm text-gray-900">로그인 정보 저장</label>
+                </div>
+                <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-all transform hover:scale-105 !mt-6">
                     로그인
                 </button>
             </form>
@@ -369,7 +373,7 @@
         function showLoader() { loader.classList.remove('hidden'); }
         function hideLoader() { loader.classList.add('hidden'); }
 
-        // --- UPDATED: Fetch bookings from Google Sheets using POST and removing explicit header ---
+        // --- UPDATED: Fetch bookings using GET for read action ---
         async function fetchBookings() {
             if (!SCRIPT_URL) {
                 console.warn('Apps Script URL이 설정되지 않았습니다.');
@@ -377,20 +381,36 @@
             }
             showLoader();
             try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'read' })
-                });
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                const data = await response.json();
-                bookings = data.filter(booking => booking && booking.bookingDate);
+                const readUrl = `${SCRIPT_URL}?action=read`;
+                const response = await fetch(readUrl);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const textResponse = await response.text();
+                let result;
+                try {
+                    result = JSON.parse(textResponse);
+                } catch (e) {
+                    console.error("Failed to parse JSON. Response was:", textResponse);
+                    throw new Error("Google Script가 올바른 데이터를 반환하지 않았습니다. 스크립트 배포 설정을 확인해주세요.");
+                }
+                
+                if (result && Array.isArray(result.data)) {
+                    bookings = result.data.filter(booking => booking && booking.bookingDate);
+                } else {
+                    console.error("Received data is not in the expected format (object with a data array):", result);
+                    bookings = []; 
+                }
             } catch (error) {
                 console.error('Error fetching bookings:', error);
-                alert('예약 데이터를 불러오는 데 실패했습니다. Apps Script 배포 설정을 확인해주세요.');
+                alert(`예약 데이터를 불러오는 데 실패했습니다: ${error.message}`);
             } finally {
                 hideLoader();
             }
         }
+
 
         // Helper function to get the week type (weekday/weekend) for a given date
         function getWeekType(dateString) {
@@ -587,14 +607,18 @@
             }
         }
         
-        // --- UPDATED: All Sheet interactions now use POST and handle responses ---
+        // --- All Sheet write interactions use FormData with POST ---
         async function addBooking(bookingData) {
             if (!SCRIPT_URL) { alert('Apps Script URL이 설정되지 않았습니다.'); return; }
             showLoader();
             try {
+                const formData = new FormData();
+                formData.append('action', 'add');
+                formData.append('booking', JSON.stringify(bookingData));
+
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ action: 'add', booking: bookingData })
+                    body: formData
                 });
                 const result = await response.json();
                 if (result.status === 'success') {
@@ -622,9 +646,13 @@
 
             showLoader();
             try {
+                const formData = new FormData();
+                formData.append('action', 'delete');
+                formData.append('bookings', JSON.stringify(bookingsToDelete));
+
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ action: 'delete', bookings: bookingsToDelete })
+                    body: formData
                 });
                 const result = await response.json();
                 if (result.status === 'success') {
@@ -659,10 +687,32 @@
 
         // --- Event Listeners ---
         
+        // Populate login fields on page load if "Remember Me" was checked
+        const rememberMeCheck = document.getElementById('rememberMe');
+        const loginUsernameInput = document.getElementById('loginUsername');
+        const loginPasswordInput = document.getElementById('loginPassword');
+        
+        if (localStorage.getItem('golfRememberMe') === 'true') {
+            loginUsernameInput.value = localStorage.getItem('golfUsername') || '';
+            loginPasswordInput.value = localStorage.getItem('golfPassword') || '';
+            rememberMeCheck.checked = true;
+        }
+
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const username = document.getElementById('loginUsername').value.trim();
-            const password = document.getElementById('loginPassword').value.trim();
+            const username = loginUsernameInput.value.trim();
+            const password = loginPasswordInput.value.trim();
+
+            if (rememberMeCheck.checked) {
+                localStorage.setItem('golfUsername', username);
+                localStorage.setItem('golfPassword', password);
+                localStorage.setItem('golfRememberMe', 'true');
+            } else {
+                localStorage.removeItem('golfUsername');
+                localStorage.removeItem('golfPassword');
+                localStorage.removeItem('golfRememberMe');
+            }
+            
             const user = users.find(u => u.name === username && u.phone === password);
             if (user) {
                 currentUser = user;
@@ -678,8 +728,9 @@
             currentUser = null;
             loginScreen.classList.remove('hidden');
             mainApp.classList.add('hidden');
-            loginForm.reset();
+            // Do not reset the form, so "Remember Me" fields stay populated
         });
+
 
         bookingForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -761,9 +812,13 @@
                     
                     if (newBookings.length > 0) {
                         try {
+                            const formData = new FormData();
+                            formData.append('action', 'addMultiple');
+                            formData.append('bookings', JSON.stringify(newBookings));
+
                              const response = await fetch(SCRIPT_URL, {
                                 method: 'POST',
-                                body: JSON.stringify({ action: 'addMultiple', bookings: newBookings })
+                                body: formData
                             });
                             const result = await response.json();
                             if(result.status === 'success') {
