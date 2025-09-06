@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>골프 예약 시스템</title>
+    <!-- Tailwind CSS: 스타일링을 위한 라이브러리 -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
+    <!-- PapaParse: CSV 파일 처리를 위한 라이브러리 -->
+    <script src="https://cdn.jsdelivr.net/npm/paparse@5.3.0/papaparse.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -21,6 +23,7 @@
 </head>
 <body class="bg-gray-100 p-8 md:p-16">
 
+    <!-- 로그인 화면 -->
     <div id="loginScreen" class="flex flex-col items-center justify-center min-h-screen">
         <div class="bg-white rounded-3xl shadow-lg p-8 w-full max-w-sm">
             <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">로그인</h2>
@@ -30,14 +33,23 @@
                     <input type="text" id="loginUsername" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500">
                 </div>
                 <div>
-                    <label for="loginPassword" class="block text-sm font-medium text-gray-700">비밀번호 (핸드폰 뒷자리)</label>
+                    <label for="loginPassword" class="block text-sm font-medium text-gray-700">비밀번호</label>
                     <input type="password" id="loginPassword" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500">
                 </div>
+                
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input id="rememberMe" name="remember-me" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <label for="rememberMe" class="ml-2 block text-sm text-gray-900">아이디 저장</label>
+                    </div>
+                </div>
+
                 <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full shadow-lg">로그인</button>
             </form>
         </div>
     </div>
 
+    <!-- 메인 앱 -->
     <div id="mainApp" class="hidden">
         <div class="bg-white rounded-3xl shadow-lg p-6 md:p-12 max-w-7xl mx-auto">
             <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
@@ -53,7 +65,10 @@
                     <button id="statusTabBtn" class="px-3 py-2 font-medium text-sm rounded-md text-gray-500 hover:text-gray-700">현황</button>
                 </nav>
             </div>
-            <div id="calendarView" class="tab-content"><div id="calendar" class="calendar-container"></div></div>
+            <div id="calendarView" class="tab-content">
+                <div id="golfCourseFilterContainer" class="mb-4 p-4 bg-gray-50 rounded-lg border"></div>
+                <div id="calendar" class="calendar-container"></div>
+            </div>
             <div id="statusView" class="tab-content hidden">
                  <div id="adminControls" class="flex justify-end mb-4 gap-2 hidden">
                     <button id="downloadExcelBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full">엑셀 다운로드</button>
@@ -81,14 +96,15 @@
         </div>
     </div>
 
+    <!-- 예약 신청/수정 모달 -->
     <div id="bookingModal" class="modal-overlay">
         <div class="modal-content">
             <h2 id="modalTitle" class="text-2xl font-bold mb-6 text-gray-800">예약 신청</h2>
             <form id="bookingForm" class="space-y-4">
                 <input type="hidden" id="bookingId">
-                <div><label for="golfCourse" class="block text-sm font-medium text-gray-700">Golf Course</label><input type="text" id="golfCourse" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
                 <div><label for="userName" class="block text-sm font-medium text-gray-700">Name</label><input type="text" id="userName" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
                 <div><label for="bookingDate" class="block text-sm font-medium text-gray-700">Date</label><input type="date" id="bookingDate" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
+                <div><label for="golfCourse" class="block text-sm font-medium text-gray-700">Golf Course</label><select id="golfCourse" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-white"></select></div>
                 <div><label for="numberOfTeams" class="block text-sm font-medium text-gray-700">Team</label><input type="number" id="numberOfTeams" min="1" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
                 <div><label for="bookingTime" class="block text-sm font-medium text-gray-700">Time</label><input type="time" id="bookingTime" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
                 <div><label for="bookingStatus" class="block text-sm font-medium text-gray-700">Status</label><input type="text" id="bookingStatus" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
@@ -101,6 +117,7 @@
         </div>
     </div>
 
+    <!-- 엑셀 업로드 모달 -->
     <div id="uploadModal" class="modal-overlay">
          <div class="modal-content">
             <h2 class="text-2xl font-bold mb-6">엑셀 파일 업로드</h2>
@@ -122,6 +139,24 @@
             { name: "신석중", phone: "1010" }, { name: "강경민", phone: "5193" }, { name: "강민희", phone: "5307" },
             { name: "권승수", phone: "9260" }, { name: "김기홍", phone: "2241" }, { name: "김동훈", phone: "0008" }, { name: "김성현", phone: "3258" },
         ];
+        
+        const CALENDAR_GOLF_COURSES = ['레이크우드', '세라지오', '스카이밸리', '힐드로사이'];
+        // [수정됨] 신청 팝업 드롭다운에 표시할 골프장 목록
+        const MODAL_GOLF_COURSES = ['레이크우드', '스카이밸리', '세라지오', '힐드로사이'];
+
+        const holidays = {
+            '2024-01-01': '신정', '2024-02-09': '설날', '2024-02-10': '설날', '2024-02-11': '설날',
+            '2024-02-12': '설날 대체공휴일', '2024-03-01': '삼일절', '2024-04-10': '국회의원 선거',
+            '2024-05-01': '근로자의 날', '2024-05-05': '어린이날', '2024-05-06': '어린이날 대체공휴일',
+            '2024-05-15': '부처님 오신 날', '2024-06-06': '현충일', '2024-08-15': '광복절',
+            '2024-09-16': '추석', '2024-09-17': '추석', '2024-09-18': '추석', '2024-10-03': '개천절',
+            '2024-10-09': '한글날', '2024-12-25': '크리스마스',
+            '2025-01-01': '신정', '2025-01-28': '설날', '2025-01-29': '설날', '2025-01-30': '설날',
+            '2025-03-01': '삼일절', '2025-05-01': '근로자의 날', '2025-05-05': '어린이날',
+            '2025-05-06': '부처님 오신 날', '2025-06-06': '현충일', '2025-08-15': '광복절',
+            '2025-10-03': '개천절', '2025-10-06': '추석', '2025-10-07': '추석', '2025-10-08': '추석',
+            '2025-10-09': '한글날', '2025-12-25': '크리스마스'
+        };
 
         let currentUser = null;
         let bookings = [];
@@ -137,11 +172,31 @@
         const downloadExcelBtn = document.getElementById('downloadExcelBtn'), uploadExcelBtn = document.getElementById('uploadExcelBtn');
         const uploadModal = document.getElementById('uploadModal'), closeUploadModalBtn = document.getElementById('closeUploadModalBtn');
         const uploadForm = document.getElementById('uploadForm');
+        const golfCourseFilterContainer = document.getElementById('golfCourseFilterContainer');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedUser = sessionStorage.getItem('golf_currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                loginScreen.classList.add('hidden');
+                mainApp.classList.remove('hidden');
+                initializeApp();
+            } else {
+                const savedUsername = localStorage.getItem('golf_username');
+                const savedPassword = localStorage.getItem('golf_password');
+                if (savedUsername && savedPassword) {
+                    document.getElementById('loginUsername').value = savedUsername;
+                    document.getElementById('loginPassword').value = savedPassword;
+                    document.getElementById('rememberMe').checked = true;
+                }
+            }
+        });
 
         async function initializeApp() {
             if (!currentUser) return;
             showLoading(true);
             await fetchBookings();
+            setupGolfCourseFilters();
             renderCalendar();
             renderStatus();
             showLoading(false);
@@ -159,21 +214,67 @@
                 alert('데이터를 불러오는 데 실패했습니다.');
             }
         }
+        
+        function setupGolfCourseFilters() {
+            if (golfCourseFilterContainer.childElementCount > 0) return;
+            let checkboxesHtml = '<h3 class="font-semibold text-gray-700 mb-2">골프장 필터</h3><div class="flex flex-wrap gap-x-4 gap-y-2">';
+            CALENDAR_GOLF_COURSES.forEach(course => {
+                checkboxesHtml += `<div class="flex items-center"><input id="filter-${course}" type="checkbox" value="${course}" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"><label for="filter-${course}" class="ml-2 text-sm text-gray-900">${course}</label></div>`;
+            });
+            checkboxesHtml += '</div>';
+            golfCourseFilterContainer.innerHTML = checkboxesHtml;
+            golfCourseFilterContainer.addEventListener('change', renderCalendar);
+        }
+
+        function isWeekendOrHoliday(dateStr) {
+            if (holidays[dateStr]) return true;
+            const date = new Date(dateStr);
+            const day = date.getDay();
+            return day === 0 || day === 6;
+        }
 
         function renderCalendar() {
             calendarEl.innerHTML = '';
+            const calendarBookings = bookings.filter(b => CALENDAR_GOLF_COURSES.includes(b['Golf Course']));
+            const selectedCourses = Array.from(document.querySelectorAll('#golfCourseFilterContainer input:checked')).map(cb => cb.value);
+            const filteredBookings = selectedCourses.length > 0 ? calendarBookings.filter(b => selectedCourses.includes(b['Golf Course'])) : calendarBookings;
+
             const bookingMap = new Map();
-            bookings.forEach(booking => {
+            const completedDates = new Set();
+            
+            filteredBookings.forEach(booking => {
                 const dateKey = booking['Date'];
-                if (!bookingMap.has(dateKey)) bookingMap.set(dateKey, []);
-                bookingMap.get(dateKey).push(booking['Golf Course']);
+                if (!bookingMap.has(dateKey)) bookingMap.set(dateKey, new Set());
+                bookingMap.get(dateKey).add(booking['Golf Course']);
+                if (booking['Status'] === '완료') completedDates.add(dateKey);
             });
-            let currentDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-            for(let i = 0; i < 12; i++) {
+            
+            let currentDate = new Date();
+            const limitDate = new Date(2025, 11, 31); 
+            while(currentDate <= limitDate) {
                 const year = currentDate.getFullYear(), month = currentDate.getMonth();
+                const firstDayOfMonth = new Date(year, month, 1);
+                const lastDayOfMonth = new Date(year, month + 1, 0);
+                const monthlyBookings = bookings.filter(b => {
+                    const bookingDate = new Date(b.Date);
+                    return bookingDate >= firstDayOfMonth && bookingDate <= lastDayOfMonth;
+                });
+                
+                let warnings = [];
+                const lakewoodWeekdayCount = monthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && !isWeekendOrHoliday(b.Date)).length;
+                const lakewoodWeekendCount = monthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && isWeekendOrHoliday(b.Date)).length;
+                if (lakewoodWeekdayCount >= 9) warnings.push('<div class="text-red-500 font-bold text-sm">※ 레이크우드 주중 한도 초과</div>');
+                if (lakewoodWeekendCount >= 6) warnings.push('<div class="text-red-500 font-bold text-sm">※ 레이크우드 주말 한도 초과</div>');
+
+                const seragioWeekdayCount = monthlyBookings.filter(b => b['Golf Course'] === '세라지오' && !isWeekendOrHoliday(b.Date)).length;
+                const seragioWeekendCount = monthlyBookings.filter(b => b['Golf Course'] === '세라지오' && isWeekendOrHoliday(b.Date)).length;
+                if (seragioWeekdayCount >= 5) warnings.push('<div class="text-red-500 font-bold text-sm">※ 세라지오 주중 한도 초과</div>');
+                if (seragioWeekendCount >= 3) warnings.push('<div class="text-red-500 font-bold text-sm">※ 세라지오 주말 한도 초과</div>');
+
                 const monthContainer = document.createElement('div');
                 monthContainer.className = 'calendar-month bg-white p-6 rounded-lg shadow';
-                monthContainer.innerHTML = `<div class="text-xl font-bold text-center mb-4">${year}년 ${month + 1}월</div><div class="grid grid-cols-7 gap-1 text-center text-sm font-semibold text-gray-600 mb-2"><div class="text-red-500">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="text-blue-500">토</div></div>`;
+                monthContainer.innerHTML = `<div class="text-left mb-2 h-12">${warnings.join('')}</div><div class="text-xl font-bold text-center mb-4">${year}년 ${month + 1}월</div><div class="grid grid-cols-7 gap-1 text-center text-sm font-semibold text-gray-600 mb-2"><div class="text-red-500">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="text-blue-500">토</div></div>`;
+                
                 const dayGrid = document.createElement('div');
                 dayGrid.className = 'grid grid-cols-7 gap-1 text-center';
                 for (let j = 0; j < new Date(year, month, 1).getDay(); j++) dayGrid.innerHTML += '<div></div>';
@@ -181,12 +282,15 @@
                 for (let day = 1; day <= daysInMonth; day++) {
                     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                     const dayOfWeek = new Date(year, month, day).getDay();
-                    let dayColor = (dayOfWeek === 0) ? 'text-red-500' : (dayOfWeek === 6) ? 'text-blue-500' : '';
+                    let dayColor = '';
+                    if (dayOfWeek === 0 || holidays[dateStr]) dayColor = 'text-red-500';
+                    else if (dayOfWeek === 6) dayColor = 'text-blue-500';
                     const dayCell = document.createElement('div');
                     dayCell.className = 'day-cell p-1 rounded-md';
                     let bookingHtml = '';
                     if (bookingMap.has(dateStr)) {
-                        dayCell.classList.add('bg-lime-100');
+                        if (completedDates.has(dateStr)) dayCell.classList.add('bg-sky-100');
+                        else dayCell.classList.add('bg-lime-100');
                         bookingMap.get(dateStr).forEach(course => { bookingHtml += `<div class="booking-info bg-lime-500 text-white rounded px-1 truncate">${course}</div>`; });
                     }
                     dayCell.innerHTML = `<div class="day-number font-medium ${dayColor}">${day}</div>` + bookingHtml;
@@ -201,20 +305,26 @@
         function renderStatus() {
             statusTableBody.innerHTML = '';
             const isManager = currentUser && currentUser.name === '신석중';
-            adminControls.classList.toggle('hidden', !isManager);
             let filteredBookings = isManager ? bookings : bookings.filter(b => b['Name'] === currentUser.name);
+            adminControls.classList.toggle('hidden', !isManager);
             if (filteredBookings.length === 0) {
                  statusTableBody.innerHTML = `<tr><td colspan="8" class="text-center py-10">예약 내역이 없습니다.</td></tr>`;
                  return;
             }
             filteredBookings.forEach(booking => {
                 const row = document.createElement('tr');
-                row.className = 'border-b border-gray-200 hover:bg-gray-100';
-                row.innerHTML = `<td class="py-3 px-6"><input type="checkbox" class="booking-checkbox" data-id="${booking.id}"></td>
-                    <td class="py-3 px-6">${booking['Golf Course']}</td><td class="py-3 px-6">${booking['Name']}</td>
-                    <td class="py-3 px-6">${booking['Date']}</td><td class="py-3 px-6">${booking['Team']}</td>
-                    <td class="py-3 px-6">${booking['Time'] || '-'}</td><td class="py-3 px-6">${booking['Status'] || '-'}</td>
-                    <td class="py-3 px-6">${booking['Comment'] || '-'}</td>`;
+                let statusStyle = "border-b border-gray-200 hover:bg-gray-100";
+                if (booking['Status'] === '완료') {
+                    statusStyle = "border-b border-gray-200 bg-sky-100 text-blue-700 font-medium";
+                }
+                row.className = statusStyle;
+                let displayTime = '-';
+                const timeValue = booking['Time'];
+                if (timeValue && typeof timeValue === 'string') {
+                    const match = timeValue.match(/(\d{1,2}:\d{2})/);
+                    displayTime = match ? match[0] : timeValue;
+                } else if (timeValue) displayTime = timeValue;
+                row.innerHTML = `<td class="py-3 px-6"><input type="checkbox" class="booking-checkbox" data-id="${booking.id}"></td><td class="py-3 px-6">${booking['Golf Course']}</td><td class="py-3 px-6">${booking['Name']}</td><td class="py-3 px-6">${booking['Date']}</td><td class="py-3 px-6">${booking['Team']}</td><td class="py-3 px-6">${displayTime}</td><td class="py-3 px-6">${booking['Status'] || '-'}</td><td class="py-3 px-6">${booking['Comment'] || '-'}</td>`;
                 if (isManager || booking['Name'] === currentUser.name) {
                     row.style.cursor = 'pointer';
                     row.addEventListener('click', (e) => { if (e.target.type !== 'checkbox') openBookingModal(booking); });
@@ -237,21 +347,73 @@
             } finally { showLoading(false); }
         }
 
+        function updateAvailableGolfCourses(selectedDate) {
+            const golfCourseSelect = document.getElementById('golfCourse');
+            golfCourseSelect.innerHTML = '';
+            if (!selectedDate) return;
+            const isDayWeekendOrHoliday = isWeekendOrHoliday(selectedDate);
+            const dailyCounts = bookings.filter(b => b.Date === selectedDate).reduce((acc, b) => {
+                acc[b['Golf Course']] = (acc[b['Golf Course']] || 0) + 1;
+                return acc;
+            }, {});
+            const lakewoodCount = dailyCounts['레이크우드'] || 0;
+            const seragioCount = dailyCounts['세라지오'] || 0;
+            const isLakewoodOverLimit = isDayWeekendOrHoliday ? lakewoodCount >= 6 : lakewoodCount >= 9;
+            const isSeragioOverLimit = isDayWeekendOrHoliday ? seragioCount >= 3 : seragioCount >= 5;
+            
+            // [수정됨] 고정된 골프장 목록(MODAL_GOLF_COURSES)을 기준으로 드롭다운 생성
+            MODAL_GOLF_COURSES.forEach(course => {
+                let isOverLimit = false;
+                if (course === '레이크우드' && isLakewoodOverLimit) isOverLimit = true;
+                if (course === '세라지오' && isSeragioOverLimit) isOverLimit = true;
+                if (!isOverLimit) {
+                    const option = document.createElement('option');
+                    option.value = course;
+                    option.textContent = course;
+                    golfCourseSelect.appendChild(option);
+                }
+            });
+        }
+
         function openBookingModal(booking = null) {
             bookingForm.reset();
-            if (booking) {
+            const isManager = currentUser.name === '신석중';
+            const userNameInput = document.getElementById('userName');
+            const bookingTimeInput = document.getElementById('bookingTime');
+            const bookingStatusInput = document.getElementById('bookingStatus');
+
+            [userNameInput, bookingTimeInput, bookingStatusInput].forEach(input => {
+                input.disabled = !isManager;
+                input.classList.toggle('bg-gray-200', !isManager);
+            });
+            
+            document.getElementById('bookingDate').addEventListener('change', (e) => updateAvailableGolfCourses(e.target.value));
+
+            if (booking) { // 수정 모드
                 document.getElementById('modalTitle').textContent = '예약 수정';
+                const golfCourseSelect = document.getElementById('golfCourse');
+                golfCourseSelect.innerHTML = '';
+                // [수정됨] 수정 시에도 고정된 목록 사용
+                MODAL_GOLF_COURSES.forEach(course => {
+                    const option = document.createElement('option');
+                    option.value = course;
+                    option.textContent = course;
+                    golfCourseSelect.appendChild(option);
+                });
                 document.getElementById('bookingId').value = booking.id;
-                document.getElementById('golfCourse').value = booking['Golf Course'];
-                document.getElementById('userName').value = booking['Name'];
+                golfCourseSelect.value = booking['Golf Course'];
+                userNameInput.value = booking['Name'];
                 document.getElementById('bookingDate').value = booking['Date'];
                 document.getElementById('numberOfTeams').value = booking['Team'];
-                document.getElementById('bookingTime').value = booking['Time'];
-                document.getElementById('bookingStatus').value = booking['Status'];
+                bookingTimeInput.value = booking['Time'];
+                bookingStatusInput.value = booking['Status'];
                 document.getElementById('notes').value = booking['Comment'];
-            } else {
+            } else { // 신규 모드
                 document.getElementById('modalTitle').textContent = '예약 신청';
-                document.getElementById('userName').value = currentUser.name;
+                userNameInput.value = currentUser.name;
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('bookingDate').value = today;
+                updateAvailableGolfCourses(today);
             }
             bookingModal.style.display = 'flex';
         }
@@ -272,19 +434,38 @@
             const username = document.getElementById('loginUsername').value;
             const password = document.getElementById('loginPassword').value;
             const user = users.find(u => u.name === username && u.phone === password);
+
             if (user) {
                 currentUser = user;
+                sessionStorage.setItem('golf_currentUser', JSON.stringify(currentUser));
+                const rememberMe = document.getElementById('rememberMe').checked;
+                if (rememberMe) {
+                    localStorage.setItem('golf_username', username);
+                    localStorage.setItem('golf_password', password);
+                } else {
+                    localStorage.removeItem('golf_username');
+                    localStorage.removeItem('golf_password');
+                }
                 loginScreen.classList.add('hidden');
                 mainApp.classList.remove('hidden');
                 await initializeApp();
-            } else { alert('아이디 또는 비밀번호가 일치하지 않습니다.'); }
+            } else { 
+                alert('아이디 또는 비밀번호가 일치하지 않습니다.'); 
+            }
         });
 
         logoutBtn.addEventListener('click', () => {
             currentUser = null;
+            sessionStorage.removeItem('golf_currentUser');
             mainApp.classList.add('hidden');
             loginScreen.classList.remove('hidden');
             loginForm.reset();
+            const savedUsername = localStorage.getItem('golf_username');
+            if (savedUsername) {
+                document.getElementById('loginUsername').value = savedUsername;
+                document.getElementById('loginPassword').value = localStorage.getItem('golf_password');
+                document.getElementById('rememberMe').checked = true;
+            }
         });
 
         calendarTabBtn.addEventListener('click', () => {
@@ -313,6 +494,17 @@
                 'Status': document.getElementById('bookingStatus').value,
                 'Comment': document.getElementById('notes').value
             };
+            if (!bookingData['Golf Course']) {
+                alert('선택한 날짜에 예약 가능한 골프장이 없습니다.');
+                return;
+            }
+            if (!bookingData.id) {
+                const isDuplicate = bookings.some(b => b.Date === bookingData.Date && b['Golf Course'] === bookingData['Golf Course'] && b.Name === bookingData.Name);
+                if (isDuplicate) {
+                    alert('이미 해당 날짜에 동일한 골프장으로 예약한 내역이 있습니다.');
+                    return;
+                }
+            }
             await postData(bookingData.id ? 'update' : 'add', { booking: bookingData });
             bookingModal.style.display = 'none';
         });
@@ -344,3 +536,4 @@
     </script>
 </body>
 </html>
+
