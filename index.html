@@ -137,9 +137,11 @@
         // ##### 설정 #####
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbypANRQj0iVm0gxo9YA88LjcSEWMEPuzIwYvLaAqjmNGg5kyPV0yJ0rkTZcUeK8iXow/exec';
         
+        // [수정됨] '한승희' 사용자 추가
         const users = [
             { name: "신석중", phone: "1010" }, { name: "강경민", phone: "5193" }, { name: "강민희", phone: "5307" },
-            { name: "권승수", phone: "9260" }, { name: "김기홍", phone: "2241" }, { name: "김동훈", phone: "0008" }, { name: "김성현", phone: "3258" },
+            { name: "권승수", phone: "9260" }, { name: "김기홍", phone: "2241" }, { name: "김동훈", phone: "0008" }, 
+            { name: "김성현", phone: "3258" }, { name: "한승희", phone: "7710" }
         ];
         
         const CALENDAR_GOLF_COURSES = ['레이크우드', '스카이밸리', '세라지오', '힐드로사이'];
@@ -322,7 +324,6 @@
                     if (bookingMap.has(dateStr)) {
                         dayCell.classList.add('bg-gray-100');
                         
-                        // [수정됨] 예약건 정렬 로직 추가
                         const coursesOnDate = Array.from(bookingMap.get(dateStr));
                         coursesOnDate.sort((a, b) => CALENDAR_GOLF_COURSES.indexOf(a) - CALENDAR_GOLF_COURSES.indexOf(b));
 
