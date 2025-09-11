@@ -7,7 +7,7 @@
     <!-- Tailwind CSS: 스타일링을 위한 라이브러리 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- PapaParse: CSV 파일 처리를 위한 라이브러리 -->
-    <script src="https://cdn.jsdelivr.net/npm/paparse@5.3.0/paparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -55,7 +55,7 @@
             <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
                 <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900">골프 예약 시스템</h1>
                 <div class="flex items-center space-x-4">
-                    <button id="openModalBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full shadow-lg">+ 신청</button>
+                    <button id="openModalBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition-transform active:scale-95">+ 신청</button>
                     <button id="logoutBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-6 rounded-full shadow-lg">로그아웃</button>
                 </div>
             </header>
@@ -81,21 +81,22 @@
                             <button id="downloadExcelBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full">엑셀 다운로드</button>
                             <button id="uploadExcelBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full">엑셀 업로드</button>
                         </div>
-                        <button id="cancelSelectedBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-full hidden">선택 취소</button>
+                        <button id="cancelSelectedBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-full hidden transform transition-transform active:scale-95">선택 취소</button>
                     </div>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full bg-white rounded-lg shadow-sm">
-                        <thead class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                        <!-- [수정됨] 사용자 정렬을 위한 thead id 추가 및 th 요소 변경 -->
+                        <thead id="statusTableHead" class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
                             <tr>
                                 <th class="py-3 px-6 text-left">선택</th>
-                                <th class="py-3 px-6 text-left">Golf Course</th>
-                                <th class="py-3 px-6 text-left">Name</th>
-                                <th class="py-3 px-6 text-left">Date</th>
-                                <th class="py-3 px-6 text-left">Team</th>
-                                <th class="py-3 px-6 text-left">Time</th>
-                                <th class="py-3 px-6 text-left">Status</th>
-                                <th class="py-3 px-6 text-left">Comment</th>
+                                <th class="py-3 px-6 text-left cursor-pointer" data-sort="Golf Course">Golf Course <span class="sort-indicator"></span></th>
+                                <th class="py-3 px-6 text-left cursor-pointer" data-sort="Name">Name <span class="sort-indicator"></span></th>
+                                <th class="py-3 px-6 text-left cursor-pointer" data-sort="Date">Date <span class="sort-indicator"></span></th>
+                                <th class="py-3 px-6 text-left cursor-pointer" data-sort="Team">Team <span class="sort-indicator"></span></th>
+                                <th class="py-3 px-6 text-left cursor-pointer" data-sort="Time">Time <span class="sort-indicator"></span></th>
+                                <th class="py-3 px-6 text-left cursor-pointer" data-sort="Status">Status <span class="sort-indicator"></span></th>
+                                <th class="py-3 px-6 text-left cursor-pointer" data-sort="Comment">Comment <span class="sort-indicator"></span></th>
                             </tr>
                         </thead>
                         <tbody id="statusTableBody" class="text-gray-600 text-sm font-light"></tbody>
@@ -120,7 +121,7 @@
                 <div><label for="notes" class="block text-sm font-medium text-gray-700">Comment</label><input type="text" id="notes" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
                 <div class="flex justify-end space-x-4 pt-4">
                     <button type="button" id="closeModalBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-6 rounded-full">취소</button>
-                    <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full">저장</button>
+                    <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full transform transition-transform active:scale-95">저장</button>
                 </div>
             </form>
         </div>
@@ -138,6 +139,10 @@
                 </div>
             </form>
         </div>
+    </div>
+
+    <div id="loadingOverlay" class="modal-overlay" style="display: none;">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
     </div>
 
     <script>
@@ -162,8 +167,11 @@
         let currentUser = null;
         let bookings = [];
         let userQuotas = {};
-        let users = []; // [수정됨] 하드코딩된 사용자 목록 제거
+        let users = [];
         let originalBookingForLog = null;
+        // [수정됨] 정렬 상태 관리를 위한 변수 추가
+        let sortColumn = 'Date';
+        let sortDirection = 'asc';
         
         const loginScreen = document.getElementById('loginScreen'), mainApp = document.getElementById('mainApp');
         const loginForm = document.getElementById('loginForm'), logoutBtn = document.getElementById('logoutBtn');
@@ -178,18 +186,16 @@
         const uploadForm = document.getElementById('uploadForm');
         const golfCourseFilterContainer = document.getElementById('golfCourseFilterContainer');
         const statusFilter = document.getElementById('statusFilter');
+        const statusTableHead = document.getElementById('statusTableHead');
 
-        // [수정됨] 페이지 로딩 시 전체 데이터(사용자 포함)를 먼저 가져오도록 로직 변경
         document.addEventListener('DOMContentLoaded', async () => {
             showLoading(true);
             await fetchInitialData();
             showLoading(false);
-
             const savedUser = sessionStorage.getItem('golf_currentUser');
             if (savedUser) {
                 currentUser = JSON.parse(savedUser);
                 const isValidUser = users.some(u => u.name === currentUser.name && u.phone === currentUser.phone);
-                
                 if (isValidUser) {
                     loginScreen.classList.add('hidden');
                     mainApp.classList.remove('hidden');
@@ -218,11 +224,21 @@
         function renderApp() {
             setupGolfCourseFilters();
             setupStatusFilter();
+            setupSorting();
             renderCalendar();
             renderStatus();
         }
 
-        function showLoading(isLoading) { document.body.style.cursor = isLoading ? 'wait' : 'default'; }
+        function showLoading(isLoading) {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            if (isLoading) {
+                document.body.style.cursor = 'wait';
+                loadingOverlay.style.display = 'flex';
+            } else {
+                document.body.style.cursor = 'default';
+                loadingOverlay.style.display = 'none';
+            }
+        }
 
         async function fetchInitialData() {
             try {
@@ -230,7 +246,7 @@
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const data = await response.json();
                 bookings = data.bookings;
-                users = data.users; // 사용자 목록을 시트에서 가져옴
+                users = data.users;
                 userQuotas = data.quotas.reduce((acc, q) => {
                     acc[q.Name] = q;
                     return acc;
@@ -257,6 +273,23 @@
             const statuses = ['전체', ...new Set(bookings.map(b => b.Status || '미정'))];
             statusFilter.innerHTML = statuses.map(s => `<option value="${s}">${s}</option>`).join('');
             statusFilter.addEventListener('change', renderStatus);
+        }
+
+        // [수정됨] 정렬 이벤트 리스너 설정 함수
+        function setupSorting() {
+            statusTableHead.addEventListener('click', (e) => {
+                const header = e.target.closest('th');
+                if (header && header.dataset.sort) {
+                    const newSortColumn = header.dataset.sort;
+                    if (sortColumn === newSortColumn) {
+                        sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        sortColumn = newSortColumn;
+                        sortDirection = 'asc';
+                    }
+                    renderStatus();
+                }
+            });
         }
 
         function isWeekendOrHoliday(dateStr) {
@@ -370,6 +403,20 @@
                 statusFilteredBookings = bookings.filter(b => (b.Status || '미정') === selectedStatus);
             }
             let filteredBookings = isManager ? statusFilteredBookings : statusFilteredBookings.filter(b => b['Name'] === currentUser.name);
+            
+            // [수정됨] 정렬 로직 추가
+            filteredBookings.sort((a, b) => {
+                const valA = a[sortColumn] || '';
+                const valB = b[sortColumn] || '';
+                let comparison = 0;
+                if (sortColumn === 'Team') {
+                    comparison = parseInt(valA, 10) - parseInt(valB, 10);
+                } else {
+                    comparison = String(valA).localeCompare(String(valB));
+                }
+                return sortDirection === 'asc' ? comparison : -comparison;
+            });
+
             adminOnlyControls.classList.toggle('hidden', !isManager);
             cancelSelectedBtn.classList.toggle('hidden', !currentUser);
             if (filteredBookings.length === 0) {
@@ -387,28 +434,40 @@
                     const match = timeValue.match(/(\d{1,2}:\d{2})/);
                     displayTime = match ? match[0] : timeValue;
                 } else if (timeValue) displayTime = timeValue;
-                row.innerHTML = `<td class="py-3 px-6"><input type="checkbox" class="booking-checkbox" data-id="${booking.id}"></td><td class="py-3 px-6">${booking['Golf Course']}</td><td class="py-3 px-6">${booking['Name']}</td><td class="py-3 px-6">${booking['Date']}</td><td class="py-3 px-6">${booking['Team']}</td><td class="py-3 px-6">${displayTime}</td><td class="py-3 px-6">${booking['Status'] || '-'}</td><td class="py-3 px-6">${booking['Comment'] || '-'}</td>`;
+                
+                // [수정됨] 날짜 형식 변경
+                const displayDate = booking['Date'] ? booking['Date'].substring(5) : '-';
+
+                row.innerHTML = `<td class="py-3 px-6"><input type="checkbox" class="booking-checkbox" data-id="${booking.id}"></td><td class="py-3 px-6">${booking['Golf Course']}</td><td class="py-3 px-6">${booking['Name']}</td><td class="py-3 px-6">${displayDate}</td><td class="py-3 px-6">${booking['Team']}</td><td class="py-3 px-6">${displayTime}</td><td class="py-3 px-6">${booking['Status'] || '-'}</td><td class="py-3 px-6">${booking['Comment'] || '-'}</td>`;
                 if (isManager || booking['Name'] === currentUser.name) {
                     row.style.cursor = 'pointer';
                     row.addEventListener('click', (e) => { if (e.target.type !== 'checkbox') openBookingModal(booking); });
                 }
                 statusTableBody.appendChild(row);
             });
+
+            // [수정됨] 정렬 표시기 업데이트
+            document.querySelectorAll('#statusTableHead th[data-sort]').forEach(th => {
+                th.querySelector('.sort-indicator').textContent = '';
+            });
+            const activeHeader = document.querySelector(`#statusTableHead th[data-sort="${sortColumn}"]`);
+            if (activeHeader) {
+                activeHeader.querySelector('.sort-indicator').textContent = sortDirection === 'asc' ? ' ▲' : ' ▼';
+            }
         }
         
         async function postData(action, data) {
-            showLoading(true);
             try {
                 const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action, ...data }) });
                 const result = await response.json();
                 if (result.status !== 'success') throw new Error(result.message);
                 alert(result.message);
-                await fetchInitialData(); // [수정됨] 모든 데이터를 다시 가져오도록 변경
-                renderApp(); // UI 다시 렌더링
+                await fetchInitialData();
+                renderApp();
             } catch (error) {
                 console.error(`Error with action ${action}:`, error);
                 alert(`오류가 발생했습니다: ${error.message}`);
-            } finally { showLoading(false); }
+            }
         }
 
         function updateAvailableGolfCourses(selectedDate) {
@@ -524,7 +583,7 @@
             e.preventDefault();
             const username = document.getElementById('loginUsername').value;
             const password = document.getElementById('loginPassword').value;
-            const user = users.find(u => u.name === username && u.phone === password);
+            const user = users.find(u => u.name === username && String(u.phone) === password);
             if (user) {
                 currentUser = user;
                 sessionStorage.setItem('golf_currentUser', JSON.stringify(currentUser));
@@ -572,31 +631,39 @@
         
         bookingForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const bookingData = {
-                'id': document.getElementById('bookingId').value, 'Golf Course': document.getElementById('golfCourse').value,
-                'Name': document.getElementById('userName').value, 'Date': document.getElementById('bookingDate').value,
-                'Team': document.getElementById('numberOfTeams').value, 'Time': document.getElementById('bookingTime').value,
-                'Status': document.getElementById('bookingStatus').value, 'Comment': document.getElementById('notes').value
-            };
-            if (!bookingData['Golf Course']) {
-                alert('선택한 날짜에 예약 가능한 골프장이 없습니다. 한도가 초과되었을 수 있습니다.');
-                return;
-            }
-            if (bookingData.id) {
-                let logParts = [];
-                if (bookingData.Time !== originalBookingForLog.Time) logParts.push("시간변경");
-                if (bookingData.Team != originalBookingForLog.Team) logParts.push("팀수변경");
-                const logMessage = logParts.length > 0 ? logParts.join('/') : "수정";
-                await postData('update', { user: currentUser.name, booking: bookingData, logMessage: logMessage });
-            } else {
-                const isDuplicate = bookings.some(b => b.Date === bookingData.Date && b['Golf Course'] === bookingData['Golf Course'] && b.Name === bookingData.Name);
-                if (isDuplicate) {
-                    alert('이미 해당 날짜에 동일한 골프장으로 예약한 내역이 있습니다.');
+            showLoading(true);
+            try {
+                const bookingData = {
+                    'id': document.getElementById('bookingId').value, 'Golf Course': document.getElementById('golfCourse').value,
+                    'Name': document.getElementById('userName').value, 'Date': document.getElementById('bookingDate').value,
+                    'Team': document.getElementById('numberOfTeams').value, 'Time': document.getElementById('bookingTime').value,
+                    'Status': document.getElementById('bookingStatus').value, 'Comment': document.getElementById('notes').value
+                };
+                if (!bookingData['Golf Course']) {
+                    alert('선택한 날짜에 예약 가능한 골프장이 없습니다. 한도가 초과되었을 수 있습니다.');
                     return;
                 }
-                await postData('add', { user: currentUser.name, booking: bookingData });
+                if (bookingData.id) {
+                    let logParts = [];
+                    if (bookingData.Time !== originalBookingForLog.Time) logParts.push("시간변경");
+                    if (bookingData.Team != originalBookingForLog.Team) logParts.push("팀수변경");
+                    const logMessage = logParts.length > 0 ? logParts.join('/') : "수정";
+                    await postData('update', { user: currentUser.name, booking: bookingData, logMessage: logMessage });
+                } else {
+                    const isManager = currentUser.name === '신석중';
+                    if (!isManager) {
+                        const isDuplicate = bookings.some(b => b.Date === bookingData.Date && b['Golf Course'] === bookingData['Golf Course'] && b.Name === bookingData.Name);
+                        if (isDuplicate) {
+                            alert('이미 해당 날짜에 동일한 골프장으로 예약한 내역이 있습니다.');
+                            return;
+                        }
+                    }
+                    await postData('add', { user: currentUser.name, booking: bookingData });
+                }
+                bookingModal.style.display = 'none';
+            } finally {
+                showLoading(false);
             }
-            bookingModal.style.display = 'none';
         });
 
         cancelSelectedBtn.addEventListener('click', async () => {
@@ -617,7 +684,12 @@
                 return;
             };
             if (confirm(`선택한 ${idsToProcess.length}개의 항목을 정말 취소 처리하시겠습니까? (상태가 '취소중'으로 변경됩니다)`)) {
-                await postData('cancel', { user: currentUser.name, ids: idsToProcess });
+                showLoading(true);
+                try {
+                    await postData('cancel', { user: currentUser.name, ids: idsToProcess });
+                } finally {
+                    showLoading(false);
+                }
             }
         });
 
