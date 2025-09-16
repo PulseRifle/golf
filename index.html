@@ -529,7 +529,6 @@
 
             let filteredBookings = isManager ? statusFilteredBookings : statusFilteredBookings.filter(b => b['Name'] === currentUser.name);
             
-            // [수정됨] 원본 배열을 훼손하지 않도록 복사본을 만들어 정렬
             const sortedBookings = [...filteredBookings].sort((a, b) => {
                 const valA = a[sortColumn] || '';
                 const valB = b[sortColumn] || '';
@@ -850,13 +849,13 @@
             }
         });
 
+        // [수정됨] cancelSelectedBtn 이벤트 리스너 로직 수정
         cancelSelectedBtn.addEventListener('click', async () => {
             const checkedBoxes = document.querySelectorAll('.booking-checkbox:checked');
             if (checkedBoxes.length === 0) return alert('취소할 항목을 선택하세요.');
+
             const isManager = currentUser.name === '신석중';
-            
-            // [수정됨] 체크된 행의 고유 ID를 직접 수집하여 정확도 향상
-            let idsToProcess = Array.from(checkedBoxes).map(cb => cb.dataset.id).filter(id => id); // id가 있는 것만 필터링
+            let idsToProcess = Array.from(checkedBoxes).map(cb => cb.dataset.id).filter(id => id);
 
             if (!isManager) {
                 const myBookingsIds = new Set(bookings.filter(b => b.Name === currentUser.name).map(b => b.id));
@@ -866,10 +865,12 @@
                     alert('자신의 예약만 취소할 수 있습니다. 타인의 예약을 제외하고 진행합니다.');
                 }
             }
+            
             if (idsToProcess.length === 0) {
                 alert('취소할 수 있는 예약이 없습니다.');
                 return;
             };
+
             if (confirm(`선택한 ${idsToProcess.length}개의 항목을 정말 취소 처리하시겠습니까? (상태가 '취소중'으로 변경됩니다)`)) {
                 showLoading(true);
                 try {
