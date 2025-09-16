@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>골프 예약 시스템 (fixed)</title>
+    <title>골프 예약 시스템</title>
+    <!-- Tailwind CSS: 스타일링을 위한 라이브러리 -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- PapaParse: CSV 파일 처리를 위한 라이브러리 -->
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -61,7 +63,7 @@
                 </div>
                 <div class="flex items-center space-x-4">
                     <button id="openModalBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition-transform active:scale-95">+ 신청</button>
-                    <button id="logoutBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-6 rounded-full">로그아웃</button>
+                    <button id="logoutBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-6 rounded-full shadow-lg">로그아웃</button>
                 </div>
             </header>
             <div class="mb-4 border-b border-gray-200">
@@ -162,7 +164,68 @@
             <h2 class="text-2xl font-bold mb-2 text-center text-gray-800">골프예약시스템 안내</h2>
             <p class="text-sm text-center text-gray-500 mb-6">[2025.09월, 인사총무팀]</p>
             <div class="prose max-w-none text-gray-700 space-y-4">
-                <p class="text-sm">본 페이지는 다운로드 테스트를 위해 최소 동작으로 구성되어 있습니다.</p>
+                <div>
+                    <h3 class="text-lg font-bold">신청가능 골프회원권 현황</h3>
+                    <div class="pl-4 mt-2 space-y-3">
+                        <div>
+                            <h4 class="font-semibold">1. 무기명회원권</h4>
+                            <p class="text-sm">이용방식 : 각 법인 배정 횟수 내 무기명 사용 (1팀 회원가 적용)</p>
+                            <ul class="list-disc list-inside text-sm space-y-1 mt-1">
+                                <li><strong>📍 레이크우드CC</strong>
+                                    <ul class="list-['-_'] list-inside ml-4">
+                                        <li>월 이용횟수 : 주중 9회, 주말 6회</li>
+                                        <li>배정대상 : 주중(국내영업팀 등 9개팀), 주말(국내영업담당임원 등 6명)</li>
+                                    </ul>
+                                </li>
+                                <li><strong>📍 세라지오CC</strong>
+                                    <ul class="list-['-_'] list-inside ml-4">
+                                        <li>월 이용횟수 : 주중 5회, 주말 3회</li>
+                                        <li>대체 이용 : 스카이밸리 1회 대체 사용 가능</li>
+                                        <li>배정현황 : 기명회원권 미보유 정회원 등(주중 3회, 주말 2회)</li>
+                                        <li>신청 가능 잔여분 : 주중 2회, 주말 1회</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold">2. 선불제회원권</h4>
+                            <ul class="list-disc list-inside text-sm space-y-1 mt-1">
+                                <li><strong>대상 골프장</strong> : 스카이밸리CC, 힐드로사이CC</li>
+                                <li><strong>비용 구조</strong> : 총 비용 80만원/팀 (선불금에서 차감)</li>
+                                <li><strong>지원 내역</strong> : 인사총무팀 지원(50만원), 개인/공통접대비(30만원)</li>
+                                <li><strong>적용가격</strong> : 일반 인터넷회원가 (회원특가 없음)</li>
+                                <li><strong>⚠️ 주의사항</strong> : 반기말(6월/12월) 인사총무팀에서 접대비 일괄 차감. 접대비 사용시 차감 금액을 미리 고려하여 사용 필요</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold">🎯 골프장 예약방법</h3>
+                    <ul class="list-disc list-inside text-sm space-y-1 mt-2">
+                        <li><strong>무기명/선불제회원권</strong>: 골프 예약 시스템을 통한 예약</li>
+                        <li><strong>오픈 순서</strong> : 임원 → 국내영업팀 9개팀 → 국내영업 외 팀 (오픈 주기: 반기초마다)</li>
+                        <li><strong>기타 예약</strong> : 월 횟수 미배정 또는 대중 오픈 예약일 이용 희망시 담당자(신석중 과장)에게 연락</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold">❌ 예약취소</h3>
+                     <ul class="list-disc list-inside text-sm space-y-1 mt-2">
+                        <li><strong>일반 취소</strong>: 시스템 취소는 티오프일 8일 전까지 가능 (골프장별 취소기준 상이)</li>
+                        <li><strong>우천취소</strong>: 골프장 기준에 따라 가능, 당일 골프장에 직접 연락 후 취소 진행</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold">⏰ 티오프 당일 안내</h3>
+                    <ul class="list-disc list-inside text-sm space-y-1 mt-2">
+                        <li><strong>체크인</strong>: 티오프 시간 30분 전 체크인 완료</li>
+                        <li><strong>특이사항 통보</strong>: 티오프 후 특이사항 발생시 당일 또는 익영업일에 담당자(신석중 과장)에게 메모 전달</li>
+                        <li><strong>우천으로 인한 취소</strong>: 홀아웃 등으로 인한 차감금액 상이 등</li>
+                    </ul>
+                </div>
+                 <div>
+                    <h3 class="text-lg font-bold">📞 문의사항</h3>
+                     <p class="text-sm mt-2">신석중 과장 (인사총무팀)</p>
+                </div>
             </div>
         </div>
     </div>
@@ -187,18 +250,14 @@
         };
 
         const holidays = {
-            '2024-01-01': '신정','2024-02-09': '설날','2024-02-10': '설날','2024-02-11': '설날','2024-02-12': '설날 대체공휴일','2024-03-01': '삼일절','2024-04-10': '국회의원 선거','2024-05-01': '근로자의 날','2024-05-05': '어린이날','2024-05-06': '어린이날 대체공휴일','2024-05-15': '부처님 오신 날','2024-06-06': '현충일','2024-08-15': '광복절','2024-09-16': '추석','2024-09-17': '추석','2024-09-18': '추석','2024-10-03': '개천절','2024-10-09': '한글날','2024-12-25': '크리스마스',
-            '2025-01-01': '신정','2025-01-28': '설날','2025-01-29': '설날','2025-01-30': '설날','2025-03-01': '삼일절','2025-05-01': '근로자의 날','2025-05-05': '어린이날','2025-05-06': '부처님 오신 날','2025-06-06': '현충일','2025-08-15': '광복절','2025-10-03': '개천절','2025-10-06': '추석','2025-10-07': '추석','2025-10-08': '추석','2025-10-09': '한글날','2025-12-25': '크리스마스'
+            '2024-01-01': '신정', '2024-02-09': '설날', '2024-02-10': '설날', '2024-02-11': '설날', '2024-02-12': '설날 대체공휴일', '2024-03-01': '삼일절', '2024-04-10': '국회의원 선거', '2024-05-01': '근로자의 날', '2024-05-05': '어린이날', '2024-05-06': '어린이날 대체공휴일', '2024-05-15': '부처님 오신 날', '2024-06-06': '현충일', '2024-08-15': '광복절', '2024-09-16': '추석', '2024-09-17': '추석', '2024-09-18': '추석', '2024-10-03': '개천절', '2024-10-09': '한글날', '2024-12-25': '크리스마스',
+            '2025-01-01': '신정', '2025-01-28': '설날', '2025-01-29': '설날', '2025-01-30': '설날', '2025-03-01': '삼일절', '2025-05-01': '근로자의 날', '2025-05-05': '어린이날', '2025-05-06': '부처님 오신 날', '2025-06-06': '현충일', '2025-08-15': '광복절', '2025-10-03': '개천절', '2025-10-06': '추석', '2025-10-07': '추석', '2025-10-08': '추석', '2025-10-09': '한글날', '2025-12-25': '크리스마스'
         };
 
-        let currentUser = { name: '신석중', phone: 'demo' }; // 데모용 기본 로그인 상태
-        let bookings = [
-            // 데모 데이터(다운로드 동작 확인용)
-            {id: '1', 'Golf Course': '레이크우드', Name: '홍길동', Date: '2025-10-16', Team: '1', Time: '08:00', Status: '확정', Comment: ''},
-            {id: '2', 'Golf Course': '스카이밸리', Name: '임꺽정', Date: '2025-09-02', Team: '2', Time: '09:10', Status: '확정', Comment: '메모'}
-        ];
+        let currentUser = null;
+        let bookings = [];
         let userQuotas = {};
-        let users = [{name:'신석중', phone:'demo'}];
+        let users = [];
         let originalBookingForLog = null;
         let sortColumn = 'Date';
         let sortDirection = 'asc';
@@ -214,6 +273,9 @@
         const anonymousView = document.getElementById('anonymousView'), lookupView = document.getElementById('lookupView');
         const adminOnlyControls = document.getElementById('adminOnlyControls'), cancelSelectedBtn = document.getElementById('cancelSelectedBtn');
         const downloadExcelBtn = document.getElementById('downloadExcelBtn'), uploadExcelBtn = document.getElementById('uploadExcelBtn');
+        // [수정됨] 엑셀 업로드 관련 변수 선언 추가
+        const uploadModal = document.getElementById('uploadModal'), closeUploadModalBtn = document.getElementById('closeUploadModalBtn');
+        const uploadForm = document.getElementById('uploadForm');
         const golfCourseFilterContainer = document.getElementById('golfCourseFilterContainer');
         const statusFilterContainer = document.getElementById('statusFilterContainer');
         const statusTableHead = document.getElementById('statusTableHead');
@@ -223,12 +285,39 @@
         const closeNoticeBtn = document.getElementById('closeNoticeBtn');
         const noticeLink = document.getElementById('noticeLink');
 
+
         document.addEventListener('DOMContentLoaded', async () => {
-            // 데모에선 바로 앱 표시
-            loginScreen.classList.add('hidden');
-            mainApp.classList.remove('hidden');
-            renderApp();
+            showLoading(true);
+            await fetchInitialData();
+            showLoading(false);
+            const savedUser = sessionStorage.getItem('golf_currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                const isValidUser = users.some(u => u.name === currentUser.name && u.phone === currentUser.phone);
+                if (isValidUser) {
+                    loginScreen.classList.add('hidden');
+                    mainApp.classList.remove('hidden');
+                    renderApp();
+                } else {
+                    sessionStorage.removeItem('golf_currentUser');
+                    showLoginScreen();
+                }
+            } else {
+                showLoginScreen();
+            }
         });
+
+        function showLoginScreen() {
+            const savedUsername = localStorage.getItem('golf_username');
+            const savedPassword = localStorage.getItem('golf_password');
+            if (savedUsername && savedPassword) {
+                document.getElementById('loginUsername').value = savedUsername;
+                document.getElementById('loginPassword').value = savedPassword;
+                document.getElementById('rememberMe').checked = true;
+            }
+            loginScreen.classList.remove('hidden');
+            mainApp.classList.add('hidden');
+        }
 
         function renderApp() {
             const isManager = currentUser && currentUser.name === '신석중';
@@ -239,24 +328,50 @@
             setupSorting();
             renderCalendar();
             renderStatus();
+            if(isManager) renderAnonymousView();
 
-            // 버튼 바인딩 (다운로드 동작)
-            downloadExcelBtn?.addEventListener('click', downloadExcel);
-
-            const noticeShown = localStorage.getItem('golf_notice_202509_demo');
+            const noticeShown = localStorage.getItem('golf_notice_202509');
             if (!noticeShown) {
                 noticeModal.style.display = 'flex';
-                localStorage.setItem('golf_notice_202509_demo', 'true');
+                localStorage.setItem('golf_notice_202509', 'true');
             }
         }
 
+        function showLoading(isLoading) {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            if (isLoading) {
+                document.body.style.cursor = 'wait';
+                loadingOverlay.style.display = 'flex';
+            } else {
+                document.body.style.cursor = 'default';
+                loadingOverlay.style.display = 'none';
+            }
+        }
+
+        async function fetchInitialData() {
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=read`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                bookings = data.bookings;
+                users = data.users;
+                userQuotas = data.quotas.reduce((acc, q) => {
+                    acc[q.Name] = q;
+                    return acc;
+                }, {});
+            } catch (error) {
+                console.error('Error fetching initial data:', error);
+                alert('데이터를 불러오는 데 실패했습니다.');
+            }
+        }
+        
         function setupGolfCourseFilters() {
             if (golfCourseFilterContainer.childElementCount > 0) return;
             let checkboxesHtml = '<div class="flex flex-wrap items-center gap-x-4 gap-y-2">';
             CALENDAR_GOLF_COURSES.forEach(course => {
-                checkboxesHtml += \`<div class="flex items-center"><input id="filter-\${course}" type="checkbox" value="\${course}" class="golf-course-filter h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" checked><label for="filter-\${course}" class="ml-2 text-sm text-gray-900">\${course}</label></div>\`;
+                checkboxesHtml += `<div class="flex items-center"><input id="filter-${course}" type="checkbox" value="${course}" class="golf-course-filter h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" checked><label for="filter-${course}" class="ml-2 text-sm text-gray-900">${course}</label></div>`;
             });
-            checkboxesHtml += \`<div class="flex items-center border-l pl-4 ml-2"><input id="filter-my-bookings" type="checkbox" class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"><label for="filter-my-bookings" class="ml-2 text-sm font-semibold text-gray-900">내 예약건</label></div>\`;
+            checkboxesHtml += `<div class="flex items-center border-l pl-4 ml-2"><input id="filter-my-bookings" type="checkbox" class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"><label for="filter-my-bookings" class="ml-2 text-sm font-semibold text-gray-900">내 예약건</label></div>`;
             checkboxesHtml += '</div>';
             golfCourseFilterContainer.innerHTML = checkboxesHtml;
             golfCourseFilterContainer.addEventListener('change', renderCalendar);
@@ -267,8 +382,8 @@
             const statuses = ['전체', ...new Set(bookings.map(b => b.Status || '미정').sort())];
             let checkboxesHtml = '';
             statuses.forEach(status => {
-                const id = \`status-filter-\${status.replace(/\\s+/g, '-')}\`;
-                checkboxesHtml += \`<div class="flex items-center"><input id="\${id}" type="checkbox" value="\${status}" class="status-filter-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" checked><label for="\${id}" class="ml-1 text-sm text-gray-900">\${status}</label></div>\`;
+                const id = `status-filter-${status.replace(/\s+/g, '-')}`;
+                checkboxesHtml += `<div class="flex items-center"><input id="${id}" type="checkbox" value="${status}" class="status-filter-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" checked><label for="${id}" class="ml-1 text-sm text-gray-900">${status}</label></div>`;
             });
             statusFilterContainer.innerHTML = checkboxesHtml;
             statusFilterContainer.addEventListener('change', (e) => {
@@ -310,7 +425,7 @@
             calendarEl.innerHTML = '';
             const calendarBookings = bookings.filter(b => CALENDAR_GOLF_COURSES.includes(b['Golf Course']));
             const selectedCourses = Array.from(document.querySelectorAll('.golf-course-filter:checked')).map(cb => cb.value);
-            const showOnlyMyBookings = document.getElementById('filter-my-bookings')?.checked;
+            const showOnlyMyBookings = document.getElementById('filter-my-bookings').checked;
             let filteredBookings = calendarBookings;
             if (selectedCourses.length < CALENDAR_GOLF_COURSES.length) {
                  filteredBookings = filteredBookings.filter(b => selectedCourses.includes(b['Golf Course']));
@@ -327,7 +442,7 @@
             const courseAbbr = { '레이크우드': '레이크', '스카이밸리': '스카이', '세라지오': '세라', '힐드로사이': '힐드로' };
             const isMobile = window.innerWidth < 768;
             const today = new Date();
-            const todayStr = \`\${today.getFullYear()}-\${String(today.getMonth() + 1).padStart(2, '0')}-\${String(today.getDate()).padStart(2, '0')}\`;
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
             let currentDate = new Date();
             const limitDate = new Date(2025, 11, 31); 
             while(currentDate <= limitDate) {
@@ -393,7 +508,9 @@
                         });
                     }
                     dayCell.innerHTML = `<div class="day-number font-medium ${dayColor}">${day}</div>` + bookingHtml;
-                    dayCell.addEventListener('click', () => openBookingModal(null, dateStr));
+                    dayCell.addEventListener('click', () => {
+                        openBookingModal(null, dateStr);
+                    });
                     dayGrid.appendChild(dayCell);
                 }
                 monthContainer.appendChild(dayGrid);
@@ -439,14 +556,13 @@
                 let displayTime = '-';
                 const timeValue = booking['Time'];
                 if (timeValue && typeof timeValue === 'string') {
-                    const match = timeValue.match(/(\\d{1,2}:\\d{2})/);
+                    const match = timeValue.match(/(\d{1,2}:\d{2})/);
                     displayTime = match ? match[0] : timeValue;
                 } else if (timeValue) displayTime = timeValue;
                 
                 const displayDate = booking['Date'] ? booking['Date'].substring(5) : '-';
 
-                // ✅ Name/Date/Golf Course 식별자도 data-*로 포함
-                row.innerHTML = `<td class="py-3 px-6"><input type="checkbox" class="booking-checkbox" data-id="${booking.id}" data-name="${booking['Name']}" data-date="${booking['Date']}" data-course="${booking['Golf Course']}"></td><td class="py-3 px-6">${booking['Golf Course']}</td><td class="py-3 px-6">${booking['Name']}</td><td class="py-3 px-6">${displayDate}</td><td class="py-3 px-6">${booking['Team']}</td><td class="py-3 px-6">${displayTime}</td><td class="py-3 px-6">${booking['Status'] || '-'}</td><td class="py-3 px-6">${booking['Comment'] || '-'}</td>`;
+                row.innerHTML = `<td class="py-3 px-6"><input type="checkbox" class="booking-checkbox" data-id="${booking.id}"></td><td class="py-3 px-6">${booking['Golf Course']}</td><td class="py-3 px-6">${booking['Name']}</td><td class="py-3 px-6">${displayDate}</td><td class="py-3 px-6">${booking['Team']}</td><td class="py-3 px-6">${displayTime}</td><td class="py-3 px-6">${booking['Status'] || '-'}</td><td class="py-3 px-6">${booking['Comment'] || '-'}</td>`;
                 if (isManager || booking['Name'] === currentUser.name) {
                     row.style.cursor = 'pointer';
                     row.addEventListener('click', (e) => { if (e.target.type !== 'checkbox') openBookingModal(booking); });
@@ -463,52 +579,74 @@
             }
         }
         
-        function openBookingModal(booking = null, date = null) {
-            bookingForm.reset();
-            const isManager = currentUser.name === '신석중';
-            const userNameInput = document.getElementById('userName');
-            const bookingTimeInput = document.getElementById('bookingTime');
-            const bookingStatusInput = document.getElementById('bookingStatus');
-            [userNameInput, bookingTimeInput, bookingStatusInput].forEach(input => {
-                input.disabled = !isManager;
-                input.classList.toggle('bg-gray-200', !isManager);
-            });
-            document.getElementById('bookingDate').addEventListener('change', (e) => updateAvailableGolfCourses(e.target.value));
-            if (booking) {
-                document.getElementById('modalTitle').textContent = '예약 수정';
-                originalBookingForLog = { ...booking };
-                const golfCourseSelect = document.getElementById('golfCourse');
-                golfCourseSelect.innerHTML = '';
-                MODAL_GOLF_COURSES.forEach(course => {
-                    const option = document.createElement('option');
-                    option.value = course;
-                    option.textContent = course;
-                    golfCourseSelect.appendChild(option);
+        function renderAnonymousView() {
+            const container = document.getElementById('anonymousTableContainer');
+            const selectedYear = parseInt(document.getElementById('anonymousYearSelector').value, 10);
+            container.innerHTML = '';
+
+            const categories = ['Lakewood_Weekday', 'Lakewood_Weekend', 'Seragio_Weekday', 'Seragio_Weekend'];
+            const categoryNames = {
+                'Lakewood_Weekday': '레이크우드 주중', 'Lakewood_Weekend': '레이크우드 주말',
+                'Seragio_Weekday': '세라지오 주중', 'Seragio_Weekend': '세라지오 주말'
+            };
+
+            const processedData = {};
+            const relevantBookings = bookings.filter(b => (b['Golf Course'] === '레이크우드' || b['Golf Course'] === '세라지오'));
+            const userNames = [...new Set(relevantBookings.map(b => b.Name))].sort();
+
+            userNames.forEach(name => {
+                processedData[name] = {};
+                const userBookings = relevantBookings.filter(b => b.Name === name && new Date(b.Date).getFullYear() === selectedYear);
+                userBookings.forEach(booking => {
+                    const course = booking['Golf Course'];
+                    const date = new Date(booking.Date);
+                    const month = date.getMonth() + 1;
+                    const day = date.getDate();
+                    const isWeekend = isWeekendOrHoliday(booking.Date);
+                    let category;
+                    if (course === '레이크우드') category = isWeekend ? 'Lakewood_Weekend' : 'Lakewood_Weekday';
+                    else if (course === '세라지오') category = isWeekend ? 'Seragio_Weekend' : 'Seragio_Weekday';
+                    if (!processedData[name][category]) processedData[name][category] = {};
+                    if (!processedData[name][category][month]) processedData[name][category][month] = [];
+                    processedData[name][category][month].push(day);
                 });
-                document.getElementById('bookingId').value = booking.id;
-                golfCourseSelect.value = booking['Golf Course'];
-                userNameInput.value = booking['Name'];
-                document.getElementById('bookingDate').value = booking['Date'];
-                document.getElementById('numberOfTeams').value = booking['Team'];
-                bookingTimeInput.value = booking['Time'];
-                bookingStatusInput.value = booking['Status'];
-                document.getElementById('notes').value = booking['Comment'];
-            } else {
-                document.getElementById('modalTitle').textContent = '예약 신청';
-                originalBookingForLog = null;
-                userNameInput.value = currentUser.name;
-                const targetDate = date || new Date().toISOString().split('T')[0];
-                document.getElementById('bookingDate').value = targetDate;
-                updateAvailableGolfCourses(targetDate);
-            }
-            bookingModal.style.display = 'flex';
+            });
+
+            let tableHtml = `<table class="min-w-full bg-white rounded-lg shadow-sm text-sm border-collapse">`;
+            tableHtml += `<thead><tr><th rowspan="2" class="p-2 border">예약자명</th>`;
+            categories.forEach(cat => tableHtml += `<th colspan="12" class="p-2 border">${categoryNames[cat]}</th>`);
+            tableHtml += `</tr><tr>`;
+            categories.forEach(() => {
+                for (let i = 1; i <= 12; i++) tableHtml += `<th class="p-2 border">${i}월</th>`;
+            });
+            tableHtml += `</tr></thead>`;
+            tableHtml += `<tbody>`;
+            userNames.forEach(name => {
+                tableHtml += `<tr><td class="p-2 border font-semibold">${name}</td>`;
+                categories.forEach(cat => {
+                    for (let month = 1; month <= 12; month++) {
+                        const days = processedData[name]?.[cat]?.[month]?.sort((a, b) => a - b).join(', ') || '';
+                        tableHtml += `<td class="p-2 border">${days}</td>`;
+                    }
+                });
+                tableHtml += `</tr>`;
+            });
+            tableHtml += `</tbody></table>`;
+            container.innerHTML = tableHtml;
         }
 
-        function isWeekendOrHoliday(dateStr) {
-            if (holidays[dateStr]) return true;
-            const date = new Date(dateStr);
-            const day = date.getDay();
-            return day === 0 || day === 6;
+        async function postData(action, data) {
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action, ...data }) });
+                const result = await response.json();
+                if (result.status !== 'success') throw new Error(result.message);
+                alert(result.message);
+                await fetchInitialData();
+                renderApp();
+            } catch (error) {
+                console.error(`Error with action ${action}:`, error);
+                alert(`오류가 발생했습니다: ${error.message}`);
+            }
         }
 
         function updateAvailableGolfCourses(selectedDate) {
@@ -568,110 +706,94 @@
             });
         }
 
-        function postData(action, data) {
-            // 데모: 서버 없이 성공 메세지만
-            console.log('POST', action, data);
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    alert(action + ' 처리(데모)');
-                    resolve({ status: 'success', message: 'ok' });
-                }, 300);
+        function openBookingModal(booking = null, date = null) {
+            bookingForm.reset();
+            const isManager = currentUser.name === '신석중';
+            const userNameInput = document.getElementById('userName');
+            const bookingTimeInput = document.getElementById('bookingTime');
+            const bookingStatusInput = document.getElementById('bookingStatus');
+            [userNameInput, bookingTimeInput, bookingStatusInput].forEach(input => {
+                input.disabled = !isManager;
+                input.classList.toggle('bg-gray-200', !isManager);
             });
-        }
-
-        function showLoading(isLoading) {
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            if (isLoading) {
-                document.body.style.cursor = 'wait';
-                loadingOverlay.style.display = 'flex';
+            document.getElementById('bookingDate').addEventListener('change', (e) => updateAvailableGolfCourses(e.target.value));
+            if (booking) {
+                document.getElementById('modalTitle').textContent = '예약 수정';
+                originalBookingForLog = { ...booking };
+                const golfCourseSelect = document.getElementById('golfCourse');
+                golfCourseSelect.innerHTML = '';
+                MODAL_GOLF_COURSES.forEach(course => {
+                    const option = document.createElement('option');
+                    option.value = course;
+                    option.textContent = course;
+                    golfCourseSelect.appendChild(option);
+                });
+                document.getElementById('bookingId').value = booking.id;
+                golfCourseSelect.value = booking['Golf Course'];
+                userNameInput.value = booking['Name'];
+                document.getElementById('bookingDate').value = booking['Date'];
+                document.getElementById('numberOfTeams').value = booking['Team'];
+                bookingTimeInput.value = booking['Time'];
+                bookingStatusInput.value = booking['Status'];
+                document.getElementById('notes').value = booking['Comment'];
             } else {
-                document.body.style.cursor = 'default';
-                loadingOverlay.style.display = 'none';
+                document.getElementById('modalTitle').textContent = '예약 신청';
+                originalBookingForLog = null;
+                userNameInput.value = currentUser.name;
+                const targetDate = date || new Date().toISOString().split('T')[0];
+                document.getElementById('bookingDate').value = targetDate;
+                updateAvailableGolfCourses(targetDate);
             }
+            bookingModal.style.display = 'flex';
         }
 
         function downloadExcel() {
-            if (!bookings || bookings.length === 0) return alert('다운로드할 데이터가 없습니다.');
+            if (bookings.length === 0) return alert('다운로드할 데이터가 없습니다.');
             const headers = ["id", "Golf Course", "Name", "Date", "Team", "Time", "Status", "Comment"];
             const csv = Papa.unparse({ fields: headers, data: bookings });
-            const blob = new Blob(["\\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+            const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
             link.download = 'golf_bookings.csv';
-            document.body.appendChild(link);
             link.click();
-            document.body.removeChild(link);
         }
 
-        // 폼 제출(데모)
-        bookingForm.addEventListener('submit', async (e) => {
+        loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            showLoading(true);
-            try {
-                const bookingData = {
-                    id: document.getElementById('bookingId').value || String(Date.now()),
-                    'Golf Course': document.getElementById('golfCourse').value,
-                    Name: document.getElementById('userName').value,
-                    Date: document.getElementById('bookingDate').value,
-                    Team: document.getElementById('numberOfTeams').value,
-                    Time: document.getElementById('bookingTime').value,
-                    Status: document.getElementById('bookingStatus').value,
-                    Comment: document.getElementById('notes').value
-                };
-                // 로컬에 추가(데모)
-                const idx = bookings.findIndex(b => b.id === bookingData.id);
-                if (idx >= 0) bookings[idx] = bookingData; else bookings.push(bookingData);
-                renderStatus(); renderCalendar();
-                bookingModal.style.display = 'none';
-            } finally {
-                showLoading(false);
-            }
-        });
-
-        // ✅ 선택 취소 로직: Name/Date/Golf Course로 정확히 식별 후 id 재탐색
-        cancelSelectedBtn.addEventListener('click', async () => {
-            const checked = document.querySelectorAll('.booking-checkbox:checked');
-            if (checked.length === 0) return alert('취소할 항목을 선택하세요.');
-            const isManager = currentUser.name === '신석중';
-
-            const keys = Array.from(checked).map(cb => ({
-                Name: cb.dataset.name,
-                Date: cb.dataset.date,
-                GolfCourse: cb.dataset.course
-            }));
-
-            let idsToProcess = keys.map(k => {
-                const found = bookings.find(b => b.Name === k.Name && b.Date === k.Date && b['Golf Course'] === k.GolfCourse);
-                return found ? found.id : null;
-            }).filter(Boolean);
-
-            if (!isManager) {
-                const mine = new Set(bookings.filter(b => b.Name === currentUser.name).map(b => b.id));
-                const before = idsToProcess.length;
-                idsToProcess = idsToProcess.filter(id => mine.has(id));
-                if (idsToProcess.length < before) alert('자신의 예약만 취소할 수 있습니다. 타인의 예약을 제외하고 진행합니다.');
-            }
-
-            if (idsToProcess.length === 0) return alert('취소할 수 있는 예약이 없습니다.');
-
-            if (confirm(`선택한 ${idsToProcess.length}개의 항목을 정말 취소 처리하시겠습니까? (상태가 '취소중'으로 변경됩니다)`)) {
-                showLoading(true);
-                try {
-                    await postData('cancel', { user: currentUser.name, ids: idsToProcess, keys });
-                    // 데모: 상태만 변경
-                    bookings = bookings.map(b => idsToProcess.includes(b.id) ? { ...b, Status: '취소중' } : b);
-                    renderStatus();
-                } finally {
-                    showLoading(false);
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const user = users.find(u => u.name === username && String(u.phone) === password);
+            if (user) {
+                currentUser = user;
+                sessionStorage.setItem('golf_currentUser', JSON.stringify(currentUser));
+                const rememberMe = document.getElementById('rememberMe').checked;
+                if (rememberMe) {
+                    localStorage.setItem('golf_username', username);
+                    localStorage.setItem('golf_password', password);
+                } else {
+                    localStorage.removeItem('golf_username');
+                    localStorage.removeItem('golf_password');
                 }
-            }
+                loginScreen.classList.add('hidden');
+                mainApp.classList.remove('hidden');
+                renderApp();
+            } else { alert('아이디 또는 비밀번호가 일치하지 않습니다.'); }
         });
 
-        // 모달 트리거
-        openModalBtn.addEventListener('click', () => openBookingModal());
-        closeModalBtn.addEventListener('click', () => bookingModal.style.display = 'none');
-
-        // 탭切替
+        logoutBtn.addEventListener('click', () => {
+            currentUser = null;
+            sessionStorage.removeItem('golf_currentUser');
+            mainApp.classList.add('hidden');
+            loginScreen.classList.remove('hidden');
+            loginForm.reset();
+            const savedUsername = localStorage.getItem('golf_username');
+            if (savedUsername) {
+                document.getElementById('loginUsername').value = savedUsername;
+                document.getElementById('loginPassword').value = localStorage.getItem('golf_password');
+                document.getElementById('rememberMe').checked = true;
+            }
+        });
+        
         [calendarTabBtn, statusTabBtn, anonymousTabBtn, lookupTabBtn].forEach(tab => {
             tab.addEventListener('click', () => {
                 calendarView.classList.add('hidden');
@@ -687,10 +809,235 @@
                 else if (tab.id === 'anonymousTabBtn') anonymousView.classList.remove('hidden');
             });
         });
+        
+        openModalBtn.addEventListener('click', () => openBookingModal());
+        closeModalBtn.addEventListener('click', () => bookingModal.style.display = 'none');
+        
+        bookingForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            showLoading(true);
+            try {
+                const bookingData = {
+                    'id': document.getElementById('bookingId').value, 'Golf Course': document.getElementById('golfCourse').value,
+                    'Name': document.getElementById('userName').value, 'Date': document.getElementById('bookingDate').value,
+                    'Team': document.getElementById('numberOfTeams').value, 'Time': document.getElementById('bookingTime').value,
+                    'Status': document.getElementById('bookingStatus').value, 'Comment': document.getElementById('notes').value
+                };
+                if (!bookingData['Golf Course']) {
+                    alert('선택한 날짜에 예약 가능한 골프장이 없습니다. 한도가 초과되었을 수 있습니다.');
+                    return;
+                }
+                if (bookingData.id) {
+                    let logParts = [];
+                    if (bookingData.Time !== originalBookingForLog.Time) logParts.push("시간변경");
+                    if (bookingData.Team != originalBookingForLog.Team) logParts.push("팀수변경");
+                    const logMessage = logParts.length > 0 ? logParts.join('/') : "수정";
+                    await postData('update', { user: currentUser.name, booking: bookingData, logMessage: logMessage });
+                } else {
+                    const isManager = currentUser.name === '신석중';
+                    if (!isManager) {
+                        const isDuplicate = bookings.some(b => b.Date === bookingData.Date && b['Golf Course'] === bookingData['Golf Course'] && b.Name === bookingData.Name);
+                        if (isDuplicate) {
+                            alert('이미 해당 날짜에 동일한 골프장으로 예약한 내역이 있습니다.');
+                            return;
+                        }
+                    }
+                    await postData('add', { user: currentUser.name, booking: bookingData });
+                }
+                bookingModal.style.display = 'none';
+            } finally {
+                showLoading(false);
+            }
+        });
 
-        // 공지
-        noticeLink.addEventListener('click', (e) => { e.preventDefault(); noticeModal.style.display = 'flex'; });
-        closeNoticeBtn.addEventListener('click', () => { noticeModal.style.display = 'none'; });
+        cancelSelectedBtn.addEventListener('click', async () => {
+            const checkedBoxes = document.querySelectorAll('.booking-checkbox:checked');
+            if (checkedBoxes.length === 0) return alert('취소할 항목을 선택하세요.');
+            const isManager = currentUser.name === '신석중';
+            let idsToProcess = Array.from(checkedBoxes).map(cb => cb.dataset.id).filter(id => id);
+            if (!isManager) {
+                const myBookingsIds = new Set(bookings.filter(b => b.Name === currentUser.name).map(b => b.id));
+                const originalLength = idsToProcess.length;
+                idsToProcess = idsToProcess.filter(id => myBookingsIds.has(id));
+                if (idsToProcess.length < originalLength) {
+                    alert('자신의 예약만 취소할 수 있습니다. 타인의 예약을 제외하고 진행합니다.');
+                }
+            }
+            if (idsToProcess.length === 0) {
+                alert('취소할 수 있는 예약이 없습니다.');
+                return;
+            };
+            if (confirm(`선택한 ${idsToProcess.length}개의 항목을 정말 취소 처리하시겠습니까? (상태가 '취소중'으로 변경됩니다)`)) {
+                showLoading(true);
+                try {
+                    await postData('cancel', { user: currentUser.name, ids: idsToProcess });
+                } finally {
+                    showLoading(false);
+                }
+            }
+        });
+
+        anonymousYearSelector.addEventListener('change', renderAnonymousView);
+
+        lookupBtn.addEventListener('click', () => {
+            const lookupName = document.getElementById('lookupName').value;
+            const lookupDate = document.getElementById('lookupDate').value;
+            const resultsDiv = document.getElementById('lookupResults');
+            resultsDiv.innerHTML = '';
+
+            if (lookupName) {
+                const targetUserQuota = userQuotas[lookupName];
+                if (!targetUserQuota) {
+                    resultsDiv.innerHTML = `<p class="text-red-500">해당 사용자의 한도 정보를 찾을 수 없습니다.</p>`;
+                    return;
+                }
+                const year = new Date().getFullYear();
+                const nonUsageStatus = ['취소', '예약실패', '우천취소', '취소중'];
+
+                const userBookingsForPeriod = bookings.filter(b => {
+                    const bookingDate = new Date(b.Date);
+                    return b.Name === lookupName && 
+                           bookingDate.getFullYear() === year &&
+                           bookingDate.getMonth() >= 8;
+                });
+                
+                const userUsedBookings = userBookingsForPeriod.filter(b => !nonUsageStatus.includes(b.Status));
+
+                const usedCounts = {
+                    Lakewood_Weekday: userUsedBookings.filter(b => b['Golf Course'] === '레이크우드' && !isWeekendOrHoliday(b.Date)).length,
+                    Lakewood_Weekend: userUsedBookings.filter(b => b['Golf Course'] === '레이크우드' && isWeekendOrHoliday(b.Date)).length,
+                    SkyValley: userUsedBookings.filter(b => b['Golf Course'] === '스카이밸리').length,
+                    HillydeSicy: userUsedBookings.filter(b => b['Golf Course'] === '힐드로사이').length,
+                    Seragio_Weekday: userUsedBookings.filter(b => b['Golf Course'] === '세라지오' && !isWeekendOrHoliday(b.Date)).length,
+                    Seragio_Weekend: userUsedBookings.filter(b => b['Golf Course'] === '세라지오' && isWeekendOrHoliday(b.Date)).length
+                };
+                
+                const monthlyUsage = {};
+                for (let i = 9; i <= 12; i++) {
+                    monthlyUsage[i] = { Lakewood_Weekday: 0, Lakewood_Weekend: 0, SkyValley: 0, HillydeSicy: 0, Seragio_Weekday: 0, Seragio_Weekend: 0 };
+                }
+                
+                userUsedBookings.forEach(b => {
+                    const month = new Date(b.Date).getMonth() + 1;
+                    if (month >= 9) {
+                        const isWeekend = isWeekendOrHoliday(b.Date);
+                        if (b['Golf Course'] === '레이크우드') monthlyUsage[month][isWeekend ? 'Lakewood_Weekend' : 'Lakewood_Weekday']++;
+                        else if (b['Golf Course'] === '스카이밸리') monthlyUsage[month].SkyValley++;
+                        else if (b['Golf Course'] === '힐드로사이') monthlyUsage[month].HillydeSicy++;
+                        else if (b['Golf Course'] === '세라지오') monthlyUsage[month][isWeekend ? 'Seragio_Weekend' : 'Seragio_Weekday']++;
+                    }
+                });
+
+                let resultHtml = `<h3 class="text-lg font-bold mb-2">${lookupName}님 조회 결과 (9월-12월)</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <h4 class="font-semibold mb-2">연간 한도 및 사용 현황 (9월-12월)</h4>
+                        <table class="w-full text-sm">
+                            <thead><tr><th>항목</th><th>배정(4개월)</th><th>사용</th><th>잔여</th></tr></thead>
+                            <tbody>
+                                <tr><td>레이크우드(주중)</td><td>${(targetUserQuota.Lakewood_Weekday || 0) * 4}</td><td>${usedCounts.Lakewood_Weekday}</td><td>${(targetUserQuota.Lakewood_Weekday || 0) * 4 - usedCounts.Lakewood_Weekday}</td></tr>
+                                <tr><td>레이크우드(주말)</td><td>${(targetUserQuota.Lakewood_Weekend || 0) * 4}</td><td>${usedCounts.Lakewood_Weekend}</td><td>${(targetUserQuota.Lakewood_Weekend || 0) * 4 - usedCounts.Lakewood_Weekend}</td></tr>
+                                <tr><td>스카이밸리</td><td>${(targetUserQuota.SkyValley || 0) * 4}</td><td>${usedCounts.SkyValley}</td><td>${(targetUserQuota.SkyValley || 0) * 4 - usedCounts.SkyValley}</td></tr>
+                                <tr><td>힐드로사이</td><td>${(targetUserQuota.HillydeSicy || 0) * 4}</td><td>${usedCounts.HillydeSicy}</td><td>${(targetUserQuota.HillydeSicy || 0) * 4 - usedCounts.HillydeSicy}</td></tr>
+                                <tr><td>세라지오(주중)</td><td>${(targetUserQuota.Seragio_Weekday || 0) * 4}</td><td>${usedCounts.Seragio_Weekday}</td><td>${(targetUserQuota.Seragio_Weekday || 0) * 4 - usedCounts.Seragio_Weekday}</td></tr>
+                                <tr><td>세라지오(주말)</td><td>${(targetUserQuota.Seragio_Weekend || 0) * 4}</td><td>${usedCounts.Seragio_Weekend}</td><td>${(targetUserQuota.Seragio_Weekend || 0) * 4 - usedCounts.Seragio_Weekend}</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                         <h4 class="font-semibold mb-2">월별 사용 현황</h4>
+                         <table class="w-full text-sm">
+                            <thead><tr><th>월</th><th>레이크(주중)</th><th>레이크(주말)</th><th>스카이밸리</th><th>힐드로사이</th><th>세라지오(주중)</th><th>세라지오(주말)</th></tr></thead>
+                            <tbody>`;
+                for(let i = 9; i <= 12; i++) {
+                    resultHtml += `<tr><td>${i}월</td>
+                                    <td>${monthlyUsage[i].Lakewood_Weekday}</td><td>${monthlyUsage[i].Lakewood_Weekend}</td>
+                                    <td>${monthlyUsage[i].SkyValley}</td><td>${monthlyUsage[i].HillydeSicy}</td>
+                                    <td>${monthlyUsage[i].Seragio_Weekday}</td><td>${monthlyUsage[i].Seragio_Weekend}</td>
+                                 </tr>`;
+                }
+                resultHtml += `</tbody></table></div></div>`;
+                resultsDiv.innerHTML = resultHtml;
+
+            } else if (lookupDate) {
+                const availableCourses = getAvailableCoursesForDate(lookupDate);
+                let resultHtml = `<h3 class="text-lg font-bold mb-2">${lookupDate} 예약 가능 여부 (현재 사용자 기준)</h3>
+                                  <ul class="list-disc list-inside">`;
+                MODAL_GOLF_COURSES.forEach(course => {
+                    const isAvailable = availableCourses.includes(course);
+                    resultHtml += `<li>${course}: <span class="font-bold ${isAvailable ? 'text-green-600' : 'text-red-600'}">${isAvailable ? '가능' : '불가능'}</span></li>`;
+                });
+                resultHtml += `</ul>`;
+                resultsDiv.innerHTML = resultHtml;
+
+            } else {
+                resultsDiv.innerHTML = '<p>조회할 이름 또는 날짜를 입력해주세요.</p>';
+            }
+        });
+
+        function getAvailableCoursesForDate(selectedDate) {
+            const available = [];
+            const isManager = currentUser.name === '신석중';
+            const isDayWeekendOrHoliday = isWeekendOrHoliday(selectedDate);
+            const dailyCounts = bookings.filter(b => b.Date === selectedDate).reduce((acc, b) => {
+                acc[b['Golf Course']] = (acc[b['Golf Course']] || 0) + 1;
+                return acc;
+            }, {});
+            const lakewoodDailyCount = dailyCounts['레이크우드'] || 0;
+            const seragioDailyCount = dailyCounts['세라지오'] || 0;
+            const isLakewoodOverDailyLimit = isDayWeekendOrHoliday ? lakewoodDailyCount >= 6 : lakewoodDailyCount >= 9;
+            const isSeragioOverDailyLimit = isDayWeekendOrHoliday ? seragioDailyCount >= 3 : seragioDailyCount >= 5;
+            const year = new Date(selectedDate).getFullYear();
+            const month = new Date(selectedDate).getMonth();
+            const firstDayOfMonth = new Date(year, month, 1);
+            const lastDayOfMonth = new Date(year, month + 1, 0);
+            const userMonthlyBookings = bookings.filter(b => {
+                const bookingDate = new Date(b.Date);
+                return b.Name === currentUser.name && bookingDate >= firstDayOfMonth && bookingDate <= lastDayOfMonth;
+            });
+            const userQuotaCounts = {
+                lakewood_weekday: userMonthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && !isWeekendOrHoliday(b.Date)).length,
+                lakewood_weekend: userMonthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && isWeekendOrHoliday(b.Date)).length,
+                skyvalley: userMonthlyBookings.filter(b => b['Golf Course'] === '스카이밸리').length,
+                hillydesicy: userMonthlyBookings.filter(b => b['Golf Course'] === '힐드로사이').length,
+                seragio_weekday: userMonthlyBookings.filter(b => b['Golf Course'] === '세라지오' && !isWeekendOrHoliday(b.Date)).length,
+                seragio_weekend: userMonthlyBookings.filter(b => b['Golf Course'] === '세라지오' && isWeekendOrHoliday(b.Date)).length
+            };
+            const currentUserQuota = userQuotas[currentUser.name] || {};
+            MODAL_GOLF_COURSES.forEach(course => {
+                let isOverDailyLimit = false;
+                if (course === '레이크우드' && isLakewoodOverDailyLimit) isOverDailyLimit = true;
+                if (course === '세라지오' && isSeragioOverDailyLimit) isOverDailyLimit = true;
+                let isOverUserQuota = false;
+                if (!isManager) {
+                    if (course === '레이크우드') {
+                        const quota = isDayWeekendOrHoliday ? currentUserQuota.Lakewood_Weekend : currentUserQuota.Lakewood_Weekday;
+                        const count = isDayWeekendOrHoliday ? userQuotaCounts.lakewood_weekend : userQuotaCounts.lakewood_weekday;
+                        if (count >= quota) isOverUserQuota = true;
+                    } else if (course === '세라지오') {
+                        const quota = isDayWeekendOrHoliday ? currentUserQuota.Seragio_Weekend : currentUserQuota.Seragio_Weekday;
+                        const count = isDayWeekendOrHoliday ? userQuotaCounts.seragio_weekend : userQuotaCounts.seragio_weekday;
+                        if (count >= quota) isOverUserQuota = true;
+                    } else if (course === '스카이밸리' && userQuotaCounts.skyvalley >= currentUserQuota.SkyValley) isOverUserQuota = true;
+                    else if (course === '힐드로사이' && userQuotaCounts.hillydesicy >= currentUserQuota.HillydeSicy) isOverUserQuota = true;
+                }
+                if (!isOverDailyLimit && !isOverUserQuota) {
+                    available.push(course);
+                }
+            });
+            return available;
+        }
+
+        noticeLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            noticeModal.style.display = 'flex';
+        });
+
+        closeNoticeBtn.addEventListener('click', () => {
+            noticeModal.style.display = 'none';
+        });
+
     </script>
 </body>
 </html>
+
