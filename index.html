@@ -15,7 +15,7 @@
         body { font-family: 'Inter', sans-serif; }
         .calendar-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
         @media (max-width: 768px) { .calendar-container { grid-template-columns: 1fr; } }
-        .day-cell { min-height: 50px; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; }
+        .day-cell { min-height: 50px; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; cursor: pointer; }
         .booking-info { font-size: 10px; }
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background-color: white; padding: 32px; border-radius: 16px; width: 90%; max-width: 480px; }
@@ -507,6 +507,9 @@
                         });
                     }
                     dayCell.innerHTML = `<div class="day-number font-medium ${dayColor}">${day}</div>` + bookingHtml;
+                    dayCell.addEventListener('click', () => {
+                        openBookingModal(null, dateStr);
+                    });
                     dayGrid.appendChild(dayCell);
                 }
                 monthContainer.appendChild(dayGrid);
@@ -526,7 +529,6 @@
 
             let filteredBookings = isManager ? statusFilteredBookings : statusFilteredBookings.filter(b => b['Name'] === currentUser.name);
             
-            // [수정됨] 원본 배열을 훼손하지 않도록 복사본을 만들어 정렬
             const sortedBookings = [...filteredBookings].sort((a, b) => {
                 const valA = a[sortColumn] || '';
                 const valB = b[sortColumn] || '';
@@ -559,7 +561,21 @@
                 
                 const displayDate = booking['Date'] ? booking['Date'].substring(5) : '-';
 
-                row.innerHTML = `<td class="py-3 px-6"><input type="checkbox" class="booking-checkbox" data-id="${booking.id}"></td><td class="py-3 px-6">${booking['Golf Course']}</td><td class="py-3 px-6">${booking['Name']}</td><td class="py-3 px-6">${displayDate}</td><td class="py-3 px-6">${booking['Team']}</td><td class="py-3 px-6">${displayTime}</td><td class="py-3 px-6">${booking['Status'] || '-'}</td><td class="py-3 px-6">${booking['Comment'] || '-'}</td>`;
+                row.innerHTML = `<td class="py-3 px-6">
+                    <input type="checkbox" class="booking-checkbox" 
+                           data-id="${booking.id}"
+                           data-name="${booking['Name']}"
+                           data-date="${booking['Date']}"
+                           data-course="${booking['Golf Course']}">
+                </td>
+                <td class="py-3 px-6">${booking['Golf Course']}</td>
+                <td class="py-3 px-6">${booking['Name']}</td>
+                <td class="py-3 px-6">${displayDate}</td>
+                <td class="py-3 px-6">${booking['Team']}</td>
+                <td class="py-3 px-6">${displayTime}</td>
+                <td class="py-3 px-6">${booking['Status'] || '-'}</td>
+                <td class="py-3 px-6">${booking['Comment'] || '-'}</td>`;
+
                 if (isManager || booking['Name'] === currentUser.name) {
                     row.style.cursor = 'pointer';
                     row.addEventListener('click', (e) => { if (e.target.type !== 'checkbox') openBookingModal(booking); });
@@ -703,7 +719,7 @@
             });
         }
 
-        function openBookingModal(booking = null) {
+        function openBookingModal(booking = null, date = null) {
             bookingForm.reset();
             const isManager = currentUser.name === '신석중';
             const userNameInput = document.getElementById('userName');
@@ -737,9 +753,9 @@
                 document.getElementById('modalTitle').textContent = '예약 신청';
                 originalBookingForLog = null;
                 userNameInput.value = currentUser.name;
-                const today = new Date().toISOString().split('T')[0];
-                document.getElementById('bookingDate').value = today;
-                updateAvailableGolfCourses(today);
+                const targetDate = date || new Date().toISOString().split('T')[0];
+                document.getElementById('bookingDate').value = targetDate;
+                updateAvailableGolfCourses(targetDate);
             }
             bookingModal.style.display = 'flex';
         }
@@ -847,11 +863,15 @@
             }
         });
 
+        // [수정됨] cancelSelectedBtn 이벤트 리스너 로직 수정
         cancelSelectedBtn.addEventListener('click', async () => {
             const checkedBoxes = document.querySelectorAll('.booking-checkbox:checked');
             if (checkedBoxes.length === 0) return alert('취소할 항목을 선택하세요.');
             const isManager = currentUser.name === '신석중';
+            
+            // 체크된 행의 고유 ID를 직접 수집
             let idsToProcess = Array.from(checkedBoxes).map(cb => cb.dataset.id);
+
             if (!isManager) {
                 const myBookingsIds = new Set(bookings.filter(b => b.Name === currentUser.name).map(b => b.id));
                 const originalLength = idsToProcess.length;
