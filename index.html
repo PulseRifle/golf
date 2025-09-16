@@ -529,6 +529,7 @@
 
             let filteredBookings = isManager ? statusFilteredBookings : statusFilteredBookings.filter(b => b['Name'] === currentUser.name);
             
+            // [수정됨] 원본 배열을 훼손하지 않도록 복사본을 만들어 정렬
             const sortedBookings = [...filteredBookings].sort((a, b) => {
                 const valA = a[sortColumn] || '';
                 const valB = b[sortColumn] || '';
@@ -561,21 +562,7 @@
                 
                 const displayDate = booking['Date'] ? booking['Date'].substring(5) : '-';
 
-                row.innerHTML = `<td class="py-3 px-6">
-                    <input type="checkbox" class="booking-checkbox" 
-                           data-id="${booking.id}"
-                           data-name="${booking['Name']}"
-                           data-date="${booking['Date']}"
-                           data-course="${booking['Golf Course']}">
-                </td>
-                <td class="py-3 px-6">${booking['Golf Course']}</td>
-                <td class="py-3 px-6">${booking['Name']}</td>
-                <td class="py-3 px-6">${displayDate}</td>
-                <td class="py-3 px-6">${booking['Team']}</td>
-                <td class="py-3 px-6">${displayTime}</td>
-                <td class="py-3 px-6">${booking['Status'] || '-'}</td>
-                <td class="py-3 px-6">${booking['Comment'] || '-'}</td>`;
-
+                row.innerHTML = `<td class="py-3 px-6"><input type="checkbox" class="booking-checkbox" data-id="${booking.id}"></td><td class="py-3 px-6">${booking['Golf Course']}</td><td class="py-3 px-6">${booking['Name']}</td><td class="py-3 px-6">${displayDate}</td><td class="py-3 px-6">${booking['Team']}</td><td class="py-3 px-6">${displayTime}</td><td class="py-3 px-6">${booking['Status'] || '-'}</td><td class="py-3 px-6">${booking['Comment'] || '-'}</td>`;
                 if (isManager || booking['Name'] === currentUser.name) {
                     row.style.cursor = 'pointer';
                     row.addEventListener('click', (e) => { if (e.target.type !== 'checkbox') openBookingModal(booking); });
@@ -863,14 +850,13 @@
             }
         });
 
-        // [수정됨] cancelSelectedBtn 이벤트 리스너 로직 수정
         cancelSelectedBtn.addEventListener('click', async () => {
             const checkedBoxes = document.querySelectorAll('.booking-checkbox:checked');
             if (checkedBoxes.length === 0) return alert('취소할 항목을 선택하세요.');
             const isManager = currentUser.name === '신석중';
             
-            // 체크된 행의 고유 ID를 직접 수집
-            let idsToProcess = Array.from(checkedBoxes).map(cb => cb.dataset.id);
+            // [수정됨] 체크된 행의 고유 ID를 직접 수집하여 정확도 향상
+            let idsToProcess = Array.from(checkedBoxes).map(cb => cb.dataset.id).filter(id => id); // id가 있는 것만 필터링
 
             if (!isManager) {
                 const myBookingsIds = new Set(bookings.filter(b => b.Name === currentUser.name).map(b => b.id));
