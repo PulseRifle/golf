@@ -526,7 +526,6 @@
 
             let filteredBookings = isManager ? statusFilteredBookings : statusFilteredBookings.filter(b => b['Name'] === currentUser.name);
             
-            // [수정됨] 원본 배열을 훼손하지 않도록 복사본을 정렬
             const sortedBookings = [...filteredBookings].sort((a, b) => {
                 const valA = a[sortColumn] || '';
                 const valB = b[sortColumn] || '';
