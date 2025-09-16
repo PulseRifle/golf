@@ -230,6 +230,20 @@
         </div>
     </div>
 
+    <!-- 엑셀 업로드 모달 -->
+    <div id="uploadModal" class="modal-overlay">
+         <div class="modal-content">
+            <h2 class="text-2xl font-bold mb-6">엑셀 파일 업로드</h2>
+            <form id="uploadForm" class="space-y-4">
+                <input type="file" id="excelFile" accept=".csv" required class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                <div class="flex justify-end space-x-4 pt-4">
+                    <button type="button" id="closeUploadModalBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-6 rounded-full">취소</button>
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full">업로드</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
     <div id="loadingOverlay" class="modal-overlay" style="display: none;">
         <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
@@ -273,7 +287,6 @@
         const anonymousView = document.getElementById('anonymousView'), lookupView = document.getElementById('lookupView');
         const adminOnlyControls = document.getElementById('adminOnlyControls'), cancelSelectedBtn = document.getElementById('cancelSelectedBtn');
         const downloadExcelBtn = document.getElementById('downloadExcelBtn'), uploadExcelBtn = document.getElementById('uploadExcelBtn');
-        // [수정됨] 엑셀 업로드 관련 변수 선언 추가
         const uploadModal = document.getElementById('uploadModal'), closeUploadModalBtn = document.getElementById('closeUploadModalBtn');
         const uploadForm = document.getElementById('uploadForm');
         const golfCourseFilterContainer = document.getElementById('golfCourseFilterContainer');
@@ -687,7 +700,7 @@
                 let isOverUserQuota = false;
                 if (!isManager) {
                     if (course === '레이크우드') {
-                        const quota = isDayWeekendOrHoliday ? currentUserQuota.Lakewood_Weekend : currentUserQuota.Lakewood_Weekday;
+                        const quota = isDayWeekendOrHoliday ? currentUserQuota.Lakewood_Weekend : currentUserQuota.Lakewood_Weekend;
                         const count = isDayWeekendOrHoliday ? userQuotaCounts.lakewood_weekend : userQuotaCounts.lakewood_weekday;
                         if (count >= quota) isOverUserQuota = true;
                     } else if (course === '세라지오') {
