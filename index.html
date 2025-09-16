@@ -157,7 +157,7 @@
         </div>
     </div>
     
-    <!-- [수정됨] 공지사항 모달 추가 -->
+    <!-- 공지사항 모달 -->
     <div id="noticeModal" class="modal-overlay">
         <div class="modal-content relative max-w-3xl max-h-[80vh] overflow-y-auto">
             <button id="closeNoticeBtn" class="absolute top-4 right-4 text-2xl text-gray-500 hover:text-gray-800">&times;</button>
@@ -526,7 +526,8 @@
 
             let filteredBookings = isManager ? statusFilteredBookings : statusFilteredBookings.filter(b => b['Name'] === currentUser.name);
             
-            filteredBookings.sort((a, b) => {
+            // [수정됨] 원본 배열을 훼손하지 않도록 복사본을 정렬
+            const sortedBookings = [...filteredBookings].sort((a, b) => {
                 const valA = a[sortColumn] || '';
                 const valB = b[sortColumn] || '';
                 let comparison = 0;
@@ -540,11 +541,11 @@
 
             adminOnlyControls.classList.toggle('hidden', !isManager);
             cancelSelectedBtn.classList.toggle('hidden', !currentUser);
-            if (filteredBookings.length === 0) {
+            if (sortedBookings.length === 0) {
                  statusTableBody.innerHTML = `<tr><td colspan="8" class="text-center py-10">해당 조건의 예약 내역이 없습니다.</td></tr>`;
                  return;
             }
-            filteredBookings.forEach(booking => {
+            sortedBookings.forEach(booking => {
                 const row = document.createElement('tr');
                 let statusStyle = "border-b border-gray-200 hover:bg-gray-100";
                 if (booking['Status'] === '완료') statusStyle = "border-b border-gray-200 bg-sky-100 text-blue-700 font-medium";
