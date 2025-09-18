@@ -90,6 +90,12 @@
                         <button id="cancelSelectedBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-full hidden transform transition-transform active:scale-95">선택 취소</button>
                     </div>
                 </div>
+                <!-- [수정됨] 관리자 전용 필터 영역 추가 -->
+                <div id="adminStatusFilters" class="hidden flex flex-col md:flex-row gap-4 mb-4 p-4 bg-gray-50 rounded-lg border">
+                    <select id="adminCourseFilter" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"></select>
+                    <select id="adminNameFilter" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"></select>
+                    <select id="adminDateFilter" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"></select>
+                </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full bg-white rounded-lg shadow-sm">
                         <thead id="statusTableHead" class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
@@ -230,21 +236,6 @@
         </div>
     </div>
 
-    <!-- 엑셀 업로드 모달 -->
-    <div id="uploadModal" class="modal-overlay">
-         <div class="modal-content">
-            <h2 class="text-2xl font-bold mb-6">엑셀 파일 업로드</h2>
-            <form id="uploadForm" class="space-y-4">
-                <input type="file" id="excelFile" accept=".csv" required class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                <div class="flex justify-end space-x-4 pt-4">
-                    <button type="button" id="closeUploadModalBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-6 rounded-full">취소</button>
-                    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full">업로드</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-
     <div id="loadingOverlay" class="modal-overlay" style="display: none;">
         <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
     </div>
@@ -276,7 +267,6 @@
         let sortColumn = 'Date';
         let sortDirection = 'asc';
         
-        // [수정됨] 모든 DOM 요소 변수를 DOMContentLoaded 내부로 이동
         document.addEventListener('DOMContentLoaded', async () => {
             const loginScreen = document.getElementById('loginScreen'), mainApp = document.getElementById('mainApp');
             const loginForm = document.getElementById('loginForm'), logoutBtn = document.getElementById('logoutBtn');
@@ -318,162 +308,245 @@
             } else {
                 showLoginScreen();
             }
-        });
 
-        function showLoginScreen() {
-            const loginScreen = document.getElementById('loginScreen');
-            const mainApp = document.getElementById('mainApp');
-            const savedUsername = localStorage.getItem('golf_username');
-            const savedPassword = localStorage.getItem('golf_password');
-            if (savedUsername && savedPassword) {
-                document.getElementById('loginUsername').value = savedUsername;
-                document.getElementById('loginPassword').value = savedPassword;
-                document.getElementById('rememberMe').checked = true;
-            }
-            loginScreen.classList.remove('hidden');
-            mainApp.classList.add('hidden');
-        }
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const username = document.getElementById('loginUsername').value;
+                const password = document.getElementById('loginPassword').value;
+                const user = users.find(u => u.name === username && String(u.phone) === password);
+                if (user) {
+                    currentUser = user;
+                    sessionStorage.setItem('golf_currentUser', JSON.stringify(currentUser));
+                    const rememberMe = document.getElementById('rememberMe').checked;
+                    if (rememberMe) {
+                        localStorage.setItem('golf_username', username);
+                        localStorage.setItem('golf_password', password);
+                    } else {
+                        localStorage.removeItem('golf_username');
+                        localStorage.removeItem('golf_password');
+                    }
+                    loginScreen.classList.add('hidden');
+                    mainApp.classList.remove('hidden');
+                    renderApp();
+                } else { alert('아이디 또는 비밀번호가 일치하지 않습니다.'); }
+            });
 
-        function renderApp() {
-            const isManager = currentUser && currentUser.name === '신석중';
-            document.getElementById('anonymousTabBtn').classList.toggle('hidden', !isManager);
-            document.getElementById('lookupTabBtn').classList.toggle('hidden', !isManager);
-            setupGolfCourseFilters();
-            setupStatusFilter();
-            setupSorting();
-            renderCalendar();
-            renderStatus();
-            if(isManager) renderAnonymousView();
+            logoutBtn.addEventListener('click', () => {
+                currentUser = null;
+                sessionStorage.removeItem('golf_currentUser');
+                mainApp.classList.add('hidden');
+                loginScreen.classList.remove('hidden');
+                loginForm.reset();
+                const savedUsername = localStorage.getItem('golf_username');
+                if (savedUsername) {
+                    document.getElementById('loginUsername').value = savedUsername;
+                    document.getElementById('loginPassword').value = localStorage.getItem('golf_password');
+                    document.getElementById('rememberMe').checked = true;
+                }
+            });
+            
+            [calendarTabBtn, statusTabBtn, anonymousTabBtn, lookupTabBtn].forEach(tab => {
+                tab.addEventListener('click', () => {
+                    calendarView.classList.add('hidden');
+                    statusView.classList.add('hidden');
+                    anonymousView.classList.add('hidden');
+                    lookupView.classList.add('hidden');
+                    [calendarTabBtn, statusTabBtn, anonymousTabBtn, lookupTabBtn].forEach(t => t.classList.remove('bg-lime-500', 'text-white'));
+                    
+                    tab.classList.add('bg-lime-500', 'text-white');
+                    if (tab.id === 'calendarTabBtn') calendarView.classList.remove('hidden');
+                    else if (tab.id === 'statusTabBtn') statusView.classList.remove('hidden');
+                    else if (tab.id === 'lookupTabBtn') lookupView.classList.remove('hidden');
+                    else if (tab.id === 'anonymousTabBtn') anonymousView.classList.remove('hidden');
+                });
+            });
+            
+            openModalBtn.addEventListener('click', () => openBookingModal());
+            closeModalBtn.addEventListener('click', () => bookingModal.style.display = 'none');
+            
+            bookingForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                showLoading(true);
+                try {
+                    const bookingData = {
+                        'id': document.getElementById('bookingId').value, 'Golf Course': document.getElementById('golfCourse').value,
+                        'Name': document.getElementById('userName').value, 'Date': document.getElementById('bookingDate').value,
+                        'Team': document.getElementById('numberOfTeams').value, 'Time': document.getElementById('bookingTime').value,
+                        'Status': document.getElementById('bookingStatus').value, 'Comment': document.getElementById('notes').value
+                    };
+                    if (!bookingData['Golf Course']) {
+                        alert('선택한 날짜에 예약 가능한 골프장이 없습니다. 한도가 초과되었을 수 있습니다.');
+                        return;
+                    }
+                    if (bookingData.id) {
+                        let logParts = [];
+                        if (bookingData.Time !== originalBookingForLog.Time) logParts.push("시간변경");
+                        if (bookingData.Team != originalBookingForLog.Team) logParts.push("팀수변경");
+                        const logMessage = logParts.length > 0 ? logParts.join('/') : "수정";
+                        await postData('update', { user: currentUser.name, booking: bookingData, logMessage: logMessage });
+                    } else {
+                        const isManager = currentUser.name === '신석중';
+                        if (!isManager) {
+                            const isDuplicate = bookings.some(b => b.Date === bookingData.Date && b['Golf Course'] === bookingData['Golf Course'] && b.Name === bookingData.Name);
+                            if (isDuplicate) {
+                                alert('이미 해당 날짜에 동일한 골프장으로 예약한 내역이 있습니다.');
+                                return;
+                            }
+                        }
+                        await postData('add', { user: currentUser.name, booking: bookingData });
+                    }
+                    bookingModal.style.display = 'none';
+                } finally {
+                    showLoading(false);
+                }
+            });
 
-            const noticeShown = localStorage.getItem('golf_notice_202509');
-            if (!noticeShown) {
-                document.getElementById('noticeModal').style.display = 'flex';
-                localStorage.setItem('golf_notice_202509', 'true');
-            }
-        }
-// ... all other functions remain the same as the previous correct version ...
-        function showLoading(isLoading) {
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            if (isLoading) {
-                document.body.style.cursor = 'wait';
-                loadingOverlay.style.display = 'flex';
-            } else {
-                document.body.style.cursor = 'default';
-                loadingOverlay.style.display = 'none';
-            }
-        }
+            cancelSelectedBtn.addEventListener('click', async () => {
+                const checkedBoxes = document.querySelectorAll('.booking-checkbox:checked');
+                if (checkedBoxes.length === 0) return alert('취소할 항목을 선택하세요.');
+                const isManager = currentUser.name === '신석중';
+                let idsToProcess = Array.from(checkedBoxes).map(cb => cb.dataset.id).filter(id => id);
+                if (!isManager) {
+                    const myBookingsIds = new Set(bookings.filter(b => b.Name === currentUser.name).map(b => b.id));
+                    const originalLength = idsToProcess.length;
+                    idsToProcess = idsToProcess.filter(id => myBookingsIds.has(id));
+                    if (idsToProcess.length < originalLength) {
+                        alert('자신의 예약만 취소할 수 있습니다. 타인의 예약을 제외하고 진행합니다.');
+                    }
+                }
+                if (idsToProcess.length === 0) {
+                    alert('취소할 수 있는 예약이 없습니다.');
+                    return;
+                };
+                if (confirm(`선택한 ${idsToProcess.length}개의 항목을 정말 취소 처리하시겠습니까? (상태가 '취소중'으로 변경됩니다)`)) {
+                    showLoading(true);
+                    try {
+                        await postData('cancel', { user: currentUser.name, ids: idsToProcess });
+                    } finally {
+                        showLoading(false);
+                    }
+                }
+            });
 
-        async function fetchInitialData() {
-            try {
-                const response = await fetch(`${SCRIPT_URL}?action=read`);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                const data = await response.json();
-                bookings = data.bookings;
-                users = data.users;
-                userQuotas = data.quotas.reduce((acc, q) => {
-                    acc[q.Name] = q;
+            anonymousYearSelector.addEventListener('change', renderAnonymousView);
+
+            lookupBtn.addEventListener('click', () => {
+                const lookupName = document.getElementById('lookupName').value;
+                const lookupDate = document.getElementById('lookupDate').value;
+                const resultsDiv = document.getElementById('lookupResults');
+                resultsDiv.innerHTML = '';
+
+                if (lookupName) {
+                    const targetUserQuota = userQuotas[lookupName];
+                    if (!targetUserQuota) {
+                        resultsDiv.innerHTML = `<p class="text-red-500">해당 사용자의 한도 정보를 찾을 수 없습니다.</p>`;
+                        return;
+                    }
+                    const year = new Date().getFullYear();
+                    const nonUsageStatus = ['취소', '예약실패', '우천취소', '취소중'];
+
+                    const userBookingsForPeriod = bookings.filter(b => {
+                        const bookingDate = new Date(b.Date);
+                        return b.Name === lookupName && 
+                               bookingDate.getFullYear() === year &&
+                               bookingDate.getMonth() >= 8;
+                    });
+                    
+                    const userUsedBookings = userBookingsForPeriod.filter(b => !nonUsageStatus.includes(b.Status));
+
+                    const usedCounts = {
+                        Lakewood_Weekday: userUsedBookings.filter(b => b['Golf Course'] === '레이크우드' && !isWeekendOrHoliday(b.Date)).length,
+                        Lakewood_Weekend: userUsedBookings.filter(b => b['Golf Course'] === '레이크우드' && isWeekendOrHoliday(b.Date)).length,
+                        SkyValley: userUsedBookings.filter(b => b['Golf Course'] === '스카이밸리').length,
+                        HillydeSicy: userUsedBookings.filter(b => b['Golf Course'] === '힐드로사이').length,
+                        Seragio_Weekday: userUsedBookings.filter(b => b['Golf Course'] === '세라지오' && !isWeekendOrHoliday(b.Date)).length,
+                        Seragio_Weekend: userUsedBookings.filter(b => b['Golf Course'] === '세라지오' && isWeekendOrHoliday(b.Date)).length
+                    };
+                    
+                    const monthlyUsage = {};
+                    for (let i = 9; i <= 12; i++) {
+                        monthlyUsage[i] = { Lakewood_Weekday: 0, Lakewood_Weekend: 0, SkyValley: 0, HillydeSicy: 0, Seragio_Weekday: 0, Seragio_Weekend: 0 };
+                    }
+                    
+                    userUsedBookings.forEach(b => {
+                        const month = new Date(b.Date).getMonth() + 1;
+                        if (month >= 9) {
+                            const isWeekend = isWeekendOrHoliday(b.Date);
+                            if (b['Golf Course'] === '레이크우드') monthlyUsage[month][isWeekend ? 'Lakewood_Weekend' : 'Lakewood_Weekday']++;
+                            else if (b['Golf Course'] === '스카이밸리') monthlyUsage[month].SkyValley++;
+                            else if (b['Golf Course'] === '힐드로사이') monthlyUsage[month].HillydeSicy++;
+                            else if (b['Golf Course'] === '세라지오') monthlyUsage[month][isWeekend ? 'Seragio_Weekend' : 'Seragio_Weekday']++;
+                        }
+                    });
+
+                    let resultHtml = `<h3 class="text-lg font-bold mb-2">${lookupName}님 조회 결과 (9월-12월)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <h4 class="font-semibold mb-2">연간 한도 및 사용 현황 (9월-12월)</h4>
+                            <table class="w-full text-sm">
+                                <thead><tr><th>항목</th><th>배정(4개월)</th><th>사용</th><th>잔여</th></tr></thead>
+                                <tbody>
+                                    <tr><td>레이크우드(주중)</td><td>${(targetUserQuota.Lakewood_Weekday || 0) * 4}</td><td>${usedCounts.Lakewood_Weekday}</td><td>${(targetUserQuota.Lakewood_Weekday || 0) * 4 - usedCounts.Lakewood_Weekday}</td></tr>
+                                    <tr><td>레이크우드(주말)</td><td>${(targetUserQuota.Lakewood_Weekend || 0) * 4}</td><td>${usedCounts.Lakewood_Weekend}</td><td>${(targetUserQuota.Lakewood_Weekend || 0) * 4 - usedCounts.Lakewood_Weekend}</td></tr>
+                                    <tr><td>스카이밸리</td><td>${(targetUserQuota.SkyValley || 0) * 4}</td><td>${usedCounts.SkyValley}</td><td>${(targetUserQuota.SkyValley || 0) * 4 - usedCounts.SkyValley}</td></tr>
+                                    <tr><td>힐드로사이</td><td>${(targetUserQuota.HillydeSicy || 0) * 4}</td><td>${usedCounts.HillydeSicy}</td><td>${(targetUserQuota.HillydeSicy || 0) * 4 - usedCounts.HillydeSicy}</td></tr>
+                                    <tr><td>세라지오(주중)</td><td>${(targetUserQuota.Seragio_Weekday || 0) * 4}</td><td>${usedCounts.Seragio_Weekday}</td><td>${(targetUserQuota.Seragio_Weekday || 0) * 4 - usedCounts.Seragio_Weekday}</td></tr>
+                                    <tr><td>세라지오(주말)</td><td>${(targetUserQuota.Seragio_Weekend || 0) * 4}</td><td>${usedCounts.Seragio_Weekend}</td><td>${(targetUserQuota.Seragio_Weekend || 0) * 4 - usedCounts.Seragio_Weekend}</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div>
+                             <h4 class="font-semibold mb-2">월별 사용 현황</h4>
+                             <table class="w-full text-sm">
+                                <thead><tr><th>월</th><th>레이크(주중)</th><th>레이크(주말)</th><th>스카이밸리</th><th>힐드로사이</th><th>세라지오(주중)</th><th>세라지오(주말)</th></tr></thead>
+                                <tbody>`;
+                    for(let i = 9; i <= 12; i++) {
+                        resultHtml += `<tr><td>${i}월</td>
+                                        <td>${monthlyUsage[i].Lakewood_Weekday}</td><td>${monthlyUsage[i].Lakewood_Weekend}</td>
+                                        <td>${monthlyUsage[i].SkyValley}</td><td>${monthlyUsage[i].HillydeSicy}</td>
+                                        <td>${monthlyUsage[i].Seragio_Weekday}</td><td>${monthlyUsage[i].Seragio_Weekend}</td>
+                                     </tr>`;
+                    }
+                    resultHtml += `</tbody></table></div></div>`;
+                    resultsDiv.innerHTML = resultHtml;
+
+                } else if (lookupDate) {
+                    const availableCourses = getAvailableCoursesForDate(lookupDate);
+                    let resultHtml = `<h3 class="text-lg font-bold mb-2">${lookupDate} 예약 가능 여부 (현재 사용자 기준)</h3>
+                                      <ul class="list-disc list-inside">`;
+                    MODAL_GOLF_COURSES.forEach(course => {
+                        const isAvailable = availableCourses.includes(course);
+                        resultHtml += `<li>${course}: <span class="font-bold ${isAvailable ? 'text-green-600' : 'text-red-600'}">${isAvailable ? '가능' : '불가능'}</span></li>`;
+                    });
+                    resultHtml += `</ul>`;
+                    resultsDiv.innerHTML = resultHtml;
+
+                } else {
+                    resultsDiv.innerHTML = '<p>조회할 이름 또는 날짜를 입력해주세요.</p>';
+                }
+            });
+
+            function getAvailableCoursesForDate(selectedDate) {
+                const available = [];
+                const isManager = currentUser.name === '신석중';
+                const isDayWeekendOrHoliday = isWeekendOrHoliday(selectedDate);
+                const dailyCounts = bookings.filter(b => b.Date === selectedDate).reduce((acc, b) => {
+                    acc[b['Golf Course']] = (acc[b['Golf Course']] || 0) + 1;
                     return acc;
                 }, {});
-            } catch (error) {
-                console.error('Error fetching initial data:', error);
-                alert('데이터를 불러오는 데 실패했습니다.');
-            }
-        }
-        
-        function setupGolfCourseFilters() {
-            const golfCourseFilterContainer = document.getElementById('golfCourseFilterContainer');
-            if (golfCourseFilterContainer.childElementCount > 0) return;
-            let checkboxesHtml = '<div class="flex flex-wrap items-center gap-x-4 gap-y-2">';
-            CALENDAR_GOLF_COURSES.forEach(course => {
-                checkboxesHtml += `<div class="flex items-center"><input id="filter-${course}" type="checkbox" value="${course}" class="golf-course-filter h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" checked><label for="filter-${course}" class="ml-2 text-sm text-gray-900">${course}</label></div>`;
-            });
-            checkboxesHtml += `<div class="flex items-center border-l pl-4 ml-2"><input id="filter-my-bookings" type="checkbox" class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"><label for="filter-my-bookings" class="ml-2 text-sm font-semibold text-gray-900">내 예약건</label></div>`;
-            checkboxesHtml += '</div>';
-            golfCourseFilterContainer.innerHTML = checkboxesHtml;
-            golfCourseFilterContainer.addEventListener('change', renderCalendar);
-        }
-
-        function setupStatusFilter() {
-            const statusFilterContainer = document.getElementById('statusFilterContainer');
-            if (statusFilterContainer.childElementCount > 0) return;
-            const statuses = ['전체', ...new Set(bookings.map(b => b.Status || '미정').sort())];
-            let checkboxesHtml = '';
-            statuses.forEach(status => {
-                const id = `status-filter-${status.replace(/\s+/g, '-')}`;
-                checkboxesHtml += `<div class="flex items-center"><input id="${id}" type="checkbox" value="${status}" class="status-filter-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" checked><label for="${id}" class="ml-1 text-sm text-gray-900">${status}</label></div>`;
-            });
-            statusFilterContainer.innerHTML = checkboxesHtml;
-            statusFilterContainer.addEventListener('change', (e) => {
-                const allCheckbox = document.getElementById('status-filter-전체');
-                const otherCheckboxes = Array.from(document.querySelectorAll('.status-filter-checkbox:not(#status-filter-전체)'));
-                if (e.target.id === 'status-filter-전체') {
-                    otherCheckboxes.forEach(cb => cb.checked = allCheckbox.checked);
-                } else {
-                    allCheckbox.checked = otherCheckboxes.every(cb => cb.checked);
-                }
-                renderStatus();
-            });
-        }
-
-        function setupSorting() {
-            const statusTableHead = document.getElementById('statusTableHead');
-            statusTableHead.addEventListener('click', (e) => {
-                const header = e.target.closest('th');
-                if (header && header.dataset.sort) {
-                    const newSortColumn = header.dataset.sort;
-                    if (sortColumn === newSortColumn) {
-                        sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-                    } else {
-                        sortColumn = newSortColumn;
-                        sortDirection = 'asc';
-                    }
-                    renderStatus();
-                }
-            });
-        }
-
-        function isWeekendOrHoliday(dateStr) {
-            if (holidays[dateStr]) return true;
-            const date = new Date(dateStr);
-            const day = date.getDay();
-            return day === 0 || day === 6;
-        }
-
-        function renderCalendar() {
-            const calendarEl = document.getElementById('calendar');
-            calendarEl.innerHTML = '';
-            const calendarBookings = bookings.filter(b => CALENDAR_GOLF_COURSES.includes(b['Golf Course']));
-            const selectedCourses = Array.from(document.querySelectorAll('.golf-course-filter:checked')).map(cb => cb.value);
-            const showOnlyMyBookings = document.getElementById('filter-my-bookings').checked;
-            let filteredBookings = calendarBookings;
-            if (selectedCourses.length < CALENDAR_GOLF_COURSES.length) {
-                 filteredBookings = filteredBookings.filter(b => selectedCourses.includes(b['Golf Course']));
-            }
-            if (showOnlyMyBookings) {
-                filteredBookings = filteredBookings.filter(b => b.Name === currentUser.name);
-            }
-            const bookingMap = new Map();
-            filteredBookings.forEach(booking => {
-                const dateKey = booking['Date'];
-                if (!bookingMap.has(dateKey)) bookingMap.set(dateKey, new Set());
-                bookingMap.get(dateKey).add(booking['Golf Course']);
-            });
-            const courseAbbr = { '레이크우드': '레이크', '스카이밸리': '스카이', '세라지오': '세라', '힐드로사이': '힐드로' };
-            const isMobile = window.innerWidth < 768;
-            const today = new Date();
-            const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-            let currentDate = new Date();
-            const limitDate = new Date(2025, 11, 31); 
-            while(currentDate <= limitDate) {
-                const year = currentDate.getFullYear(), month = currentDate.getMonth();
+                const lakewoodDailyCount = dailyCounts['레이크우드'] || 0;
+                const seragioDailyCount = dailyCounts['세라지오'] || 0;
+                const isLakewoodOverDailyLimit = isDayWeekendOrHoliday ? lakewoodDailyCount >= 6 : lakewoodDailyCount >= 9;
+                const isSeragioOverDailyLimit = isDayWeekendOrHoliday ? seragioDailyCount >= 3 : seragioDailyCount >= 5;
+                const year = new Date(selectedDate).getFullYear();
+                const month = new Date(selectedDate).getMonth();
                 const firstDayOfMonth = new Date(year, month, 1);
                 const lastDayOfMonth = new Date(year, month + 1, 0);
-                const monthlyBookings = bookings.filter(b => {
+                const userMonthlyBookings = bookings.filter(b => {
                     const bookingDate = new Date(b.Date);
-                    return bookingDate >= firstDayOfMonth && bookingDate <= lastDayOfMonth;
+                    return b.Name === currentUser.name && bookingDate >= firstDayOfMonth && bookingDate <= lastDayOfMonth;
                 });
-                const userMonthlyBookings = monthlyBookings.filter(b => b.Name === currentUser.name);
-                const quotaCounts = {
+                const userQuotaCounts = {
                     lakewood_weekday: userMonthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && !isWeekendOrHoliday(b.Date)).length,
                     lakewood_weekend: userMonthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && isWeekendOrHoliday(b.Date)).length,
                     skyvalley: userMonthlyBookings.filter(b => b['Golf Course'] === '스카이밸리').length,
@@ -482,613 +555,71 @@
                     seragio_weekend: userMonthlyBookings.filter(b => b['Golf Course'] === '세라지오' && isWeekendOrHoliday(b.Date)).length
                 };
                 const currentUserQuota = userQuotas[currentUser.name] || {};
-                const quotaHtml = `<div class="text-xs text-gray-600 grid grid-cols-3 gap-1 mb-1">
-                    <span>레이크(주중): ${quotaCounts.lakewood_weekday}/${currentUserQuota.Lakewood_Weekday || 0}</span>
-                    <span>레이크(주말): ${quotaCounts.lakewood_weekend}/${currentUserQuota.Lakewood_Weekend || 0}</span>
-                    <span>스카이밸리: ${quotaCounts.skyvalley}/${currentUserQuota.SkyValley || 0}</span>
-                    <span>힐드로사이: ${quotaCounts.hillydesicy}/${currentUserQuota.HillydeSicy || 0}</span>
-                    <span>세라지오(주중): ${quotaCounts.seragio_weekday}/${currentUserQuota.Seragio_Weekday || 0}</span>
-                    <span>세라지오(주말): ${quotaCounts.seragio_weekend}/${currentUserQuota.Seragio_Weekend || 0}</span>
-                </div>`;
-                let warnings = [];
-                const lakewoodWeekdayCount = monthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && !isWeekendOrHoliday(b.Date)).length;
-                const lakewoodWeekendCount = monthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && isWeekendOrHoliday(b.Date)).length;
-                if (lakewoodWeekdayCount >= 9) warnings.push('<div class="text-red-500 font-bold text-sm">※ 레이크우드 주중 한도 초과</div>');
-                if (lakewoodWeekendCount >= 6) warnings.push('<div class="text-red-500 font-bold text-sm">※ 레이크우드 주말 한도 초과</div>');
-                const seragioWeekdayCount = monthlyBookings.filter(b => b['Golf Course'] === '세라지오' && !isWeekendOrHoliday(b.Date)).length;
-                const seragioWeekendCount = monthlyBookings.filter(b => b['Golf Course'] === '세라지오' && isWeekendOrHoliday(b.Date)).length;
-                if (seragioWeekdayCount >= 5) warnings.push('<div class="text-red-500 font-bold text-sm">※ 세라지오 주중 한도 초과</div>');
-                if (seragioWeekendCount >= 3) warnings.push('<div class="text-red-500 font-bold text-sm">※ 세라지오 주말 한도 초과</div>');
-                const monthContainer = document.createElement('div');
-                monthContainer.className = 'calendar-month bg-white p-6 rounded-lg shadow';
-                monthContainer.innerHTML = `<div class="text-left mb-2 min-h-[4.5rem]">${quotaHtml}<div>${warnings.join('')}</div></div><div class="text-xl font-bold text-center mb-4">${year}년 ${month + 1}월</div><div class="grid grid-cols-7 gap-1 text-center text-sm font-semibold text-gray-600 mb-2"><div class="text-red-500">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="text-blue-500">토</div></div>`;
-                const dayGrid = document.createElement('div');
-                dayGrid.className = 'grid grid-cols-7 gap-1 text-center';
-                for (let j = 0; j < new Date(year, month, 1).getDay(); j++) dayGrid.innerHTML += '<div></div>';
-                const daysInMonth = new Date(year, month + 1, 0).getDate();
-                for (let day = 1; day <= daysInMonth; day++) {
-                    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                    const dayOfWeek = new Date(year, month, day).getDay();
-                    let dayColor = '';
-                    if (dayOfWeek === 0 || holidays[dateStr]) dayColor = 'text-red-500';
-                    else if (dayOfWeek === 6) dayColor = 'text-blue-500';
-                    const dayCell = document.createElement('div');
-                    dayCell.className = 'day-cell p-1 rounded-md';
-                    if (dateStr === todayStr) dayCell.classList.add('border-2', 'border-blue-500');
-                    let bookingHtml = '';
-                    if (bookingMap.has(dateStr)) {
-                        dayCell.classList.add('bg-gray-100');
-                        const coursesOnDate = Array.from(bookingMap.get(dateStr));
-                        coursesOnDate.sort((a, b) => CALENDAR_GOLF_COURSES.indexOf(a) - CALENDAR_GOLF_COURSES.indexOf(b));
-                        coursesOnDate.forEach(course => { 
-                            const displayName = isMobile ? (courseAbbr[course] || course) : course;
-                            const textColor = GOLF_COURSE_COLORS[course] || 'text-gray-800';
-                            bookingHtml += `<div class="booking-info ${textColor} font-semibold rounded px-1 truncate">${displayName}</div>`; 
-                        });
-                    }
-                    dayCell.innerHTML = `<div class="day-number font-medium ${dayColor}">${day}</div>` + bookingHtml;
-                    dayCell.addEventListener('click', () => {
-                        openBookingModal(null, dateStr);
-                    });
-                    dayGrid.appendChild(dayCell);
-                }
-                monthContainer.appendChild(dayGrid);
-                calendarEl.appendChild(monthContainer);
-                currentDate.setMonth(currentDate.getMonth() + 1);
-            }
-        }
-
-        function renderStatus() {
-            const statusTableBody = document.getElementById('statusTableBody');
-            statusTableBody.innerHTML = '';
-            const isManager = currentUser && currentUser.name === '신석중';
-            const selectedStatuses = Array.from(document.querySelectorAll('.status-filter-checkbox:checked')).map(cb => cb.value);
-            let statusFilteredBookings = bookings;
-            if (!selectedStatuses.includes('전체')) {
-                statusFilteredBookings = bookings.filter(b => selectedStatuses.includes(b.Status || '미정'));
-            }
-
-            let filteredBookings = isManager ? statusFilteredBookings : statusFilteredBookings.filter(b => b['Name'] === currentUser.name);
-            
-            const sortedBookings = [...filteredBookings].sort((a, b) => {
-                const valA = a[sortColumn] || '';
-                const valB = b[sortColumn] || '';
-                let comparison = 0;
-                if (sortColumn === 'Team') {
-                    comparison = parseInt(valA, 10) - parseInt(valB, 10);
-                } else {
-                    comparison = String(valA).localeCompare(String(valB));
-                }
-                return sortDirection === 'asc' ? comparison : -comparison;
-            });
-
-            document.getElementById('adminOnlyControls').classList.toggle('hidden', !isManager);
-            document.getElementById('cancelSelectedBtn').classList.toggle('hidden', !currentUser);
-            if (sortedBookings.length === 0) {
-                 statusTableBody.innerHTML = `<tr><td colspan="8" class="text-center py-10">해당 조건의 예약 내역이 없습니다.</td></tr>`;
-                 return;
-            }
-            sortedBookings.forEach(booking => {
-                const row = document.createElement('tr');
-                let statusStyle = "border-b border-gray-200 hover:bg-gray-100";
-                if (booking['Status'] === '완료') statusStyle = "border-b border-gray-200 bg-sky-100 text-blue-700 font-medium";
-                row.className = statusStyle;
-                let displayTime = '-';
-                const timeValue = booking['Time'];
-                if (timeValue && typeof timeValue === 'string') {
-                    const match = timeValue.match(/(\d{1,2}:\d{2})/);
-                    displayTime = match ? match[0] : timeValue;
-                } else if (timeValue) displayTime = timeValue;
-                
-                const displayDate = booking['Date'] ? booking['Date'].substring(5) : '-';
-
-                row.innerHTML = `<td class="py-3 px-6"><input type="checkbox" class="booking-checkbox" data-id="${booking.id}"></td><td class="py-3 px-6">${booking['Golf Course']}</td><td class="py-3 px-6">${booking['Name']}</td><td class="py-3 px-6">${displayDate}</td><td class="py-3 px-6">${booking['Team']}</td><td class="py-3 px-6">${displayTime}</td><td class="py-3 px-6">${booking['Status'] || '-'}</td><td class="py-3 px-6">${booking['Comment'] || '-'}</td>`;
-                if (isManager || booking['Name'] === currentUser.name) {
-                    row.style.cursor = 'pointer';
-                    row.addEventListener('click', (e) => { if (e.target.type !== 'checkbox') openBookingModal(booking); });
-                }
-                statusTableBody.appendChild(row);
-            });
-
-            document.querySelectorAll('#statusTableHead th[data-sort]').forEach(th => {
-                th.querySelector('.sort-indicator').textContent = '';
-            });
-            const activeHeader = document.querySelector(`#statusTableHead th[data-sort="${sortColumn}"]`);
-            if (activeHeader) {
-                activeHeader.querySelector('.sort-indicator').textContent = sortDirection === 'asc' ? ' ▲' : ' ▼';
-            }
-        }
-        
-        function renderAnonymousView() {
-            const container = document.getElementById('anonymousTableContainer');
-            const selectedYear = parseInt(document.getElementById('anonymousYearSelector').value, 10);
-            container.innerHTML = '';
-
-            const categories = ['Lakewood_Weekday', 'Lakewood_Weekend', 'Seragio_Weekday', 'Seragio_Weekend'];
-            const categoryNames = {
-                'Lakewood_Weekday': '레이크우드 주중', 'Lakewood_Weekend': '레이크우드 주말',
-                'Seragio_Weekday': '세라지오 주중', 'Seragio_Weekend': '세라지오 주말'
-            };
-
-            const processedData = {};
-            const relevantBookings = bookings.filter(b => (b['Golf Course'] === '레이크우드' || b['Golf Course'] === '세라지오'));
-            const userNames = [...new Set(relevantBookings.map(b => b.Name))].sort();
-
-            userNames.forEach(name => {
-                processedData[name] = {};
-                const userBookings = relevantBookings.filter(b => b.Name === name && new Date(b.Date).getFullYear() === selectedYear);
-                userBookings.forEach(booking => {
-                    const course = booking['Golf Course'];
-                    const date = new Date(booking.Date);
-                    const month = date.getMonth() + 1;
-                    const day = date.getDate();
-                    const isWeekend = isWeekendOrHoliday(booking.Date);
-                    let category;
-                    if (course === '레이크우드') category = isWeekend ? 'Lakewood_Weekend' : 'Lakewood_Weekday';
-                    else if (course === '세라지오') category = isWeekend ? 'Seragio_Weekend' : 'Seragio_Weekday';
-                    if (!processedData[name][category]) processedData[name][category] = {};
-                    if (!processedData[name][category][month]) processedData[name][category][month] = [];
-                    processedData[name][category][month].push(day);
-                });
-            });
-
-            let tableHtml = `<table class="min-w-full bg-white rounded-lg shadow-sm text-sm border-collapse">`;
-            tableHtml += `<thead><tr><th rowspan="2" class="p-2 border">예약자명</th>`;
-            categories.forEach(cat => tableHtml += `<th colspan="12" class="p-2 border">${categoryNames[cat]}</th>`);
-            tableHtml += `</tr><tr>`;
-            categories.forEach(() => {
-                for (let i = 1; i <= 12; i++) tableHtml += `<th class="p-2 border">${i}월</th>`;
-            });
-            tableHtml += `</tr></thead>`;
-            tableHtml += `<tbody>`;
-            userNames.forEach(name => {
-                tableHtml += `<tr><td class="p-2 border font-semibold">${name}</td>`;
-                categories.forEach(cat => {
-                    for (let month = 1; month <= 12; month++) {
-                        const days = processedData[name]?.[cat]?.[month]?.sort((a, b) => a - b).join(', ') || '';
-                        tableHtml += `<td class="p-2 border">${days}</td>`;
-                    }
-                });
-                tableHtml += `</tr>`;
-            });
-            tableHtml += `</tbody></table>`;
-            container.innerHTML = tableHtml;
-        }
-
-        async function postData(action, data) {
-            try {
-                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action, ...data }) });
-                const result = await response.json();
-                if (result.status !== 'success') throw new Error(result.message);
-                alert(result.message);
-                await fetchInitialData();
-                renderApp();
-            } catch (error) {
-                console.error(`Error with action ${action}:`, error);
-                alert(`오류가 발생했습니다: ${error.message}`);
-            }
-        }
-
-        function updateAvailableGolfCourses(selectedDate) {
-            const golfCourseSelect = document.getElementById('golfCourse');
-            golfCourseSelect.innerHTML = '';
-            if (!selectedDate) return;
-            const isManager = currentUser.name === '신석중';
-            const isDayWeekendOrHoliday = isWeekendOrHoliday(selectedDate);
-            const dailyCounts = bookings.filter(b => b.Date === selectedDate).reduce((acc, b) => {
-                acc[b['Golf Course']] = (acc[b['Golf Course']] || 0) + 1;
-                return acc;
-            }, {});
-            const lakewoodDailyCount = dailyCounts['레이크우드'] || 0;
-            const seragioDailyCount = dailyCounts['세라지오'] || 0;
-            const isLakewoodOverDailyLimit = isDayWeekendOrHoliday ? lakewoodDailyCount >= 6 : lakewoodDailyCount >= 9;
-            const isSeragioOverDailyLimit = isDayWeekendOrHoliday ? seragioDailyCount >= 3 : seragioDailyCount >= 5;
-            const year = new Date(selectedDate).getFullYear();
-            const month = new Date(selectedDate).getMonth();
-            const firstDayOfMonth = new Date(year, month, 1);
-            const lastDayOfMonth = new Date(year, month + 1, 0);
-            const userMonthlyBookings = bookings.filter(b => {
-                const bookingDate = new Date(b.Date);
-                return b.Name === currentUser.name && bookingDate >= firstDayOfMonth && bookingDate <= lastDayOfMonth;
-            });
-            const userQuotaCounts = {
-                lakewood_weekday: userMonthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && !isWeekendOrHoliday(b.Date)).length,
-                lakewood_weekend: userMonthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && isWeekendOrHoliday(b.Date)).length,
-                skyvalley: userMonthlyBookings.filter(b => b['Golf Course'] === '스카이밸리').length,
-                hillydesicy: userMonthlyBookings.filter(b => b['Golf Course'] === '힐드로사이').length,
-                seragio_weekday: userMonthlyBookings.filter(b => b['Golf Course'] === '세라지오' && !isWeekendOrHoliday(b.Date)).length,
-                seragio_weekend: userMonthlyBookings.filter(b => b['Golf Course'] === '세라지오' && isWeekendOrHoliday(b.Date)).length
-            };
-            const currentUserQuota = userQuotas[currentUser.name] || {};
-            MODAL_GOLF_COURSES.forEach(course => {
-                let isOverDailyLimit = false;
-                if (course === '레이크우드' && isLakewoodOverDailyLimit) isOverDailyLimit = true;
-                if (course === '세라지오' && isSeragioOverDailyLimit) isOverDailyLimit = true;
-                let isOverUserQuota = false;
-                if (!isManager) {
-                    if (course === '레이크우드') {
-                        const quota = isDayWeekendOrHoliday ? currentUserQuota.Lakewood_Weekend : currentUserQuota.Lakewood_Weekday;
-                        const count = isDayWeekendOrHoliday ? userQuotaCounts.lakewood_weekend : userQuotaCounts.lakewood_weekday;
-                        if (count >= quota) isOverUserQuota = true;
-                    } else if (course === '세라지오') {
-                        const quota = isDayWeekendOrHoliday ? currentUserQuota.Seragio_Weekend : currentUserQuota.Seragio_Weekday;
-                        const count = isDayWeekendOrHoliday ? userQuotaCounts.seragio_weekend : userQuotaCounts.seragio_weekday;
-                        if (count >= quota) isOverUserQuota = true;
-                    } else if (course === '스카이밸리' && userQuotaCounts.skyvalley >= currentUserQuota.SkyValley) isOverUserQuota = true;
-                    else if (course === '힐드로사이' && userQuotaCounts.hillydesicy >= currentUserQuota.HillydeSicy) isOverUserQuota = true;
-                }
-                if (!isOverDailyLimit && !isOverUserQuota) {
-                    const option = document.createElement('option');
-                    option.value = course;
-                    option.textContent = course;
-                    golfCourseSelect.appendChild(option);
-                }
-            });
-        }
-
-        function openBookingModal(booking = null, date = null) {
-            bookingForm.reset();
-            const isManager = currentUser.name === '신석중';
-            const userNameInput = document.getElementById('userName');
-            const bookingTimeInput = document.getElementById('bookingTime');
-            const bookingStatusInput = document.getElementById('bookingStatus');
-            [userNameInput, bookingTimeInput, bookingStatusInput].forEach(input => {
-                input.disabled = !isManager;
-                input.classList.toggle('bg-gray-200', !isManager);
-            });
-            document.getElementById('bookingDate').addEventListener('change', (e) => updateAvailableGolfCourses(e.target.value));
-            if (booking) {
-                document.getElementById('modalTitle').textContent = '예약 수정';
-                originalBookingForLog = { ...booking };
-                const golfCourseSelect = document.getElementById('golfCourse');
-                golfCourseSelect.innerHTML = '';
                 MODAL_GOLF_COURSES.forEach(course => {
-                    const option = document.createElement('option');
-                    option.value = course;
-                    option.textContent = course;
-                    golfCourseSelect.appendChild(option);
-                });
-                document.getElementById('bookingId').value = booking.id;
-                golfCourseSelect.value = booking['Golf Course'];
-                userNameInput.value = booking['Name'];
-                document.getElementById('bookingDate').value = booking['Date'];
-                document.getElementById('numberOfTeams').value = booking['Team'];
-                bookingTimeInput.value = booking['Time'];
-                bookingStatusInput.value = booking['Status'];
-                document.getElementById('notes').value = booking['Comment'];
-            } else {
-                document.getElementById('modalTitle').textContent = '예약 신청';
-                originalBookingForLog = null;
-                userNameInput.value = currentUser.name;
-                const targetDate = date || new Date().toISOString().split('T')[0];
-                document.getElementById('bookingDate').value = targetDate;
-                updateAvailableGolfCourses(targetDate);
-            }
-            bookingModal.style.display = 'flex';
-        }
-
-        function downloadExcel() {
-            if (bookings.length === 0) return alert('다운로드할 데이터가 없습니다.');
-            const headers = ["id", "Golf Course", "Name", "Date", "Team", "Time", "Status", "Comment"];
-            const csv = Papa.unparse({ fields: headers, data: bookings });
-            const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'golf_bookings.csv';
-            link.click();
-        }
-
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('loginUsername').value;
-            const password = document.getElementById('loginPassword').value;
-            const user = users.find(u => u.name === username && String(u.phone) === password);
-            if (user) {
-                currentUser = user;
-                sessionStorage.setItem('golf_currentUser', JSON.stringify(currentUser));
-                const rememberMe = document.getElementById('rememberMe').checked;
-                if (rememberMe) {
-                    localStorage.setItem('golf_username', username);
-                    localStorage.setItem('golf_password', password);
-                } else {
-                    localStorage.removeItem('golf_username');
-                    localStorage.removeItem('golf_password');
-                }
-                loginScreen.classList.add('hidden');
-                mainApp.classList.remove('hidden');
-                renderApp();
-            } else { alert('아이디 또는 비밀번호가 일치하지 않습니다.'); }
-        });
-
-        logoutBtn.addEventListener('click', () => {
-            currentUser = null;
-            sessionStorage.removeItem('golf_currentUser');
-            mainApp.classList.add('hidden');
-            loginScreen.classList.remove('hidden');
-            loginForm.reset();
-            const savedUsername = localStorage.getItem('golf_username');
-            if (savedUsername) {
-                document.getElementById('loginUsername').value = savedUsername;
-                document.getElementById('loginPassword').value = localStorage.getItem('golf_password');
-                document.getElementById('rememberMe').checked = true;
-            }
-        });
-        
-        [calendarTabBtn, statusTabBtn, anonymousTabBtn, lookupTabBtn].forEach(tab => {
-            tab.addEventListener('click', () => {
-                calendarView.classList.add('hidden');
-                statusView.classList.add('hidden');
-                anonymousView.classList.add('hidden');
-                lookupView.classList.add('hidden');
-                [calendarTabBtn, statusTabBtn, anonymousTabBtn, lookupTabBtn].forEach(t => t.classList.remove('bg-lime-500', 'text-white'));
-                
-                tab.classList.add('bg-lime-500', 'text-white');
-                if (tab.id === 'calendarTabBtn') calendarView.classList.remove('hidden');
-                else if (tab.id === 'statusTabBtn') statusView.classList.remove('hidden');
-                else if (tab.id === 'lookupTabBtn') lookupView.classList.remove('hidden');
-                else if (tab.id === 'anonymousTabBtn') anonymousView.classList.remove('hidden');
-            });
-        });
-        
-        openModalBtn.addEventListener('click', () => openBookingModal());
-        closeModalBtn.addEventListener('click', () => bookingModal.style.display = 'none');
-        
-        bookingForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            showLoading(true);
-            try {
-                const bookingData = {
-                    'id': document.getElementById('bookingId').value, 'Golf Course': document.getElementById('golfCourse').value,
-                    'Name': document.getElementById('userName').value, 'Date': document.getElementById('bookingDate').value,
-                    'Team': document.getElementById('numberOfTeams').value, 'Time': document.getElementById('bookingTime').value,
-                    'Status': document.getElementById('bookingStatus').value, 'Comment': document.getElementById('notes').value
-                };
-                if (!bookingData['Golf Course']) {
-                    alert('선택한 날짜에 예약 가능한 골프장이 없습니다. 한도가 초과되었을 수 있습니다.');
-                    return;
-                }
-                if (bookingData.id) {
-                    let logParts = [];
-                    if (bookingData.Time !== originalBookingForLog.Time) logParts.push("시간변경");
-                    if (bookingData.Team != originalBookingForLog.Team) logParts.push("팀수변경");
-                    const logMessage = logParts.length > 0 ? logParts.join('/') : "수정";
-                    await postData('update', { user: currentUser.name, booking: bookingData, logMessage: logMessage });
-                } else {
-                    const isManager = currentUser.name === '신석중';
+                    let isOverDailyLimit = false;
+                    if (course === '레이크우드' && isLakewoodOverDailyLimit) isOverDailyLimit = true;
+                    if (course === '세라지오' && isSeragioOverDailyLimit) isOverDailyLimit = true;
+                    let isOverUserQuota = false;
                     if (!isManager) {
-                        const isDuplicate = bookings.some(b => b.Date === bookingData.Date && b['Golf Course'] === bookingData['Golf Course'] && b.Name === bookingData.Name);
-                        if (isDuplicate) {
-                            alert('이미 해당 날짜에 동일한 골프장으로 예약한 내역이 있습니다.');
-                            return;
-                        }
+                        if (course === '레이크우드') {
+                            const quota = isDayWeekendOrHoliday ? currentUserQuota.Lakewood_Weekend : currentUserQuota.Lakewood_Weekday;
+                            const count = isDayWeekendOrHoliday ? userQuotaCounts.lakewood_weekend : userQuotaCounts.lakewood_weekday;
+                            if (count >= quota) isOverUserQuota = true;
+                        } else if (course === '세라지오') {
+                            const quota = isDayWeekendOrHoliday ? currentUserQuota.Seragio_Weekend : currentUserQuota.Seragio_Weekday;
+                            const count = isDayWeekendOrHoliday ? userQuotaCounts.seragio_weekend : userQuotaCounts.seragio_weekday;
+                            if (count >= quota) isOverUserQuota = true;
+                        } else if (course === '스카이밸리' && userQuotaCounts.skyvalley >= currentUserQuota.SkyValley) isOverUserQuota = true;
+                        else if (course === '힐드로사이' && userQuotaCounts.hillydesicy >= currentUserQuota.HillydeSicy) isOverUserQuota = true;
                     }
-                    await postData('add', { user: currentUser.name, booking: bookingData });
-                }
-                bookingModal.style.display = 'none';
-            } finally {
-                showLoading(false);
-            }
-        });
-
-        cancelSelectedBtn.addEventListener('click', async () => {
-            const checkedBoxes = document.querySelectorAll('.booking-checkbox:checked');
-            if (checkedBoxes.length === 0) return alert('취소할 항목을 선택하세요.');
-            const isManager = currentUser.name === '신석중';
-            let idsToProcess = Array.from(checkedBoxes).map(cb => cb.dataset.id).filter(id => id);
-            if (!isManager) {
-                const myBookingsIds = new Set(bookings.filter(b => b.Name === currentUser.name).map(b => b.id));
-                const originalLength = idsToProcess.length;
-                idsToProcess = idsToProcess.filter(id => myBookingsIds.has(id));
-                if (idsToProcess.length < originalLength) {
-                    alert('자신의 예약만 취소할 수 있습니다. 타인의 예약을 제외하고 진행합니다.');
-                }
-            }
-            if (idsToProcess.length === 0) {
-                alert('취소할 수 있는 예약이 없습니다.');
-                return;
-            };
-            if (confirm(`선택한 ${idsToProcess.length}개의 항목을 정말 취소 처리하시겠습니까? (상태가 '취소중'으로 변경됩니다)`)) {
-                showLoading(true);
-                try {
-                    await postData('cancel', { user: currentUser.name, ids: idsToProcess });
-                } finally {
-                    showLoading(false);
-                }
-            }
-        });
-
-        anonymousYearSelector.addEventListener('change', renderAnonymousView);
-
-        lookupBtn.addEventListener('click', () => {
-            const lookupName = document.getElementById('lookupName').value;
-            const lookupDate = document.getElementById('lookupDate').value;
-            const resultsDiv = document.getElementById('lookupResults');
-            resultsDiv.innerHTML = '';
-
-            if (lookupName) {
-                const targetUserQuota = userQuotas[lookupName];
-                if (!targetUserQuota) {
-                    resultsDiv.innerHTML = `<p class="text-red-500">해당 사용자의 한도 정보를 찾을 수 없습니다.</p>`;
-                    return;
-                }
-                const year = new Date().getFullYear();
-                const nonUsageStatus = ['취소', '예약실패', '우천취소', '취소중'];
-
-                const userBookingsForPeriod = bookings.filter(b => {
-                    const bookingDate = new Date(b.Date);
-                    return b.Name === lookupName && 
-                           bookingDate.getFullYear() === year &&
-                           bookingDate.getMonth() >= 8;
-                });
-                
-                const userUsedBookings = userBookingsForPeriod.filter(b => !nonUsageStatus.includes(b.Status));
-
-                const usedCounts = {
-                    Lakewood_Weekday: userUsedBookings.filter(b => b['Golf Course'] === '레이크우드' && !isWeekendOrHoliday(b.Date)).length,
-                    Lakewood_Weekend: userUsedBookings.filter(b => b['Golf Course'] === '레이크우드' && isWeekendOrHoliday(b.Date)).length,
-                    SkyValley: userUsedBookings.filter(b => b['Golf Course'] === '스카이밸리').length,
-                    HillydeSicy: userUsedBookings.filter(b => b['Golf Course'] === '힐드로사이').length,
-                    Seragio_Weekday: userUsedBookings.filter(b => b['Golf Course'] === '세라지오' && !isWeekendOrHoliday(b.Date)).length,
-                    Seragio_Weekend: userUsedBookings.filter(b => b['Golf Course'] === '세라지오' && isWeekendOrHoliday(b.Date)).length
-                };
-                
-                const monthlyUsage = {};
-                for (let i = 9; i <= 12; i++) {
-                    monthlyUsage[i] = { Lakewood_Weekday: 0, Lakewood_Weekend: 0, SkyValley: 0, HillydeSicy: 0, Seragio_Weekday: 0, Seragio_Weekend: 0 };
-                }
-                
-                userUsedBookings.forEach(b => {
-                    const month = new Date(b.Date).getMonth() + 1;
-                    if (month >= 9) {
-                        const isWeekend = isWeekendOrHoliday(b.Date);
-                        if (b['Golf Course'] === '레이크우드') monthlyUsage[month][isWeekend ? 'Lakewood_Weekend' : 'Lakewood_Weekday']++;
-                        else if (b['Golf Course'] === '스카이밸리') monthlyUsage[month].SkyValley++;
-                        else if (b['Golf Course'] === '힐드로사이') monthlyUsage[month].HillydeSicy++;
-                        else if (b['Golf Course'] === '세라지오') monthlyUsage[month][isWeekend ? 'Seragio_Weekend' : 'Seragio_Weekday']++;
+                    if (!isOverDailyLimit && !isOverUserQuota) {
+                        available.push(course);
                     }
                 });
-
-                let resultHtml = `<h3 class="text-lg font-bold mb-2">${lookupName}님 조회 결과 (9월-12월)</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <h4 class="font-semibold mb-2">연간 한도 및 사용 현황 (9월-12월)</h4>
-                        <table class="w-full text-sm">
-                            <thead><tr><th>항목</th><th>배정(4개월)</th><th>사용</th><th>잔여</th></tr></thead>
-                            <tbody>
-                                <tr><td>레이크우드(주중)</td><td>${(targetUserQuota.Lakewood_Weekday || 0) * 4}</td><td>${usedCounts.Lakewood_Weekday}</td><td>${(targetUserQuota.Lakewood_Weekday || 0) * 4 - usedCounts.Lakewood_Weekday}</td></tr>
-                                <tr><td>레이크우드(주말)</td><td>${(targetUserQuota.Lakewood_Weekend || 0) * 4}</td><td>${usedCounts.Lakewood_Weekend}</td><td>${(targetUserQuota.Lakewood_Weekend || 0) * 4 - usedCounts.Lakewood_Weekend}</td></tr>
-                                <tr><td>스카이밸리</td><td>${(targetUserQuota.SkyValley || 0) * 4}</td><td>${usedCounts.SkyValley}</td><td>${(targetUserQuota.SkyValley || 0) * 4 - usedCounts.SkyValley}</td></tr>
-                                <tr><td>힐드로사이</td><td>${(targetUserQuota.HillydeSicy || 0) * 4}</td><td>${usedCounts.HillydeSicy}</td><td>${(targetUserQuota.HillydeSicy || 0) * 4 - usedCounts.HillydeSicy}</td></tr>
-                                <tr><td>세라지오(주중)</td><td>${(targetUserQuota.Seragio_Weekday || 0) * 4}</td><td>${usedCounts.Seragio_Weekday}</td><td>${(targetUserQuota.Seragio_Weekday || 0) * 4 - usedCounts.Seragio_Weekday}</td></tr>
-                                <tr><td>세라지오(주말)</td><td>${(targetUserQuota.Seragio_Weekend || 0) * 4}</td><td>${usedCounts.Seragio_Weekend}</td><td>${(targetUserQuota.Seragio_Weekend || 0) * 4 - usedCounts.Seragio_Weekend}</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div>
-                         <h4 class="font-semibold mb-2">월별 사용 현황</h4>
-                         <table class="w-full text-sm">
-                            <thead><tr><th>월</th><th>레이크(주중)</th><th>레이크(주말)</th><th>스카이밸리</th><th>힐드로사이</th><th>세라지오(주중)</th><th>세라지오(주말)</th></tr></thead>
-                            <tbody>`;
-                for(let i = 9; i <= 12; i++) {
-                    resultHtml += `<tr><td>${i}월</td>
-                                    <td>${monthlyUsage[i].Lakewood_Weekday}</td><td>${monthlyUsage[i].Lakewood_Weekend}</td>
-                                    <td>${monthlyUsage[i].SkyValley}</td><td>${monthlyUsage[i].HillydeSicy}</td>
-                                    <td>${monthlyUsage[i].Seragio_Weekday}</td><td>${monthlyUsage[i].Seragio_Weekend}</td>
-                                 </tr>`;
-                }
-                resultHtml += `</tbody></table></div></div>`;
-                resultsDiv.innerHTML = resultHtml;
-
-            } else if (lookupDate) {
-                const availableCourses = getAvailableCoursesForDate(lookupDate);
-                let resultHtml = `<h3 class="text-lg font-bold mb-2">${lookupDate} 예약 가능 여부 (현재 사용자 기준)</h3>
-                                  <ul class="list-disc list-inside">`;
-                MODAL_GOLF_COURSES.forEach(course => {
-                    const isAvailable = availableCourses.includes(course);
-                    resultHtml += `<li>${course}: <span class="font-bold ${isAvailable ? 'text-green-600' : 'text-red-600'}">${isAvailable ? '가능' : '불가능'}</span></li>`;
-                });
-                resultHtml += `</ul>`;
-                resultsDiv.innerHTML = resultHtml;
-
-            } else {
-                resultsDiv.innerHTML = '<p>조회할 이름 또는 날짜를 입력해주세요.</p>';
+                return available;
             }
-        });
 
-        function getAvailableCoursesForDate(selectedDate) {
-            const available = [];
-            const isManager = currentUser.name === '신석중';
-            const isDayWeekendOrHoliday = isWeekendOrHoliday(selectedDate);
-            const dailyCounts = bookings.filter(b => b.Date === selectedDate).reduce((acc, b) => {
-                acc[b['Golf Course']] = (acc[b['Golf Course']] || 0) + 1;
-                return acc;
-            }, {});
-            const lakewoodDailyCount = dailyCounts['레이크우드'] || 0;
-            const seragioDailyCount = dailyCounts['세라지오'] || 0;
-            const isLakewoodOverDailyLimit = isDayWeekendOrHoliday ? lakewoodDailyCount >= 6 : lakewoodDailyCount >= 9;
-            const isSeragioOverDailyLimit = isDayWeekendOrHoliday ? seragioDailyCount >= 3 : seragioDailyCount >= 5;
-            const year = new Date(selectedDate).getFullYear();
-            const month = new Date(selectedDate).getMonth();
-            const firstDayOfMonth = new Date(year, month, 1);
-            const lastDayOfMonth = new Date(year, month + 1, 0);
-            const userMonthlyBookings = bookings.filter(b => {
-                const bookingDate = new Date(b.Date);
-                return b.Name === currentUser.name && bookingDate >= firstDayOfMonth && bookingDate <= lastDayOfMonth;
+            noticeLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                noticeModal.style.display = 'flex';
             });
-            const userQuotaCounts = {
-                lakewood_weekday: userMonthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && !isWeekendOrHoliday(b.Date)).length,
-                lakewood_weekend: userMonthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && isWeekendOrHoliday(b.Date)).length,
-                skyvalley: userMonthlyBookings.filter(b => b['Golf Course'] === '스카이밸리').length,
-                hillydesicy: userMonthlyBookings.filter(b => b['Golf Course'] === '힐드로사이').length,
-                seragio_weekday: userMonthlyBookings.filter(b => b['Golf Course'] === '세라지오' && !isWeekendOrHoliday(b.Date)).length,
-                seragio_weekend: userMonthlyBookings.filter(b => b['Golf Course'] === '세라지오' && isWeekendOrHoliday(b.Date)).length
-            };
-            const currentUserQuota = userQuotas[currentUser.name] || {};
-            MODAL_GOLF_COURSES.forEach(course => {
-                let isOverDailyLimit = false;
-                if (course === '레이크우드' && isLakewoodOverDailyLimit) isOverDailyLimit = true;
-                if (course === '세라지오' && isSeragioOverDailyLimit) isOverDailyLimit = true;
-                let isOverUserQuota = false;
-                if (!isManager) {
-                    if (course === '레이크우드') {
-                        const quota = isDayWeekendOrHoliday ? currentUserQuota.Lakewood_Weekend : currentUserQuota.Lakewood_Weekday;
-                        const count = isDayWeekendOrHoliday ? userQuotaCounts.lakewood_weekend : userQuotaCounts.lakewood_weekday;
-                        if (count >= quota) isOverUserQuota = true;
-                    } else if (course === '세라지오') {
-                        const quota = isDayWeekendOrHoliday ? currentUserQuota.Seragio_Weekend : currentUserQuota.Seragio_Weekday;
-                        const count = isDayWeekendOrHoliday ? userQuotaCounts.seragio_weekend : userQuotaCounts.seragio_weekday;
-                        if (count >= quota) isOverUserQuota = true;
-                    } else if (course === '스카이밸리' && userQuotaCounts.skyvalley >= currentUserQuota.SkyValley) isOverUserQuota = true;
-                    else if (course === '힐드로사이' && userQuotaCounts.hillydesicy >= currentUserQuota.HillydeSicy) isOverUserQuota = true;
-                }
-                if (!isOverDailyLimit && !isOverUserQuota) {
-                    available.push(course);
-                }
+
+            closeNoticeBtn.addEventListener('click', () => {
+                noticeModal.style.display = 'none';
             });
-            return available;
-        }
-
-        noticeLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            noticeModal.style.display = 'flex';
-        });
-
-        closeNoticeBtn.addEventListener('click', () => {
-            noticeModal.style.display = 'none';
-        });
-
-        downloadExcelBtn.addEventListener('click', downloadExcel);
-
-        uploadExcelBtn.addEventListener('click', () => {
-            document.getElementById('uploadModal').style.display = 'flex';
-        });
-        
-        closeUploadModalBtn.addEventListener('click', () => {
-            document.getElementById('uploadModal').style.display = 'none';
-        });
-
-        uploadForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const file = document.getElementById('excelFile').files[0];
-            if (!file) return alert('파일을 선택해주세요.');
             
-            showLoading(true);
-            Papa.parse(file, {
-                header: true,
-                skipEmptyLines: true,
-                complete: async (results) => {
-                    await postData('addMultiple', { user: currentUser.name, bookings: results.data });
-                    document.getElementById('uploadModal').style.display = 'none';
-                    showLoading(false);
-                },
-                error: (err) => {
-                    alert('파일을 읽는 중 오류가 발생했습니다.');
-                    console.error(err);
-                    showLoading(false);
-                }
+            downloadExcelBtn.addEventListener('click', downloadExcel);
+
+            uploadExcelBtn.addEventListener('click', () => {
+                uploadModal.style.display = 'flex';
+            });
+            
+            closeUploadModalBtn.addEventListener('click', () => {
+                uploadModal.style.display = 'none';
+            });
+
+            uploadForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const file = document.getElementById('excelFile').files[0];
+                if (!file) return alert('파일을 선택해주세요.');
+                
+                showLoading(true);
+                Papa.parse(file, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: async (results) => {
+                        await postData('addMultiple', { user: currentUser.name, bookings: results.data });
+                        uploadModal.style.display = 'none';
+                        showLoading(false);
+                    },
+                    error: (err) => {
+                        alert('파일을 읽는 중 오류가 발생했습니다.');
+                        console.error(err);
+                        showLoading(false);
+                    }
+                });
             });
         });
-
     </script>
 </body>
 </html>
