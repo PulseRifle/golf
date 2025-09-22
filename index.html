@@ -273,8 +273,11 @@
             '2025-01-01': '신정', '2025-01-28': '설날', '2025-01-29': '설날', '2025-01-30': '설날', '2025-03-01': '삼일절', '2025-05-01': '근로자의 날', '2025-05-05': '어린이날', '2025-05-06': '부처님 오신 날', '2025-06-06': '현충일', '2025-08-15': '광복절', '2025-10-03': '개천절', '2025-10-06': '추석', '2025-10-07': '추석', '2025-10-08': '추석', '2025-10-09': '한글날', '2025-12-25': '크리스마스'
         };
         
-        // [추가됨] 카운트 및 표기에서 제외할 상태 목록
         const EXCLUDED_STATUSES = ['우천취소', '취소완료', '예약실패', '취소'];
+
+        // [수정됨] MP가 0이 아니고, 제외 상태가 아닌 예약만 카운트하기 위한 새로운 필터 조건 함수
+        const IS_VALID_FOR_COUNTING = (b) => b.MP != 0 && !EXCLUDED_STATUSES.includes(b.Status);
+
 
         // ##### 전역 상태 변수 (Global State) #####
         let currentUser = null;
@@ -286,7 +289,6 @@
         let sortDirection = 'asc';
         
         // ##### DOMContentLoaded 이벤트 리스너 #####
-        // HTML 문서가 완전히 로드되고 파싱되었을 때 스크립트를 실행하여 안정성을 높입니다.
         document.addEventListener('DOMContentLoaded', async () => {
             // ##### DOM 요소 변수 (DOM Element Variables) #####
             const loginScreen = document.getElementById('loginScreen');
@@ -500,8 +502,8 @@
             // --- 뷰 렌더링 ---
             function renderCalendar() {
                 calendarEl.innerHTML = '';
-                // [수정됨] 제외할 상태(우천취소 등)를 필터링하여 캘린더에 표시될 예약만 가져옵니다.
-                const calendarBookings = bookings.filter(b => CALENDAR_GOLF_COURSES.includes(b['Golf Course']) && !EXCLUDED_STATUSES.includes(b.Status));
+                // [수정됨] IS_VALID_FOR_COUNTING 필터를 사용하여 캘린더에 표시할 예약만 가져옵니다.
+                const calendarBookings = bookings.filter(b => CALENDAR_GOLF_COURSES.includes(b['Golf Course']) && IS_VALID_FOR_COUNTING(b));
                 const selectedCourses = Array.from(document.querySelectorAll('.golf-course-filter:checked')).map(cb => cb.value);
                 const showOnlyMyBookings = document.getElementById('filter-my-bookings').checked;
                 let filteredBookings = calendarBookings;
@@ -527,11 +529,13 @@
                     const year = currentDate.getFullYear(), month = currentDate.getMonth();
                     const firstDayOfMonth = new Date(year, month, 1);
                     const lastDayOfMonth = new Date(year, month + 1, 0);
-                    // [수정됨] 제외할 상태를 필터링하여 월간 사용량 계산
+                    
+                    // [수정됨] IS_VALID_FOR_COUNTING 필터를 사용하여 월간 사용량을 계산합니다.
                     const monthlyBookings = bookings.filter(b => {
                         const bookingDate = new Date(b.Date);
-                        return bookingDate >= firstDayOfMonth && bookingDate <= lastDayOfMonth && !EXCLUDED_STATUSES.includes(b.Status);
+                        return bookingDate >= firstDayOfMonth && bookingDate <= lastDayOfMonth && IS_VALID_FOR_COUNTING(b);
                     });
+
                     const userMonthlyBookings = monthlyBookings.filter(b => b.Name === currentUser.name);
                     const quotaCounts = {
                         lakewood_weekday: userMonthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && !isWeekendOrHoliday(b.Date)).length,
@@ -779,15 +783,15 @@
 
                 const isManager = currentUser.name === '신석중';
 
-                // [수정됨] 제외할 상태를 필터링하여 일일 총 예약 수를 계산합니다.
-                const dailyCounts = bookings.filter(b => b.Date === selectedDate && !EXCLUDED_STATUSES.includes(b.Status)).reduce((acc, b) => {
+                // [수정됨] IS_VALID_FOR_COUNTING 필터를 사용하여 일일 총 예약 수를 계산합니다.
+                const dailyCounts = bookings.filter(b => b.Date === selectedDate && IS_VALID_FOR_COUNTING(b)).reduce((acc, b) => {
                     acc[b['Golf Course']] = (acc[b['Golf Course']] || 0) + 1;
                     return acc;
                 }, {});
 
                 const isDayWeekendOrHoliday = isWeekendOrHoliday(selectedDate);
 
-                // [수정됨] 제외할 상태를 필터링하여 월간 예약 횟수를 계산합니다.
+                // [수정됨] IS_VALID_FOR_COUNTING 필터를 사용하여 월간 예약 횟수를 계산합니다.
                 const year = new Date(selectedDate).getFullYear();
                 const month = new Date(selectedDate).getMonth();
                 const firstDayOfMonth = new Date(year, month, 1);
@@ -795,7 +799,7 @@
 
                 const userMonthlyBookings = bookings.filter(b => {
                     const bookingDate = new Date(b.Date);
-                    return b.Name === currentUser.name && bookingDate >= firstDayOfMonth && bookingDate <= lastDayOfMonth && !EXCLUDED_STATUSES.includes(b.Status);
+                    return b.Name === currentUser.name && bookingDate >= firstDayOfMonth && bookingDate <= lastDayOfMonth && IS_VALID_FOR_COUNTING(b);
                 });
 
                 const userQuotaCounts = {
@@ -824,12 +828,12 @@
                         }
                     }
 
-                    // [수정됨] 제외할 상태를 필터링하여 사용자가 이미 예약했는지 확인합니다.
+                    // [수정됨] IS_VALID_FOR_COUNTING 필터를 사용하여 사용자가 이미 예약했는지 확인합니다.
                     const userHasBookedCourseToday = bookings.some(b => 
                         b.Name === currentUser.name &&
                         b.Date === selectedDate &&
                         b['Golf Course'] === course &&
-                        !EXCLUDED_STATUSES.includes(b.Status)
+                        IS_VALID_FOR_COUNTING(b)
                     );
 
                     // 조건 3: 사용자의 개인별 월간 할당량(Quota) 초과 여부 확인
@@ -894,7 +898,6 @@
                     userNameInput.value = currentUser.name;
                     const targetDate = date || new Date().toISOString().split('T')[0];
                     document.getElementById('bookingDate').value = targetDate;
-                    // [수정됨] 신규 예약 시 기본 상태를 '예약중'으로 설정하여 안정성을 높입니다.
                     document.getElementById('bookingStatus').value = '예약중';
                     updateAvailableGolfCourses(targetDate);
                 }
@@ -903,7 +906,7 @@
 
             function downloadExcel() {
                 if (bookings.length === 0) return alert('다운로드할 데이터가 없습니다.');
-                const headers = ["id", "Golf Course", "Name", "Date", "Team", "Time", "Status", "Comment"];
+                const headers = ["id", "Golf Course", "Name", "Date", "Team", "Time", "Status", "Comment", "MP"];
                 const csv = Papa.unparse({ fields: headers, data: bookings });
                 const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
                 const link = document.createElement('a');
@@ -916,9 +919,6 @@
             function setupEventListeners() {
                 loginForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    // [보안 경고] 이 방식은 클라이언트 측에서 모든 사용자 정보를 가져와 검증하므로,
-                    // 실제 운영 환경에서는 매우 위험합니다. 비밀번호는 절대 평문으로 전송하거나 저장해서는 안 되며,
-                    // 인증은 반드시 서버 측에서 안전한 방식으로 처리되어야 합니다.
                     const username = document.getElementById('loginUsername').value;
                     const password = document.getElementById('loginPassword').value;
                     const user = users.find(u => u.name === username && String(u.phone) === password);
@@ -983,12 +983,12 @@
                     } else {
                         const isManager = currentUser.name === '신석중';
                         if (!isManager) {
-                            // [수정됨] 제외 상태를 필터링하여 중복 예약 검사
+                            // [수정됨] IS_VALID_FOR_COUNTING 필터를 사용하여 중복 예약을 검사합니다.
                             const isDuplicate = bookings.some(b => 
                                 b.Date === bookingData.Date && 
                                 b['Golf Course'] === bookingData['Golf Course'] && 
                                 b.Name === bookingData.Name &&
-                                !EXCLUDED_STATUSES.includes(b.Status)
+                                IS_VALID_FOR_COUNTING(b)
                             );
                             if (isDuplicate) {
                                 alert('이미 해당 날짜에 동일한 골프장으로 유효한 예약 내역이 있습니다.');
@@ -1038,7 +1038,7 @@
 
                 setupSorting();
                 anonymousYearSelector.addEventListener('change', renderAnonymousView);
-                lookupBtn.addEventListener('click', () => { /* ... 기존 조회 로직 ... */ });
+                
                 noticeLink.addEventListener('click', (e) => { e.preventDefault(); noticeModal.style.display = 'flex'; });
                 closeNoticeBtn.addEventListener('click', () => { noticeModal.style.display = 'none'; });
                 downloadExcelBtn.addEventListener('click', downloadExcel);
@@ -1076,8 +1076,8 @@
                     const year = new Date().getFullYear();
                     const userBookingsForPeriod = bookings.filter(b => b.Name === lookupName && new Date(b.Date).getFullYear() === year && new Date(b.Date).getMonth() >= 8);
                     
-                    // [수정됨] 제외할 상태를 필터링하여 실제 사용 건수만 계산합니다.
-                    const userUsedBookings = userBookingsForPeriod.filter(b => !EXCLUDED_STATUSES.includes(b.Status));
+                    // [수정됨] IS_VALID_FOR_COUNTING 필터를 사용하여 실제 사용 건수만 계산합니다.
+                    const userUsedBookings = userBookingsForPeriod.filter(b => IS_VALID_FOR_COUNTING(b));
 
                     const usedCounts = {
                         Lakewood_Weekday: userUsedBookings.filter(b => b['Golf Course'] === '레이크우드' && !isWeekendOrHoliday(b.Date)).length,
@@ -1143,4 +1143,3 @@
     </script>
 </body>
 </html>
-
