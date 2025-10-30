@@ -72,6 +72,7 @@
                     <button id="statusTabBtn" class="px-3 py-2 font-medium text-sm rounded-md text-gray-500 hover:text-gray-700">현황</button>
                     <button id="lookupTabBtn" class="px-3 py-2 font-medium text-sm rounded-md text-gray-500 hover:text-gray-700 hidden">조회</button>
                     <button id="anonymousTabBtn" class="px-3 py-2 font-medium text-sm rounded-md text-gray-500 hover:text-gray-700 hidden">무기명</button>
+                    <button id="entertainmentTabBtn" class="px-3 py-2 font-medium text-sm rounded-md text-gray-500 hover:text-gray-700 hidden">접대비 차감</button>
                 </nav>
             </div>
             <div id="calendarView" class="tab-content">
@@ -137,6 +138,44 @@
                     </select>
                 </div>
                 <div id="anonymousTableContainer" class="overflow-x-auto"></div>
+            </div>
+            <div id="entertainmentView" class="tab-content hidden">
+                <div class="mb-6 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">접대비 총액</h3>
+                            <p id="totalEntertainmentCost" class="text-3xl font-extrabold text-blue-600">₩0</p>
+                            <p class="text-sm text-gray-500 mt-1">세라지오/힐드로사이 예약 기준 (팀수 × ₩300,000)</p>
+                        </div>
+                        <div class="flex flex-col gap-3 w-full md:w-auto">
+                            <div class="flex items-center gap-2">
+                                <label for="commonEntertainment" class="text-sm font-medium text-gray-700 w-24">공통접대비</label>
+                                <input type="number" id="commonEntertainment" class="block px-3 py-2 border border-gray-300 rounded-md shadow-sm w-40" placeholder="0">
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <label for="personalEntertainment" class="text-sm font-medium text-gray-700 w-24">개인접대비</label>
+                                <input type="number" id="personalEntertainment" class="block px-3 py-2 border border-gray-300 rounded-md shadow-sm w-40" placeholder="0">
+                            </div>
+                            <button id="saveEntertainmentBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full shadow-lg transform transition-transform active:scale-95">저장</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white rounded-lg shadow-sm">
+                        <thead class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                            <tr>
+                                <th class="py-3 px-2 md:px-6 text-left">Golf Course</th>
+                                <th class="py-3 px-2 md:px-6 text-left">Name</th>
+                                <th class="py-3 px-2 md:px-6 text-left">Date</th>
+                                <th class="py-3 px-2 md:px-6 text-center">Team</th>
+                                <th class="py-3 px-2 md:px-6 text-left">Time</th>
+                                <th class="py-3 px-2 md:px-6 text-left">Status</th>
+                                <th class="py-3 px-2 md:px-6 text-right">접대비</th>
+                            </tr>
+                        </thead>
+                        <tbody id="entertainmentTableBody" class="text-gray-600 text-sm font-light"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -273,10 +312,16 @@
             '2025-01-01': '신정', '2025-01-28': '설날', '2025-01-29': '설날', '2025-01-30': '설날', '2025-03-01': '삼일절', '2025-05-01': '근로자의 날', '2025-05-05': '어린이날', '2025-05-06': '부처님 오신 날', '2025-06-06': '현충일', '2025-08-15': '광복절', '2025-10-03': '개천절', '2025-10-06': '추석', '2025-10-07': '추석', '2025-10-08': '추석', '2025-10-09': '한글날', '2025-12-25': '크리스마스'
         };
         
-        const EXCLUDED_STATUSES = ['우천취소', '취소완료', '예약실패', '취소'];
+        // [수정됨] 유효한 예약만 카운트하기 위한 필터 조건 함수
+        // Status가 '예약완료', '예약중', '취소중'이고 MP가 1인 건만 카운트
+        const VALID_STATUSES = ['예약완료', '예약중', '취소중'];
+        const IS_VALID_FOR_COUNTING = (b) => b.MP == 1 && VALID_STATUSES.includes(b.Status);
 
-        // [수정됨] MP가 0이 아니고, 제외 상태가 아닌 예약만 카운트하기 위한 새로운 필터 조건 함수
-        const IS_VALID_FOR_COUNTING = (b) => b.MP != 0 && !EXCLUDED_STATUSES.includes(b.Status);
+        // 주중/주말 판단 함수 (주말 컬럼 기반)
+        // '주말' 컬럼이 "주 말"이면 주말, 공란이면 주중
+        const isWeekendBooking = (booking) => {
+            return booking['주말'] === '주 말';
+        };
 
 
         // ##### 전역 상태 변수 (Global State) #####
@@ -325,6 +370,13 @@
             const noticeModal = document.getElementById('noticeModal');
             const closeNoticeBtn = document.getElementById('closeNoticeBtn');
             const noticeLink = document.getElementById('noticeLink');
+            const entertainmentTabBtn = document.getElementById('entertainmentTabBtn');
+            const entertainmentView = document.getElementById('entertainmentView');
+            const entertainmentTableBody = document.getElementById('entertainmentTableBody');
+            const totalEntertainmentCost = document.getElementById('totalEntertainmentCost');
+            const commonEntertainment = document.getElementById('commonEntertainment');
+            const personalEntertainment = document.getElementById('personalEntertainment');
+            const saveEntertainmentBtn = document.getElementById('saveEntertainmentBtn');
 
             // ##### 초기화 함수 호출 #####
             showLoading(true);
@@ -383,12 +435,16 @@
                 const isManager = currentUser && currentUser.name === '신석중';
                 anonymousTabBtn.classList.toggle('hidden', !isManager);
                 lookupTabBtn.classList.toggle('hidden', !isManager);
+                entertainmentTabBtn.classList.toggle('hidden', !isManager);
                 setupGolfCourseFilters();
                 setupStatusFilter();
                 setupAdminFilters();
                 renderCalendar();
                 renderStatus();
-                if(isManager) renderAnonymousView();
+                if(isManager) {
+                    renderAnonymousView();
+                    renderEntertainmentView();
+                }
 
                 const noticeShown = localStorage.getItem('golf_notice_202509');
                 if (!noticeShown) {
@@ -538,12 +594,12 @@
 
                     const userMonthlyBookings = monthlyBookings.filter(b => b.Name === currentUser.name);
                     const quotaCounts = {
-                        lakewood_weekday: userMonthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && !isWeekendOrHoliday(b.Date)).length,
-                        lakewood_weekend: userMonthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && isWeekendOrHoliday(b.Date)).length,
+                        lakewood_weekday: userMonthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && !isWeekendBooking(b)).length,
+                        lakewood_weekend: userMonthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && isWeekendBooking(b)).length,
                         skyvalley: userMonthlyBookings.filter(b => b['Golf Course'] === '스카이밸리').length,
                         hillydesicy: userMonthlyBookings.filter(b => b['Golf Course'] === '힐드로사이').length,
-                        seragio_weekday: userMonthlyBookings.filter(b => b['Golf Course'] === '세라지오' && !isWeekendOrHoliday(b.Date)).length,
-                        seragio_weekend: userMonthlyBookings.filter(b => b['Golf Course'] === '세라지오' && isWeekendOrHoliday(b.Date)).length
+                        seragio_weekday: userMonthlyBookings.filter(b => b['Golf Course'] === '세라지오' && !isWeekendBooking(b)).length,
+                        seragio_weekend: userMonthlyBookings.filter(b => b['Golf Course'] === '세라지오' && isWeekendBooking(b)).length
                     };
                     const currentUserQuota = userQuotas[currentUser.name] || {};
                     const quotaHtml = `<div class="text-xs text-gray-600 grid grid-cols-3 gap-1 mb-1">
@@ -555,12 +611,12 @@
                         <span>세라지오(주말): ${quotaCounts.seragio_weekend}/${currentUserQuota.Seragio_Weekend || 0}</span>
                     </div>`;
                     let warnings = [];
-                    const lakewoodWeekdayCount = monthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && !isWeekendOrHoliday(b.Date)).length;
-                    const lakewoodWeekendCount = monthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && isWeekendOrHoliday(b.Date)).length;
+                    const lakewoodWeekdayCount = monthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && !isWeekendBooking(b)).length;
+                    const lakewoodWeekendCount = monthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && isWeekendBooking(b)).length;
                     if (lakewoodWeekdayCount >= 9) warnings.push('<div class="text-red-500 font-bold text-sm">※ 레이크우드 주중 한도 초과</div>');
                     if (lakewoodWeekendCount >= 6) warnings.push('<div class="text-red-500 font-bold text-sm">※ 레이크우드 주말 한도 초과</div>');
-                    const seragioWeekdayCount = monthlyBookings.filter(b => b['Golf Course'] === '세라지오' && !isWeekendOrHoliday(b.Date)).length;
-                    const seragioWeekendCount = monthlyBookings.filter(b => b['Golf Course'] === '세라지오' && isWeekendOrHoliday(b.Date)).length;
+                    const seragioWeekdayCount = monthlyBookings.filter(b => b['Golf Course'] === '세라지오' && !isWeekendBooking(b)).length;
+                    const seragioWeekendCount = monthlyBookings.filter(b => b['Golf Course'] === '세라지오' && isWeekendBooking(b)).length;
                     if (seragioWeekdayCount >= 5) warnings.push('<div class="text-red-500 font-bold text-sm">※ 세라지오 주중 한도 초과</div>');
                     if (seragioWeekendCount >= 3) warnings.push('<div class="text-red-500 font-bold text-sm">※ 세라지오 주말 한도 초과</div>');
                     const monthContainer = document.createElement('div');
@@ -717,7 +773,7 @@
                         const date = new Date(booking.Date);
                         const month = date.getMonth() + 1;
                         const day = date.getDate();
-                        const isWeekend = isWeekendOrHoliday(booking.Date);
+                        const isWeekend = isWeekendBooking(booking);
                         let category;
                         if (course === '레이크우드') category = isWeekend ? 'Lakewood_Weekend' : 'Lakewood_Weekday';
                         else if (course === '세라지오') category = isWeekend ? 'Seragio_Weekend' : 'Seragio_Weekday';
@@ -748,6 +804,65 @@
                 });
                 tableHtml += `</tbody></table>`;
                 container.innerHTML = tableHtml;
+            }
+
+            function renderEntertainmentView() {
+                entertainmentTableBody.innerHTML = '';
+
+                // 필터: MP == 1 && (Status == '예약완료' || Status == '우천취소')
+                const entertainmentBookings = bookings.filter(b =>
+                    b.MP == 1 && (b.Status === '예약완료' || b.Status === '우천취소')
+                );
+
+                // 접대비 총액 계산: 세라지오/힐드로사이만
+                let totalCost = 0;
+                entertainmentBookings.forEach(booking => {
+                    if (booking['Golf Course'] === '세라지오' || booking['Golf Course'] === '힐드로사이') {
+                        const teams = parseInt(booking.Team) || 0;
+                        totalCost += teams * 300000;
+                    }
+                });
+
+                // 총액 표시
+                totalEntertainmentCost.textContent = `₩${totalCost.toLocaleString()}`;
+
+                // 테이블 렌더링
+                if (entertainmentBookings.length === 0) {
+                    entertainmentTableBody.innerHTML = `<tr><td colspan="7" class="text-center py-10">해당 조건의 예약 내역이 없습니다.</td></tr>`;
+                    return;
+                }
+
+                entertainmentBookings.forEach(booking => {
+                    const row = document.createElement('tr');
+                    row.className = 'border-b border-gray-200 hover:bg-gray-100';
+
+                    let displayTime = '-';
+                    const timeValue = booking['Time'];
+                    if (timeValue && typeof timeValue === 'string') {
+                        const match = timeValue.match(/(\d{1,2}:\d{2})/);
+                        displayTime = match ? match[0] : timeValue;
+                    } else if (timeValue) displayTime = timeValue;
+
+                    const displayDate = booking['Date'] ? booking['Date'].substring(5) : '-';
+
+                    // 접대비 계산
+                    let cost = 0;
+                    if (booking['Golf Course'] === '세라지오' || booking['Golf Course'] === '힐드로사이') {
+                        const teams = parseInt(booking.Team) || 0;
+                        cost = teams * 300000;
+                    }
+
+                    row.innerHTML = `
+                        <td class="py-3 px-2 md:px-6 whitespace-nowrap text-xs md:text-sm">${booking['Golf Course']}</td>
+                        <td class="py-3 px-2 md:px-6 whitespace-nowrap text-xs md:text-sm">${booking['Name']}</td>
+                        <td class="py-3 px-2 md:px-6 whitespace-nowrap text-xs md:text-sm">${displayDate}</td>
+                        <td class="py-3 px-2 md:px-6 text-center whitespace-nowrap text-xs md:text-sm">${booking['Team']}</td>
+                        <td class="py-3 px-2 md:px-6 whitespace-nowrap text-xs md:text-sm">${displayTime}</td>
+                        <td class="py-3 px-2 md:px-6 whitespace-nowrap text-xs md:text-sm">${booking['Status'] || '-'}</td>
+                        <td class="py-3 px-2 md:px-6 text-right whitespace-nowrap text-xs md:text-sm font-semibold ${cost > 0 ? 'text-blue-600' : 'text-gray-400'}">₩${cost.toLocaleString()}</td>
+                    `;
+                    entertainmentTableBody.appendChild(row);
+                });
             }
 
             // --- 데이터 처리 ---
@@ -803,12 +918,12 @@
                 });
 
                 const userQuotaCounts = {
-                    lakewood_weekday: userMonthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && !isWeekendOrHoliday(b.Date)).length,
-                    lakewood_weekend: userMonthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && isWeekendOrHoliday(b.Date)).length,
+                    lakewood_weekday: userMonthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && !isWeekendBooking(b)).length,
+                    lakewood_weekend: userMonthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && isWeekendBooking(b)).length,
                     skyvalley: userMonthlyBookings.filter(b => b['Golf Course'] === '스카이밸리').length,
                     hillydesicy: userMonthlyBookings.filter(b => b['Golf Course'] === '힐드로사이').length,
-                    seragio_weekday: userMonthlyBookings.filter(b => b['Golf Course'] === '세라지오' && !isWeekendOrHoliday(b.Date)).length,
-                    seragio_weekend: userMonthlyBookings.filter(b => b['Golf Course'] === '세라지오' && isWeekendOrHoliday(b.Date)).length
+                    seragio_weekday: userMonthlyBookings.filter(b => b['Golf Course'] === '세라지오' && !isWeekendBooking(b)).length,
+                    seragio_weekend: userMonthlyBookings.filter(b => b['Golf Course'] === '세라지오' && isWeekendBooking(b)).length
                 };
                 const currentUserQuota = userQuotas[currentUser.name] || {};
 
@@ -943,19 +1058,21 @@
                     showLoginScreen();
                 });
                 
-                [calendarTabBtn, statusTabBtn, anonymousTabBtn, lookupTabBtn].forEach(tab => {
+                [calendarTabBtn, statusTabBtn, anonymousTabBtn, lookupTabBtn, entertainmentTabBtn].forEach(tab => {
                     tab.addEventListener('click', () => {
                         calendarView.classList.add('hidden');
                         statusView.classList.add('hidden');
                         anonymousView.classList.add('hidden');
                         lookupView.classList.add('hidden');
-                        [calendarTabBtn, statusTabBtn, anonymousTabBtn, lookupTabBtn].forEach(t => t.classList.remove('bg-lime-500', 'text-white'));
-                        
+                        entertainmentView.classList.add('hidden');
+                        [calendarTabBtn, statusTabBtn, anonymousTabBtn, lookupTabBtn, entertainmentTabBtn].forEach(t => t.classList.remove('bg-lime-500', 'text-white'));
+
                         tab.classList.add('bg-lime-500', 'text-white');
                         if (tab.id === 'calendarTabBtn') calendarView.classList.remove('hidden');
                         else if (tab.id === 'statusTabBtn') statusView.classList.remove('hidden');
                         else if (tab.id === 'lookupTabBtn') lookupView.classList.remove('hidden');
                         else if (tab.id === 'anonymousTabBtn') anonymousView.classList.remove('hidden');
+                        else if (tab.id === 'entertainmentTabBtn') entertainmentView.classList.remove('hidden');
                     });
                 });
                 
@@ -1058,6 +1175,29 @@
                         error: (err) => { alert('파일을 읽는 중 오류가 발생했습니다.'); console.error(err); }
                     });
                 });
+
+                // 접대비 저장 버튼
+                saveEntertainmentBtn.addEventListener('click', async () => {
+                    const commonValue = commonEntertainment.value.trim();
+                    const personalValue = personalEntertainment.value.trim();
+
+                    if (!commonValue && !personalValue) {
+                        alert('공통접대비 또는 개인접대비 중 하나 이상을 입력해주세요.');
+                        return;
+                    }
+
+                    if (!confirm('접대비 정보를 저장하시겠습니까?')) {
+                        return;
+                    }
+
+                    const entertainmentData = {
+                        name: currentUser.name,
+                        commonEntertainment: commonValue || '0',
+                        personalEntertainment: personalValue || '0'
+                    };
+
+                    await postData('saveEntertainment', entertainmentData);
+                });
             } // setupEventListeners 함수 끝
 
             // 조회 로직
@@ -1080,19 +1220,19 @@
                     const userUsedBookings = userBookingsForPeriod.filter(b => IS_VALID_FOR_COUNTING(b));
 
                     const usedCounts = {
-                        Lakewood_Weekday: userUsedBookings.filter(b => b['Golf Course'] === '레이크우드' && !isWeekendOrHoliday(b.Date)).length,
-                        Lakewood_Weekend: userUsedBookings.filter(b => b['Golf Course'] === '레이크우드' && isWeekendOrHoliday(b.Date)).length,
+                        Lakewood_Weekday: userUsedBookings.filter(b => b['Golf Course'] === '레이크우드' && !isWeekendBooking(b)).length,
+                        Lakewood_Weekend: userUsedBookings.filter(b => b['Golf Course'] === '레이크우드' && isWeekendBooking(b)).length,
                         SkyValley: userUsedBookings.filter(b => b['Golf Course'] === '스카이밸리').length,
                         HillydeSicy: userUsedBookings.filter(b => b['Golf Course'] === '힐드로사이').length,
-                        Seragio_Weekday: userUsedBookings.filter(b => b['Golf Course'] === '세라지오' && !isWeekendOrHoliday(b.Date)).length,
-                        Seragio_Weekend: userUsedBookings.filter(b => b['Golf Course'] === '세라지오' && isWeekendOrHoliday(b.Date)).length
+                        Seragio_Weekday: userUsedBookings.filter(b => b['Golf Course'] === '세라지오' && !isWeekendBooking(b)).length,
+                        Seragio_Weekend: userUsedBookings.filter(b => b['Golf Course'] === '세라지오' && isWeekendBooking(b)).length
                     };
                     const monthlyUsage = {};
                     for (let i = 9; i <= 12; i++) monthlyUsage[i] = { Lakewood_Weekday: 0, Lakewood_Weekend: 0, SkyValley: 0, HillydeSicy: 0, Seragio_Weekday: 0, Seragio_Weekend: 0 };
                     userUsedBookings.forEach(b => {
                         const month = new Date(b.Date).getMonth() + 1;
                         if (month >= 9) {
-                            const isWeekend = isWeekendOrHoliday(b.Date);
+                            const isWeekend = isWeekendBooking(b);
                             if (b['Golf Course'] === '레이크우드') monthlyUsage[month][isWeekend ? 'Lakewood_Weekend' : 'Lakewood_Weekday']++;
                             else if (b['Golf Course'] === '스카이밸리') monthlyUsage[month].SkyValley++;
                             else if (b['Golf Course'] === '힐드로사이') monthlyUsage[month].HillydeSicy++;
