@@ -145,7 +145,7 @@
                         <div>
                             <h3 class="text-xl font-bold text-gray-800 mb-2">접대비 총액</h3>
                             <p id="totalEntertainmentCost" class="text-3xl font-extrabold text-blue-600">₩0</p>
-                            <p class="text-sm text-gray-500 mt-1">세라지오/힐드로사이 예약 기준 (팀수 × ₩300,000)</p>
+                            <p class="text-sm text-gray-500 mt-1">Google Sheet '접대비' 컬럼 기준</p>
                         </div>
                         <div class="flex flex-col gap-3 w-full md:w-auto">
                             <div class="flex items-center gap-2">
@@ -814,13 +814,11 @@
                     b.MP == 1 && (b.Status === '예약완료' || b.Status === '우천취소')
                 );
 
-                // 접대비 총액 계산: 세라지오/힐드로사이만
+                // 접대비 총액 계산: Google Sheet의 '접대비' 컬럼 값 사용
                 let totalCost = 0;
                 entertainmentBookings.forEach(booking => {
-                    if (booking['Golf Course'] === '세라지오' || booking['Golf Course'] === '힐드로사이') {
-                        const teams = parseInt(booking.Team) || 0;
-                        totalCost += teams * 300000;
-                    }
+                    const cost = parseInt(booking['접대비']) || 0;
+                    totalCost += cost;
                 });
 
                 // 총액 표시
@@ -845,12 +843,8 @@
 
                     const displayDate = booking['Date'] ? booking['Date'].substring(5) : '-';
 
-                    // 접대비 계산
-                    let cost = 0;
-                    if (booking['Golf Course'] === '세라지오' || booking['Golf Course'] === '힐드로사이') {
-                        const teams = parseInt(booking.Team) || 0;
-                        cost = teams * 300000;
-                    }
+                    // 접대비: Google Sheet의 '접대비' 컬럼 값 사용
+                    const cost = parseInt(booking['접대비']) || 0;
 
                     row.innerHTML = `
                         <td class="py-3 px-2 md:px-6 whitespace-nowrap text-xs md:text-sm">${booking['Golf Course']}</td>
