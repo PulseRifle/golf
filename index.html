@@ -72,6 +72,7 @@
                     <button id="statusTabBtn" class="px-3 py-2 font-medium text-sm rounded-md text-gray-500 hover:text-gray-700">현황</button>
                     <button id="lookupTabBtn" class="px-3 py-2 font-medium text-sm rounded-md text-gray-500 hover:text-gray-700 hidden">조회</button>
                     <button id="anonymousTabBtn" class="px-3 py-2 font-medium text-sm rounded-md text-gray-500 hover:text-gray-700 hidden">무기명</button>
+                    <button id="entertainmentTabBtn" class="px-3 py-2 font-medium text-sm rounded-md text-gray-500 hover:text-gray-700 hidden">접대비 차감</button>
                 </nav>
             </div>
             <div id="calendarView" class="tab-content">
@@ -137,6 +138,44 @@
                     </select>
                 </div>
                 <div id="anonymousTableContainer" class="overflow-x-auto"></div>
+            </div>
+            <div id="entertainmentView" class="tab-content hidden">
+                <div class="mb-6 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">접대비 총액</h3>
+                            <p id="totalEntertainmentCost" class="text-3xl font-extrabold text-blue-600">₩0</p>
+                            <p class="text-sm text-gray-500 mt-1">세라지오/힐드로사이 예약 기준 (팀수 × ₩300,000)</p>
+                        </div>
+                        <div class="flex flex-col gap-3 w-full md:w-auto">
+                            <div class="flex items-center gap-2">
+                                <label for="commonEntertainment" class="text-sm font-medium text-gray-700 w-24">공통접대비</label>
+                                <input type="number" id="commonEntertainment" class="block px-3 py-2 border border-gray-300 rounded-md shadow-sm w-40" placeholder="0">
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <label for="personalEntertainment" class="text-sm font-medium text-gray-700 w-24">개인접대비</label>
+                                <input type="number" id="personalEntertainment" class="block px-3 py-2 border border-gray-300 rounded-md shadow-sm w-40" placeholder="0">
+                            </div>
+                            <button id="saveEntertainmentBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full shadow-lg transform transition-transform active:scale-95">저장</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white rounded-lg shadow-sm">
+                        <thead class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                            <tr>
+                                <th class="py-3 px-2 md:px-6 text-left">Golf Course</th>
+                                <th class="py-3 px-2 md:px-6 text-left">Name</th>
+                                <th class="py-3 px-2 md:px-6 text-left">Date</th>
+                                <th class="py-3 px-2 md:px-6 text-center">Team</th>
+                                <th class="py-3 px-2 md:px-6 text-left">Time</th>
+                                <th class="py-3 px-2 md:px-6 text-left">Status</th>
+                                <th class="py-3 px-2 md:px-6 text-right">접대비</th>
+                            </tr>
+                        </thead>
+                        <tbody id="entertainmentTableBody" class="text-gray-600 text-sm font-light"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -331,6 +370,13 @@
             const noticeModal = document.getElementById('noticeModal');
             const closeNoticeBtn = document.getElementById('closeNoticeBtn');
             const noticeLink = document.getElementById('noticeLink');
+            const entertainmentTabBtn = document.getElementById('entertainmentTabBtn');
+            const entertainmentView = document.getElementById('entertainmentView');
+            const entertainmentTableBody = document.getElementById('entertainmentTableBody');
+            const totalEntertainmentCost = document.getElementById('totalEntertainmentCost');
+            const commonEntertainment = document.getElementById('commonEntertainment');
+            const personalEntertainment = document.getElementById('personalEntertainment');
+            const saveEntertainmentBtn = document.getElementById('saveEntertainmentBtn');
 
             // ##### 초기화 함수 호출 #####
             showLoading(true);
@@ -389,12 +435,16 @@
                 const isManager = currentUser && currentUser.name === '신석중';
                 anonymousTabBtn.classList.toggle('hidden', !isManager);
                 lookupTabBtn.classList.toggle('hidden', !isManager);
+                entertainmentTabBtn.classList.toggle('hidden', !isManager);
                 setupGolfCourseFilters();
                 setupStatusFilter();
                 setupAdminFilters();
                 renderCalendar();
                 renderStatus();
-                if(isManager) renderAnonymousView();
+                if(isManager) {
+                    renderAnonymousView();
+                    renderEntertainmentView();
+                }
 
                 const noticeShown = localStorage.getItem('golf_notice_202509');
                 if (!noticeShown) {
@@ -756,6 +806,65 @@
                 container.innerHTML = tableHtml;
             }
 
+            function renderEntertainmentView() {
+                entertainmentTableBody.innerHTML = '';
+
+                // 필터: MP == 1 && (Status == '예약완료' || Status == '우천취소')
+                const entertainmentBookings = bookings.filter(b =>
+                    b.MP == 1 && (b.Status === '예약완료' || b.Status === '우천취소')
+                );
+
+                // 접대비 총액 계산: 세라지오/힐드로사이만
+                let totalCost = 0;
+                entertainmentBookings.forEach(booking => {
+                    if (booking['Golf Course'] === '세라지오' || booking['Golf Course'] === '힐드로사이') {
+                        const teams = parseInt(booking.Team) || 0;
+                        totalCost += teams * 300000;
+                    }
+                });
+
+                // 총액 표시
+                totalEntertainmentCost.textContent = `₩${totalCost.toLocaleString()}`;
+
+                // 테이블 렌더링
+                if (entertainmentBookings.length === 0) {
+                    entertainmentTableBody.innerHTML = `<tr><td colspan="7" class="text-center py-10">해당 조건의 예약 내역이 없습니다.</td></tr>`;
+                    return;
+                }
+
+                entertainmentBookings.forEach(booking => {
+                    const row = document.createElement('tr');
+                    row.className = 'border-b border-gray-200 hover:bg-gray-100';
+
+                    let displayTime = '-';
+                    const timeValue = booking['Time'];
+                    if (timeValue && typeof timeValue === 'string') {
+                        const match = timeValue.match(/(\d{1,2}:\d{2})/);
+                        displayTime = match ? match[0] : timeValue;
+                    } else if (timeValue) displayTime = timeValue;
+
+                    const displayDate = booking['Date'] ? booking['Date'].substring(5) : '-';
+
+                    // 접대비 계산
+                    let cost = 0;
+                    if (booking['Golf Course'] === '세라지오' || booking['Golf Course'] === '힐드로사이') {
+                        const teams = parseInt(booking.Team) || 0;
+                        cost = teams * 300000;
+                    }
+
+                    row.innerHTML = `
+                        <td class="py-3 px-2 md:px-6 whitespace-nowrap text-xs md:text-sm">${booking['Golf Course']}</td>
+                        <td class="py-3 px-2 md:px-6 whitespace-nowrap text-xs md:text-sm">${booking['Name']}</td>
+                        <td class="py-3 px-2 md:px-6 whitespace-nowrap text-xs md:text-sm">${displayDate}</td>
+                        <td class="py-3 px-2 md:px-6 text-center whitespace-nowrap text-xs md:text-sm">${booking['Team']}</td>
+                        <td class="py-3 px-2 md:px-6 whitespace-nowrap text-xs md:text-sm">${displayTime}</td>
+                        <td class="py-3 px-2 md:px-6 whitespace-nowrap text-xs md:text-sm">${booking['Status'] || '-'}</td>
+                        <td class="py-3 px-2 md:px-6 text-right whitespace-nowrap text-xs md:text-sm font-semibold ${cost > 0 ? 'text-blue-600' : 'text-gray-400'}">₩${cost.toLocaleString()}</td>
+                    `;
+                    entertainmentTableBody.appendChild(row);
+                });
+            }
+
             // --- 데이터 처리 ---
             async function postData(action, data) {
                 showLoading(true);
@@ -949,19 +1058,21 @@
                     showLoginScreen();
                 });
                 
-                [calendarTabBtn, statusTabBtn, anonymousTabBtn, lookupTabBtn].forEach(tab => {
+                [calendarTabBtn, statusTabBtn, anonymousTabBtn, lookupTabBtn, entertainmentTabBtn].forEach(tab => {
                     tab.addEventListener('click', () => {
                         calendarView.classList.add('hidden');
                         statusView.classList.add('hidden');
                         anonymousView.classList.add('hidden');
                         lookupView.classList.add('hidden');
-                        [calendarTabBtn, statusTabBtn, anonymousTabBtn, lookupTabBtn].forEach(t => t.classList.remove('bg-lime-500', 'text-white'));
-                        
+                        entertainmentView.classList.add('hidden');
+                        [calendarTabBtn, statusTabBtn, anonymousTabBtn, lookupTabBtn, entertainmentTabBtn].forEach(t => t.classList.remove('bg-lime-500', 'text-white'));
+
                         tab.classList.add('bg-lime-500', 'text-white');
                         if (tab.id === 'calendarTabBtn') calendarView.classList.remove('hidden');
                         else if (tab.id === 'statusTabBtn') statusView.classList.remove('hidden');
                         else if (tab.id === 'lookupTabBtn') lookupView.classList.remove('hidden');
                         else if (tab.id === 'anonymousTabBtn') anonymousView.classList.remove('hidden');
+                        else if (tab.id === 'entertainmentTabBtn') entertainmentView.classList.remove('hidden');
                     });
                 });
                 
@@ -1063,6 +1174,29 @@
                         },
                         error: (err) => { alert('파일을 읽는 중 오류가 발생했습니다.'); console.error(err); }
                     });
+                });
+
+                // 접대비 저장 버튼
+                saveEntertainmentBtn.addEventListener('click', async () => {
+                    const commonValue = commonEntertainment.value.trim();
+                    const personalValue = personalEntertainment.value.trim();
+
+                    if (!commonValue && !personalValue) {
+                        alert('공통접대비 또는 개인접대비 중 하나 이상을 입력해주세요.');
+                        return;
+                    }
+
+                    if (!confirm('접대비 정보를 저장하시겠습니까?')) {
+                        return;
+                    }
+
+                    const entertainmentData = {
+                        name: currentUser.name,
+                        commonEntertainment: commonValue || '0',
+                        personalEntertainment: personalValue || '0'
+                    };
+
+                    await postData('saveEntertainment', entertainmentData);
                 });
             } // setupEventListeners 함수 끝
 
