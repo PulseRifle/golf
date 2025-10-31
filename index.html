@@ -822,9 +822,9 @@
             function renderEntertainmentView() {
                 entertainmentTableBody.innerHTML = '';
 
-                // 필터: MP != 0 && (Status == '예약완료' || Status == '우천취소')
+                // 필터: MP != 0 && (Status == '예약완료' || Status == '우천취소' || Status == '예약중' || Status == '')
                 let entertainmentBookings = bookings.filter(b =>
-                    b.MP != 0 && (b.Status === '예약완료' || b.Status === '우천취소')
+                    b.MP != 0 && (b.Status === '예약완료' || b.Status === '우천취소' || b.Status === '예약중' || b.Status === '' || !b.Status)
                 );
 
                 // 이름 드롭다운 채우기
