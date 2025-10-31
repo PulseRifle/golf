@@ -228,7 +228,7 @@ function addMultipleBookings(user, bookings) {
 
 
 /**
- * [새로 추가] 접대비 정보를 '접대비' 시트에 저장합니다.
+ * [새로 추가] 접대비 정보를 'EE' 시트에 저장합니다.
  * @param {string} name - 사용자 이름
  * @param {string} commonEntertainment - 공통접대비
  * @param {string} personalEntertainment - 개인접대비
@@ -238,7 +238,7 @@ function saveEntertainment(name, commonEntertainment, personalEntertainment) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let entertainmentSheet = ss.getSheetByName(ENTERTAINMENT_SHEET_NAME);
 
-  // '접대비' 시트가 없으면 생성
+  // 'EE' 시트가 없으면 생성
   if (!entertainmentSheet) {
     entertainmentSheet = ss.insertSheet(ENTERTAINMENT_SHEET_NAME);
     entertainmentSheet.appendRow(['Name', '공통접대비', '개인접대비']);
