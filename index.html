@@ -145,7 +145,6 @@
                         <div>
                             <h3 class="text-xl font-bold text-gray-800 mb-2">접대비 총액</h3>
                             <p id="totalEntertainmentCost" class="text-3xl font-extrabold text-blue-600">₩0</p>
-                            <p class="text-sm text-gray-500 mt-1">Google Sheet 'EE' 컬럼 기준</p>
                         </div>
                         <div class="flex flex-col gap-3 w-full md:w-auto">
                             <div class="flex items-center gap-2">
@@ -160,17 +159,23 @@
                         </div>
                     </div>
                 </div>
+                <div class="mb-4 flex items-center gap-2">
+                    <label for="entertainmentNameFilter" class="text-sm font-medium text-gray-700">이름:</label>
+                    <select id="entertainmentNameFilter" class="px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white">
+                        <option value="전체">전체</option>
+                    </select>
+                </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full bg-white rounded-lg shadow-sm">
                         <thead class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
                             <tr>
-                                <th class="py-3 px-2 md:px-6 text-left">Golf Course</th>
-                                <th class="py-3 px-2 md:px-6 text-left">Name</th>
-                                <th class="py-3 px-2 md:px-6 text-left">Date</th>
-                                <th class="py-3 px-2 md:px-6 text-center">Team</th>
-                                <th class="py-3 px-2 md:px-6 text-left">Time</th>
-                                <th class="py-3 px-2 md:px-6 text-left">Status</th>
-                                <th class="py-3 px-2 md:px-6 text-right">접대비</th>
+                                <th class="py-3 px-2 md:px-6 text-left cursor-pointer hover:bg-gray-300" data-sort="Golf Course">Golf Course <span class="sort-indicator"></span></th>
+                                <th class="py-3 px-2 md:px-6 text-left cursor-pointer hover:bg-gray-300" data-sort="Name">Name <span class="sort-indicator"></span></th>
+                                <th class="py-3 px-2 md:px-6 text-left cursor-pointer hover:bg-gray-300" data-sort="Date">Date <span class="sort-indicator"></span></th>
+                                <th class="py-3 px-2 md:px-6 text-center cursor-pointer hover:bg-gray-300" data-sort="Team">Team <span class="sort-indicator"></span></th>
+                                <th class="py-3 px-2 md:px-6 text-left cursor-pointer hover:bg-gray-300" data-sort="Time">Time <span class="sort-indicator"></span></th>
+                                <th class="py-3 px-2 md:px-6 text-left cursor-pointer hover:bg-gray-300" data-sort="Status">Status <span class="sort-indicator"></span></th>
+                                <th class="py-3 px-2 md:px-6 text-right cursor-pointer hover:bg-gray-300" data-sort="EE">접대비 <span class="sort-indicator"></span></th>
                             </tr>
                         </thead>
                         <tbody id="entertainmentTableBody" class="text-gray-600 text-sm font-light"></tbody>
@@ -332,6 +337,9 @@
         let originalBookingForLog = null;
         let sortColumn = 'Date';
         let sortDirection = 'asc';
+        let entertainmentSortColumn = 'Date';
+        let entertainmentSortDirection = 'asc';
+        let entertainmentNameFilter = '전체';
         
         // ##### DOMContentLoaded 이벤트 리스너 #####
         document.addEventListener('DOMContentLoaded', async () => {
@@ -377,6 +385,7 @@
             const commonEntertainment = document.getElementById('commonEntertainment');
             const personalEntertainment = document.getElementById('personalEntertainment');
             const saveEntertainmentBtn = document.getElementById('saveEntertainmentBtn');
+            const entertainmentNameFilterSelect = document.getElementById('entertainmentNameFilter');
 
             // ##### 초기화 함수 호출 #####
             showLoading(true);
@@ -814,11 +823,22 @@
                 entertainmentTableBody.innerHTML = '';
 
                 // 필터: MP == 1 && (Status == '예약완료' || Status == '우천취소')
-                const entertainmentBookings = bookings.filter(b =>
+                let entertainmentBookings = bookings.filter(b =>
                     b.MP == 1 && (b.Status === '예약완료' || b.Status === '우천취소')
                 );
 
-                // 접대비 총액 계산: Google Sheet의 'EE' 컬럼 값 사용
+                // 이름 드롭다운 채우기
+                const uniqueNames = ['전체', ...new Set(entertainmentBookings.map(b => b['Name']).filter(n => n))];
+                entertainmentNameFilterSelect.innerHTML = uniqueNames.map(name =>
+                    `<option value="${name}" ${name === entertainmentNameFilter ? 'selected' : ''}>${name}</option>`
+                ).join('');
+
+                // 이름 필터 적용
+                if (entertainmentNameFilter !== '전체') {
+                    entertainmentBookings = entertainmentBookings.filter(b => b['Name'] === entertainmentNameFilter);
+                }
+
+                // 접대비 총액 계산: Google Sheet의 'EE' 컬럼 값 사용 (필터링 적용 후)
                 let totalCost = 0;
                 entertainmentBookings.forEach(booking => {
                     const cost = parseInt(booking['EE']) || 0;
@@ -827,6 +847,37 @@
 
                 // 총액 표시
                 totalEntertainmentCost.textContent = `₩${totalCost.toLocaleString()}`;
+
+                // 정렬 적용
+                entertainmentBookings.sort((a, b) => {
+                    let aVal = a[entertainmentSortColumn];
+                    let bVal = b[entertainmentSortColumn];
+
+                    // 숫자 컬럼 처리 (Team, EE)
+                    if (entertainmentSortColumn === 'Team' || entertainmentSortColumn === 'EE') {
+                        aVal = parseInt(aVal) || 0;
+                        bVal = parseInt(bVal) || 0;
+                    } else {
+                        aVal = String(aVal || '');
+                        bVal = String(bVal || '');
+                    }
+
+                    if (entertainmentSortDirection === 'asc') {
+                        return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+                    } else {
+                        return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+                    }
+                });
+
+                // 정렬 표시 업데이트
+                document.querySelectorAll('#entertainmentView th[data-sort]').forEach(th => {
+                    const indicator = th.querySelector('.sort-indicator');
+                    if (th.dataset.sort === entertainmentSortColumn) {
+                        indicator.textContent = entertainmentSortDirection === 'asc' ? ' ▲' : ' ▼';
+                    } else {
+                        indicator.textContent = '';
+                    }
+                });
 
                 // 테이블 렌더링
                 if (entertainmentBookings.length === 0) {
@@ -1195,6 +1246,26 @@
                     };
 
                     await postData('saveEntertainment', entertainmentData);
+                });
+
+                // 접대비 이름 필터 변경
+                entertainmentNameFilterSelect.addEventListener('change', (e) => {
+                    entertainmentNameFilter = e.target.value;
+                    renderEntertainmentView();
+                });
+
+                // 접대비 테이블 헤더 정렬
+                document.querySelectorAll('#entertainmentView th[data-sort]').forEach(th => {
+                    th.addEventListener('click', () => {
+                        const column = th.dataset.sort;
+                        if (entertainmentSortColumn === column) {
+                            entertainmentSortDirection = entertainmentSortDirection === 'asc' ? 'desc' : 'asc';
+                        } else {
+                            entertainmentSortColumn = column;
+                            entertainmentSortDirection = 'asc';
+                        }
+                        renderEntertainmentView();
+                    });
                 });
             } // setupEventListeners 함수 끝
 
