@@ -579,8 +579,12 @@
                 const isMobile = window.innerWidth < 768;
                 const today = new Date();
                 const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-                let currentDate = new Date();
-                const limitDate = new Date(2025, 11, 31); 
+
+                // [수정됨] 현재 연도의 1월 1일부터 12월 31일까지 12개월 전체 캘린더 표시
+                const currentYear = today.getFullYear();
+                let currentDate = new Date(currentYear, 0, 1); // 1월 1일부터 시작
+                const limitDate = new Date(currentYear, 11, 31); // 12월 31일까지
+
                 while(currentDate <= limitDate) {
                     const year = currentDate.getFullYear(), month = currentDate.getMonth();
                     const firstDayOfMonth = new Date(year, month, 1);
