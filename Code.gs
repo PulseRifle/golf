@@ -1,306 +1,214 @@
-// ##### 상수 설정 (CONSTANTS) #####
-const DATA_SHEET_NAME = 'Data';
-const USERS_SHEET_NAME = 'Users';
-const QUOTA_SHEET_NAME = 'Quota';
-const LOG_SHEET_NAME = 'Log';
-const ENTERTAINMENT_SHEET_NAME = 'EE'; // 접대비 시트명
+/**
+ * Google Apps Script for Golf Reservation System
+ * This script handles data operations between the web app and Google Sheets.
+ * It manages four sheets: Data (bookings), Quota (user limits), Log (activity tracking), and Password (user credentials).
+ */
 
-// HTTP GET 요청을 처리합니다. 주로 데이터 조회를 담당합니다.
+const SHEET_NAME_DATA = "Data";
+const SHEET_NAME_QUOTA = "Quota";
+const SHEET_NAME_LOG = "Log";
+const SHEET_NAME_PASSWORD = "Password";
+
+/**
+ * HTTP GET 요청을 처리합니다.
+ * 'read' 액션이 들어오면 모든 필요한 데이터(예약, 한도, 사용자 정보)를 함께 전송합니다.
+ */
 function doGet(e) {
-  try {
-    // 디버깅: 전달받은 파라미터 로깅
-    Logger.log('doGet called with parameters: ' + JSON.stringify(e.parameter));
-
-    const action = e.parameter.action;
-
-    if (action === 'read') {
-      const data = getAllData();
-      return ContentService.createTextOutput(JSON.stringify(data))
-        .setMimeType(ContentService.MimeType.JSON);
-    } else {
-      // 어떤 action이 전달되었는지 에러 메시지에 포함
-      throw new Error(`알 수 없는 GET 요청입니다. 받은 action: ${action || 'undefined'}`);
-    }
-  } catch (error) {
-    Logger.log(error.stack);
-    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: error.message }))
+  if (e.parameter.action === 'read') {
+    const bookings = getBookings();
+    const quotas = getQuotas();
+    const users = getUsers();
+    
+    const responseData = { 
+      bookings: bookings, 
+      quotas: quotas,
+      users: users 
+    };
+    
+    return ContentService.createTextOutput(JSON.stringify(responseData))
       .setMimeType(ContentService.MimeType.JSON);
   }
 }
 
-// HTTP POST 요청을 처리합니다. 데이터 추가, 수정, 삭제 등의 작업을 담당합니다.
+/**
+ * HTTP POST 요청을 처리합니다.
+ */
 function doPost(e) {
-  const lock = LockService.getScriptLock();
-  lock.waitLock(30000); // 30초간 락 대기
-
+  const request = JSON.parse(e.postData.contents);
+  let response = {};
   try {
-    const data = JSON.parse(e.postData.contents);
-    const action = data.action;
-    let result = {};
-
-    switch (action) {
+    switch (request.action) {
       case 'add':
-        result = addBooking(data.user, data.booking);
+        addBooking(request.booking, request.user);
+        response = { status: 'success', message: '예약이 추가되었습니다.' };
         break;
       case 'update':
-        result = updateBooking(data.user, data.booking, data.logMessage);
-        break;
-      case 'cancel':
-        result = cancelBookings(data.user, data.ids);
+        updateBooking(request.booking, request.user, request.logMessage);
+        response = { status: 'success', message: '예약이 수정되었습니다.' };
         break;
       case 'addMultiple':
-        result = addMultipleBookings(data.user, data.bookings);
+        addMultipleBookings(request.bookings, request.user);
+        response = { status: 'success', message: '데이터가 성공적으로 업로드되었습니다.' };
         break;
-      case 'saveEntertainment': // 새로 추가
-        result = saveEntertainment(data.name, data.commonEntertainment, data.personalEntertainment);
+      case 'cancel':
+        cancelBookings(request.ids, request.user);
+        response = { status: 'success', message: '선택한 예약이 취소 처리되었습니다.' };
         break;
       default:
-        throw new Error("알 수 없는 POST 요청입니다.");
+        throw new Error("알 수 없는 요청입니다.");
     }
-
-    return ContentService.createTextOutput(JSON.stringify(result))
-      .setMimeType(ContentService.MimeType.JSON);
-
   } catch (error) {
-    Logger.log(error.stack);
-    logAction('SYSTEM', 'ERROR', error.message);
-    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: error.message }))
-      .setMimeType(ContentService.MimeType.JSON);
-  } finally {
-    lock.releaseLock();
+    response = { status: 'error', message: error.message };
   }
+  return ContentService.createTextOutput(JSON.stringify(response)).setMimeType(ContentService.MimeType.JSON);
 }
 
+function getSheet(sheetName) {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    return ss.getSheetByName(sheetName);
+}
 
-/**
- * 모든 시트에서 초기 데이터를 가져옵니다.
- * @returns {object} bookings, users, quotas 데이터를 포함하는 객체
- */
-function getAllData() {
+function logAction(user, action, bookingDate, golfCourse, team) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const dataSheet = ss.getSheetByName(DATA_SHEET_NAME);
-  const usersSheet = ss.getSheetByName(USERS_SHEET_NAME);
-  const quotaSheet = ss.getSheetByName(QUOTA_SHEET_NAME);
-
-  // [수정됨] 데이터 시트에서 'EE', 'WE' 컬럼을 포함하여 11개 열을 읽어옵니다.
-  // 컬럼 순서: id, Golf Course, Name, Date, Team, Time, Status, Comment, MP, EE, WE
-  const bookingsData = sheetDataToObjects(dataSheet.getDataRange().getValues(), 11);
-  const usersData = sheetDataToObjects(usersSheet.getDataRange().getValues());
-  const quotasData = sheetDataToObjects(quotaSheet.getDataRange().getValues());
-
-  return {
-    bookings: bookingsData,
-    users: usersData,
-    quotas: quotasData
-  };
-}
-
-
-/**
- * 신규 예약을 'Data' 시트에 추가합니다.
- * @param {string} user - 작업을 수행한 사용자 이름
- * @param {object} booking - 추가할 예약 정보
- * @returns {object} 성공 상태 메시지
- */
-function addBooking(user, booking) {
-  const dataSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(DATA_SHEET_NAME);
-  const newId = "booking_" + new Date().getTime(); // 고유 ID 생성
-
-  // [수정됨] 신규 예약 시 MP 기본값으로 1, EE 0, WE 빈값을 설정합니다.
-  dataSheet.appendRow([
-    newId,
-    booking['Golf Course'],
-    booking['Name'],
-    booking['Date'],
-    booking['Team'],
-    booking['Time'],
-    booking['Status'],
-    booking['Comment'],
-    1, // MP 기본값
-    booking['EE'] || 0, // EE 기본값
-    booking['WE'] || '' // WE 컬럼 (빈값 또는 "주 말")
-  ]);
-
-  logAction(user, 'ADD', `신규 예약 추가: ${booking['Date']} ${booking['Golf Course']} (${booking['Name']})`);
-  return { status: 'success', message: '예약이 성공적으로 추가되었습니다.' };
-}
-
-
-/**
- * 기존 예약을 수정합니다.
- * @param {string} user - 작업을 수행한 사용자 이름
- * @param {object} booking - 수정할 예약 정보
- * @param {string} logMessage - 로그에 남길 메시지
- * @returns {object} 성공 상태 메시지
- */
-function updateBooking(user, booking, logMessage) {
-  const dataSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(DATA_SHEET_NAME);
-  const data = dataSheet.getDataRange().getValues();
-  const headers = data[0];
-  const idIndex = headers.indexOf('id');
-
-  const rowIndex = data.findIndex(row => row[idIndex] == booking.id);
-
-  if (rowIndex > 0) {
-    // [수정됨] 'EE', 'WE' 컬럼까지 11개 열을 업데이트합니다. 기존 값은 유지됩니다.
-    const rowData = data[rowIndex];
-    dataSheet.getRange(rowIndex + 1, 1, 1, 11).setValues([[
-      booking.id,
-      booking['Golf Course'],
-      booking['Name'],
-      booking['Date'],
-      booking['Team'],
-      booking['Time'],
-      booking['Status'],
-      booking['Comment'],
-      rowData[8], // 기존 MP 값 유지
-      rowData[9], // 기존 EE 값 유지
-      rowData[10] // 기존 WE 값 유지
-    ]]);
-
-    logAction(user, 'UPDATE', `${logMessage}: ${booking.id}`);
-    return { status: 'success', message: '예약이 성공적으로 수정되었습니다.' };
-  } else {
-    throw new Error("수정할 예약을 찾을 수 없습니다.");
+  let logSheet = getSheet(SHEET_NAME_LOG);
+  if (!logSheet) {
+    logSheet = ss.insertSheet(SHEET_NAME_LOG);
+    logSheet.appendRow(["Timestamp", "User", "Action", "Target Date", "Target Golf Course", "Target Team"]);
   }
+  const timestamp = Utilities.formatDate(new Date(), ss.getSpreadsheetTimeZone(), "yyyy-MM-dd HH:mm:ss");
+  logSheet.appendRow([timestamp, user, action, bookingDate || '', golfCourse || '', team || '']);
 }
 
-/**
- * 여러 예약을 '취소중' 상태로 변경합니다.
- * @param {string} user - 작업을 수행한 사용자 이름
- * @param {Array<string>} ids - 취소할 예약 ID 목록
- * @returns {object} 성공 상태 메시지
- */
-function cancelBookings(user, ids) {
-    const dataSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(DATA_SHEET_NAME);
-    const data = dataSheet.getDataRange().getValues();
-    const headers = data[0];
+function getUsers() {
+    const sheet = getSheet(SHEET_NAME_PASSWORD);
+    if (!sheet) return [];
+    const values = sheet.getDataRange().getValues();
+    if (values.length < 2) return [];
+    const headers = values[0];
     const idIndex = headers.indexOf('id');
-    const statusIndex = headers.indexOf('Status');
-    let cancelledCount = 0;
+    const passwordIndex = headers.indexOf('password');
 
-    data.forEach((row, index) => {
-        if (index > 0 && ids.includes(row[idIndex])) {
-            dataSheet.getRange(index + 1, statusIndex + 1).setValue('취소중');
-            cancelledCount++;
-        }
+    if (idIndex === -1 || passwordIndex === -1) return [];
+
+    return values.slice(1).map(row => ({
+        name: row[idIndex],
+        phone: String(row[passwordIndex]) 
+    }));
+}
+
+function getQuotas() {
+    const quotaSheet = getSheet(SHEET_NAME_QUOTA);
+    if (!quotaSheet) return [];
+    const values = quotaSheet.getDataRange().getValues();
+    if (values.length < 2) return [];
+    const headers = values[0];
+    return values.slice(1).map(row => {
+        let obj = {};
+        headers.forEach((header, i) => { obj[header] = row[i]; });
+        return obj;
     });
-
-    if (cancelledCount > 0) {
-        logAction(user, 'CANCEL', `${cancelledCount}개 항목 취소 요청: ${ids.join(', ')}`);
-        return { status: 'success', message: `${cancelledCount}개의 예약이 '취소중' 상태로 변경되었습니다.` };
-    } else {
-        throw new Error("취소할 예약을 찾을 수 없습니다.");
-    }
 }
 
-
-/**
- * CSV 파일로부터 여러 예약을 한 번에 추가합니다.
- * @param {string} user - 작업을 수행한 사용자 이름
- * @param {Array<object>} bookings - 추가할 예약 객체 배열
- * @returns {object} 성공 상태 메시지
- */
-function addMultipleBookings(user, bookings) {
-  const dataSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(DATA_SHEET_NAME);
-
-  bookings.forEach(booking => {
-    const newId = "booking_" + new Date().getTime() + Math.random();
-    // [수정됨] MP, EE, WE 값이 없으면 기본값으로 설정합니다.
-    dataSheet.appendRow([
-      newId,
-      booking['Golf Course'],
-      booking['Name'],
-      booking['Date'],
-      booking['Team'],
-      booking['Time'],
-      booking['Status'],
-      booking['Comment'],
-      booking['MP'] || 1,
-      booking['EE'] || 0,
-      booking['WE'] || ''
-    ]);
-  });
-
-  logAction(user, 'ADD_MULTIPLE', `${bookings.length}개의 예약을 엑셀로 추가했습니다.`);
-  return { status: 'success', message: `${bookings.length}개의 예약이 성공적으로 추가되었습니다.` };
-}
-
-
-/**
- * [새로 추가] 접대비 정보를 'EE' 시트에 저장합니다.
- * @param {string} name - 사용자 이름
- * @param {string} commonEntertainment - 공통접대비
- * @param {string} personalEntertainment - 개인접대비
- * @returns {object} 성공 상태 메시지
- */
-function saveEntertainment(name, commonEntertainment, personalEntertainment) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let entertainmentSheet = ss.getSheetByName(ENTERTAINMENT_SHEET_NAME);
-
-  // 'EE' 시트가 없으면 생성
-  if (!entertainmentSheet) {
-    entertainmentSheet = ss.insertSheet(ENTERTAINMENT_SHEET_NAME);
-    entertainmentSheet.appendRow(['Name', '공통접대비', '개인접대비']);
-  }
-
-  const data = entertainmentSheet.getDataRange().getValues();
-  const headers = data[0];
-  const nameColIndex = headers.indexOf('Name');
-  const commonColIndex = headers.indexOf('공통접대비');
-  const personalColIndex = headers.indexOf('개인접대비');
-
-  // Name에 해당하는 행 찾기
-  let rowIndex = -1;
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][nameColIndex] === name) {
-      rowIndex = i + 1; // Sheet는 1-based index
-      break;
-    }
-  }
-
-  // 행을 찾았으면 업데이트, 없으면 새로 추가
-  if (rowIndex > 0) {
-    entertainmentSheet.getRange(rowIndex, commonColIndex + 1).setValue(commonEntertainment);
-    entertainmentSheet.getRange(rowIndex, personalColIndex + 1).setValue(personalEntertainment);
-  } else {
-    // 새 행 추가
-    entertainmentSheet.appendRow([name, commonEntertainment, personalEntertainment]);
-  }
-
-  logAction(name, 'SAVE_ENTERTAINMENT', `공통접대비: ${commonEntertainment}, 개인접대비: ${personalEntertainment}`);
-  return { status: 'success', message: '접대비 정보가 저장되었습니다.' };
-}
-
-
-/**
- * 시트 데이터를 객체 배열로 변환하는 헬퍼 함수입니다.
- * @param {Array<Array<string>>} data - 시트에서 읽어온 2D 배열 데이터
- * @param {number} [numColumns=null] - 읽어올 열의 개수 (지정하지 않으면 전체)
- * @returns {Array<object>} 변환된 객체 배열
- */
-function sheetDataToObjects(data, numColumns = null) {
-  const headers = data[0];
-  const effectiveNumColumns = numColumns ? numColumns : headers.length;
-
-  return data.slice(1).map(row => {
+function getBookings() {
+  const sheet = getSheet(SHEET_NAME_DATA);
+  if (!sheet) return [];
+  const range = sheet.getDataRange();
+  const values = range.getValues();
+  if (values.length < 2) return [];
+  const spreadsheetTimeZone = SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone();
+  const headers = values[0];
+  return values.slice(1).map(row => {
     let obj = {};
-    for (let i = 0; i < effectiveNumColumns; i++) {
-      if (headers[i]) {
-        obj[headers[i]] = row[i];
-      }
-    }
+    headers.forEach((header, i) => {
+      let cellValue = row[i];
+      if ((header === 'Date' || header === 'Time') && cellValue) {
+        try {
+          const dateObj = new Date(cellValue);
+          if (!isNaN(dateObj.getTime())) {
+            if (header === 'Date') obj[header] = Utilities.formatDate(dateObj, spreadsheetTimeZone, "yyyy-MM-dd");
+            else if (header === 'Time') obj[header] = Utilities.formatDate(dateObj, spreadsheetTimeZone, "HH:mm");
+          } else { obj[header] = cellValue; }
+        } catch (e) { obj[header] = cellValue; }
+      } else { obj[header] = cellValue; }
+    });
     return obj;
   });
 }
 
-/**
- * Log 시트에 활동 기록을 남깁니다.
- * @param {string} user - 작업을 수행한 사용자
- * @param {string} action - 수행한 작업 종류
- * @param {string} details - 작업 상세 내용
- */
-function logAction(user, action, details) {
-  const logSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(LOG_SHEET_NAME);
-  logSheet.appendRow([new Date(), user, action, details]);
+function addBooking(booking, user) {
+  const sheet = getSheet(SHEET_NAME_DATA);
+  const newId = Utilities.getUuid();
+  const headers = sheet.getRange(1, 1, 1, 8).getValues()[0]; // A-H 열 헤더만 사용
+  const newRow = headers.map(header => {
+    if (header === 'id') return newId;
+    return booking[header] || "";
+  });
+  sheet.appendRow(newRow);
+  logAction(user, "추가", booking['Date'], booking['Golf Course'], booking['Team']);
 }
+
+// [수정됨] 엑셀 업로드 시 A~H 열만 덮어쓰도록 로직 변경
+function addMultipleBookings(bookings, user) {
+  const sheet = getSheet(SHEET_NAME_DATA);
+  // A열부터 H열까지의 헤더만 명시적으로 사용
+  const headers = sheet.getRange(1, 1, 1, 8).getValues()[0];
+  
+  // 1. 기존 데이터 삭제 (A2부터 H열의 데이터가 있는 마지막 행까지)
+  if (sheet.getLastRow() > 1) {
+    sheet.getRange(2, 1, sheet.getLastRow() - 1, 8).clearContent();
+  }
+
+  // 2. 새로운 데이터 준비
+  const newRows = bookings.map(booking => {
+    const newId = Utilities.getUuid();
+    logAction(user || "Admin", "엑셀 업로드(추가)", booking.Date, booking['Golf Course'], booking.Team);
+    return headers.map(header => {
+      if (header === 'id') return newId;
+      return booking[header] || "";
+    });
+  });
+
+  // 3. 새로운 데이터를 A2 셀부터 H열까지만 입력
+  if(newRows.length > 0) {
+    sheet.getRange(2, 1, newRows.length, headers.length).setValues(newRows);
+  }
+}
+
+
+function updateBooking(booking, user, logMessage) {
+  const sheet = getSheet(SHEET_NAME_DATA);
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const idColumnIndex = headers.indexOf('id');
+  if (idColumnIndex === -1) throw new Error("ID 열을 찾을 수 없습니다.");
+  const rowIndex = data.findIndex(row => row[idColumnIndex] === booking.id);
+  if (rowIndex === -1) throw new Error("수정할 예약을 찾을 수 없습니다.");
+  const newRow = headers.map(header => booking[header] || "");
+  sheet.getRange(rowIndex + 1, 1, 1, headers.length).setValues([newRow]);
+  logAction(user, logMessage || "수정", booking['Date'], booking['Golf Course'], booking['Team']);
+}
+
+function cancelBookings(ids, user) {
+  const sheet = getSheet(SHEET_NAME_DATA);
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const idColumnIndex = headers.indexOf('id');
+  const statusColumnIndex = headers.indexOf('Status');
+  const dateColumnIndex = headers.indexOf('Date');
+  const courseColumnIndex = headers.indexOf('Golf Course');
+  const teamColumnIndex = headers.indexOf('Team');
+  if (idColumnIndex === -1 || statusColumnIndex === -1) throw new Error("ID 또는 Status 열을 찾을 수 없습니다.");
+  const spreadsheetTimeZone = SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone();
+  ids.forEach(id => {
+      const rowIndex = data.findIndex(row => row[idColumnIndex] === id);
+      if (rowIndex > -1) {
+          const rowData = data[rowIndex];
+          sheet.getRange(rowIndex + 1, statusColumnIndex + 1).setValue("취소중");
+          const bookingDate = Utilities.formatDate(new Date(rowData[dateColumnIndex]), spreadsheetTimeZone, "yyyy-MM-dd");
+          const golfCourse = rowData[courseColumnIndex];
+          const team = rowData[teamColumnIndex];
+          logAction(user, "취소", bookingDate, golfCourse, team);
+      }
+  });
+}
+
