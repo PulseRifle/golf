@@ -3,7 +3,7 @@ const DATA_SHEET_NAME = 'Data';
 const USERS_SHEET_NAME = 'Users';
 const QUOTA_SHEET_NAME = 'Quota';
 const LOG_SHEET_NAME = 'Log';
-const ENTERTAINMENT_SHEET_NAME = '접대비'; // 새로 추가
+const ENTERTAINMENT_SHEET_NAME = 'EE'; // 접대비 시트명
 
 // HTTP GET 요청을 처리합니다. 주로 데이터 조회를 담당합니다.
 function doGet(e) {
