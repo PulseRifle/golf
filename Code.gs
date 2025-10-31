@@ -8,13 +8,18 @@ const ENTERTAINMENT_SHEET_NAME = '접대비'; // 새로 추가
 // HTTP GET 요청을 처리합니다. 주로 데이터 조회를 담당합니다.
 function doGet(e) {
   try {
+    // 디버깅: 전달받은 파라미터 로깅
+    Logger.log('doGet called with parameters: ' + JSON.stringify(e.parameter));
+
     const action = e.parameter.action;
+
     if (action === 'read') {
       const data = getAllData();
       return ContentService.createTextOutput(JSON.stringify(data))
         .setMimeType(ContentService.MimeType.JSON);
     } else {
-      throw new Error("알 수 없는 GET 요청입니다.");
+      // 어떤 action이 전달되었는지 에러 메시지에 포함
+      throw new Error(`알 수 없는 GET 요청입니다. 받은 action: ${action || 'undefined'}`);
     }
   } catch (error) {
     Logger.log(error.stack);
