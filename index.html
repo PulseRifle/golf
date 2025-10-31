@@ -149,11 +149,11 @@
                         <div class="flex flex-col gap-3 w-full md:w-auto">
                             <div class="flex items-center gap-2">
                                 <label for="commonEntertainment" class="text-sm font-medium text-gray-700 w-24">공통접대비</label>
-                                <input type="number" id="commonEntertainment" class="block px-3 py-2 border border-gray-300 rounded-md shadow-sm w-40" placeholder="0">
+                                <input type="text" id="commonEntertainment" class="block px-3 py-2 border border-gray-300 rounded-md shadow-sm w-40" placeholder="0">
                             </div>
                             <div class="flex items-center gap-2">
                                 <label for="personalEntertainment" class="text-sm font-medium text-gray-700 w-24">개인접대비</label>
-                                <input type="number" id="personalEntertainment" class="block px-3 py-2 border border-gray-300 rounded-md shadow-sm w-40" placeholder="0">
+                                <input type="text" id="personalEntertainment" class="block px-3 py-2 border border-gray-300 rounded-md shadow-sm w-40" placeholder="0">
                             </div>
                             <button id="saveEntertainmentBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full shadow-lg transform transition-transform active:scale-95">저장</button>
                         </div>
@@ -318,9 +318,9 @@
         };
         
         // [수정됨] 유효한 예약만 카운트하기 위한 필터 조건 함수
-        // Status가 '예약완료', '예약중', '취소중'이고 MP가 1인 건만 카운트
+        // Status가 '예약완료', '예약중', '취소중'이고 MP가 0이 아닌 건만 카운트
         const VALID_STATUSES = ['예약완료', '예약중', '취소중'];
-        const IS_VALID_FOR_COUNTING = (b) => b.MP == 1 && VALID_STATUSES.includes(b.Status);
+        const IS_VALID_FOR_COUNTING = (b) => b.MP != 0 && VALID_STATUSES.includes(b.Status);
 
         // 주중/주말 판단 함수 (WE 컬럼 기반)
         // 'WE' 컬럼이 "주 말"이면 주말, 공란이면 주중
@@ -822,9 +822,9 @@
             function renderEntertainmentView() {
                 entertainmentTableBody.innerHTML = '';
 
-                // 필터: MP == 1 && (Status == '예약완료' || Status == '우천취소')
+                // 필터: MP != 0 && (Status == '예약완료' || Status == '우천취소')
                 let entertainmentBookings = bookings.filter(b =>
-                    b.MP == 1 && (b.Status === '예약완료' || b.Status === '우천취소')
+                    b.MP != 0 && (b.Status === '예약완료' || b.Status === '우천취소')
                 );
 
                 // 이름 드롭다운 채우기
@@ -1225,10 +1225,31 @@
                     });
                 });
 
+                // 접대비 입력 필드 콤마 포맷팅
+                function formatNumberWithCommas(value) {
+                    // 숫자만 추출
+                    const number = value.replace(/[^0-9]/g, '');
+                    // 천원 단위 콤마 추가
+                    return number.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                }
+
+                function removeCommas(value) {
+                    return value.replace(/,/g, '');
+                }
+
+                commonEntertainment.addEventListener('input', (e) => {
+                    e.target.value = formatNumberWithCommas(e.target.value);
+                });
+
+                personalEntertainment.addEventListener('input', (e) => {
+                    e.target.value = formatNumberWithCommas(e.target.value);
+                });
+
                 // 접대비 저장 버튼
                 saveEntertainmentBtn.addEventListener('click', async () => {
-                    const commonValue = commonEntertainment.value.trim();
-                    const personalValue = personalEntertainment.value.trim();
+                    // 콤마 제거하여 숫자로 변환
+                    const commonValue = removeCommas(commonEntertainment.value.trim());
+                    const personalValue = removeCommas(personalEntertainment.value.trim());
 
                     if (!commonValue && !personalValue) {
                         alert('공통접대비 또는 개인접대비 중 하나 이상을 입력해주세요.');
