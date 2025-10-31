@@ -149,11 +149,11 @@
                         <div class="flex flex-col gap-3 w-full md:w-auto">
                             <div class="flex items-center gap-2">
                                 <label for="commonEntertainment" class="text-sm font-medium text-gray-700 w-24">공통접대비</label>
-                                <input type="number" id="commonEntertainment" class="block px-3 py-2 border border-gray-300 rounded-md shadow-sm w-40" placeholder="0">
+                                <input type="text" id="commonEntertainment" class="block px-3 py-2 border border-gray-300 rounded-md shadow-sm w-40" placeholder="0">
                             </div>
                             <div class="flex items-center gap-2">
                                 <label for="personalEntertainment" class="text-sm font-medium text-gray-700 w-24">개인접대비</label>
-                                <input type="number" id="personalEntertainment" class="block px-3 py-2 border border-gray-300 rounded-md shadow-sm w-40" placeholder="0">
+                                <input type="text" id="personalEntertainment" class="block px-3 py-2 border border-gray-300 rounded-md shadow-sm w-40" placeholder="0">
                             </div>
                             <button id="saveEntertainmentBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full shadow-lg transform transition-transform active:scale-95">저장</button>
                         </div>
@@ -1225,10 +1225,31 @@
                     });
                 });
 
+                // 접대비 입력 필드 콤마 포맷팅
+                function formatNumberWithCommas(value) {
+                    // 숫자만 추출
+                    const number = value.replace(/[^0-9]/g, '');
+                    // 천원 단위 콤마 추가
+                    return number.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                }
+
+                function removeCommas(value) {
+                    return value.replace(/,/g, '');
+                }
+
+                commonEntertainment.addEventListener('input', (e) => {
+                    e.target.value = formatNumberWithCommas(e.target.value);
+                });
+
+                personalEntertainment.addEventListener('input', (e) => {
+                    e.target.value = formatNumberWithCommas(e.target.value);
+                });
+
                 // 접대비 저장 버튼
                 saveEntertainmentBtn.addEventListener('click', async () => {
-                    const commonValue = commonEntertainment.value.trim();
-                    const personalValue = personalEntertainment.value.trim();
+                    // 콤마 제거하여 숫자로 변환
+                    const commonValue = removeCommas(commonEntertainment.value.trim());
+                    const personalValue = removeCommas(personalEntertainment.value.trim());
 
                     if (!commonValue && !personalValue) {
                         alert('공통접대비 또는 개인접대비 중 하나 이상을 입력해주세요.');
