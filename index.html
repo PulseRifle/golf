@@ -145,7 +145,7 @@
                         <div>
                             <h3 class="text-xl font-bold text-gray-800 mb-2">접대비 총액</h3>
                             <p id="totalEntertainmentCost" class="text-3xl font-extrabold text-blue-600">₩0</p>
-                            <p class="text-sm text-gray-500 mt-1">Google Sheet '접대비' 컬럼 기준</p>
+                            <p class="text-sm text-gray-500 mt-1">Google Sheet 'EE' 컬럼 기준</p>
                         </div>
                         <div class="flex flex-col gap-3 w-full md:w-auto">
                             <div class="flex items-center gap-2">
@@ -317,10 +317,10 @@
         const VALID_STATUSES = ['예약완료', '예약중', '취소중'];
         const IS_VALID_FOR_COUNTING = (b) => b.MP == 1 && VALID_STATUSES.includes(b.Status);
 
-        // 주중/주말 판단 함수 (주말 컬럼 기반)
-        // '주말' 컬럼이 "주 말"이면 주말, 공란이면 주중
+        // 주중/주말 판단 함수 (WE 컬럼 기반)
+        // 'WE' 컬럼이 "주 말"이면 주말, 공란이면 주중
         const isWeekendBooking = (booking) => {
-            return booking['주말'] === '주 말';
+            return booking['WE'] === '주 말';
         };
 
 
@@ -579,8 +579,12 @@
                 const isMobile = window.innerWidth < 768;
                 const today = new Date();
                 const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-                let currentDate = new Date();
-                const limitDate = new Date(2025, 11, 31); 
+
+                // [수정됨] 10월~12월 캘린더만 표시
+                const currentYear = today.getFullYear();
+                let currentDate = new Date(currentYear, 9, 1); // 10월 1일부터 시작 (월은 0부터 시작하므로 9=10월)
+                const limitDate = new Date(currentYear, 11, 31); // 12월 31일까지
+
                 while(currentDate <= limitDate) {
                     const year = currentDate.getFullYear(), month = currentDate.getMonth();
                     const firstDayOfMonth = new Date(year, month, 1);
@@ -814,10 +818,10 @@
                     b.MP == 1 && (b.Status === '예약완료' || b.Status === '우천취소')
                 );
 
-                // 접대비 총액 계산: Google Sheet의 '접대비' 컬럼 값 사용
+                // 접대비 총액 계산: Google Sheet의 'EE' 컬럼 값 사용
                 let totalCost = 0;
                 entertainmentBookings.forEach(booking => {
-                    const cost = parseInt(booking['접대비']) || 0;
+                    const cost = parseInt(booking['EE']) || 0;
                     totalCost += cost;
                 });
 
@@ -843,8 +847,8 @@
 
                     const displayDate = booking['Date'] ? booking['Date'].substring(5) : '-';
 
-                    // 접대비: Google Sheet의 '접대비' 컬럼 값 사용
-                    const cost = parseInt(booking['접대비']) || 0;
+                    // 접대비: Google Sheet의 'EE' 컬럼 값 사용
+                    const cost = parseInt(booking['EE']) || 0;
 
                     row.innerHTML = `
                         <td class="py-3 px-2 md:px-6 whitespace-nowrap text-xs md:text-sm">${booking['Golf Course']}</td>

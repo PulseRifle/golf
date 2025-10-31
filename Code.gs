@@ -8,13 +8,18 @@ const ENTERTAINMENT_SHEET_NAME = '접대비'; // 새로 추가
 // HTTP GET 요청을 처리합니다. 주로 데이터 조회를 담당합니다.
 function doGet(e) {
   try {
+    // 디버깅: 전달받은 파라미터 로깅
+    Logger.log('doGet called with parameters: ' + JSON.stringify(e.parameter));
+
     const action = e.parameter.action;
+
     if (action === 'read') {
       const data = getAllData();
       return ContentService.createTextOutput(JSON.stringify(data))
         .setMimeType(ContentService.MimeType.JSON);
     } else {
-      throw new Error("알 수 없는 GET 요청입니다.");
+      // 어떤 action이 전달되었는지 에러 메시지에 포함
+      throw new Error(`알 수 없는 GET 요청입니다. 받은 action: ${action || 'undefined'}`);
     }
   } catch (error) {
     Logger.log(error.stack);
@@ -77,8 +82,8 @@ function getAllData() {
   const usersSheet = ss.getSheetByName(USERS_SHEET_NAME);
   const quotaSheet = ss.getSheetByName(QUOTA_SHEET_NAME);
 
-  // [수정됨] 데이터 시트에서 '접대비', '주말' 컬럼을 포함하여 11개 열을 읽어옵니다.
-  // 컬럼 순서: id, Golf Course, Name, Date, Team, Time, Status, Comment, MP, 접대비, 주말
+  // [수정됨] 데이터 시트에서 'EE', 'WE' 컬럼을 포함하여 11개 열을 읽어옵니다.
+  // 컬럼 순서: id, Golf Course, Name, Date, Team, Time, Status, Comment, MP, EE, WE
   const bookingsData = sheetDataToObjects(dataSheet.getDataRange().getValues(), 11);
   const usersData = sheetDataToObjects(usersSheet.getDataRange().getValues());
   const quotasData = sheetDataToObjects(quotaSheet.getDataRange().getValues());
@@ -101,7 +106,7 @@ function addBooking(user, booking) {
   const dataSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(DATA_SHEET_NAME);
   const newId = "booking_" + new Date().getTime(); // 고유 ID 생성
 
-  // [수정됨] 신규 예약 시 MP 기본값으로 1, 접대비 0, 주말 빈값을 설정합니다.
+  // [수정됨] 신규 예약 시 MP 기본값으로 1, EE 0, WE 빈값을 설정합니다.
   dataSheet.appendRow([
     newId,
     booking['Golf Course'],
@@ -112,8 +117,8 @@ function addBooking(user, booking) {
     booking['Status'],
     booking['Comment'],
     1, // MP 기본값
-    booking['접대비'] || 0, // 접대비 기본값
-    booking['주말'] || '' // 주말 컬럼 (빈값 또는 "주 말")
+    booking['EE'] || 0, // EE 기본값
+    booking['WE'] || '' // WE 컬럼 (빈값 또는 "주 말")
   ]);
 
   logAction(user, 'ADD', `신규 예약 추가: ${booking['Date']} ${booking['Golf Course']} (${booking['Name']})`);
@@ -137,7 +142,7 @@ function updateBooking(user, booking, logMessage) {
   const rowIndex = data.findIndex(row => row[idIndex] == booking.id);
 
   if (rowIndex > 0) {
-    // [수정됨] '접대비', '주말' 컬럼까지 11개 열을 업데이트합니다. 기존 값은 유지됩니다.
+    // [수정됨] 'EE', 'WE' 컬럼까지 11개 열을 업데이트합니다. 기존 값은 유지됩니다.
     const rowData = data[rowIndex];
     dataSheet.getRange(rowIndex + 1, 1, 1, 11).setValues([[
       booking.id,
@@ -149,8 +154,8 @@ function updateBooking(user, booking, logMessage) {
       booking['Status'],
       booking['Comment'],
       rowData[8], // 기존 MP 값 유지
-      rowData[9], // 기존 접대비 값 유지
-      rowData[10] // 기존 주말 값 유지
+      rowData[9], // 기존 EE 값 유지
+      rowData[10] // 기존 WE 값 유지
     ]]);
 
     logAction(user, 'UPDATE', `${logMessage}: ${booking.id}`);
@@ -201,7 +206,7 @@ function addMultipleBookings(user, bookings) {
 
   bookings.forEach(booking => {
     const newId = "booking_" + new Date().getTime() + Math.random();
-    // [수정됨] MP, 접대비, 주말 값이 없으면 기본값으로 설정합니다.
+    // [수정됨] MP, EE, WE 값이 없으면 기본값으로 설정합니다.
     dataSheet.appendRow([
       newId,
       booking['Golf Course'],
@@ -212,8 +217,8 @@ function addMultipleBookings(user, bookings) {
       booking['Status'],
       booking['Comment'],
       booking['MP'] || 1,
-      booking['접대비'] || 0,
-      booking['주말'] || ''
+      booking['EE'] || 0,
+      booking['WE'] || ''
     ]);
   });
 
