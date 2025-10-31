@@ -318,9 +318,9 @@
         };
         
         // [수정됨] 유효한 예약만 카운트하기 위한 필터 조건 함수
-        // Status가 '예약완료', '예약중', '취소중'이고 MP가 1인 건만 카운트
+        // Status가 '예약완료', '예약중', '취소중'이고 MP가 0이 아닌 건만 카운트
         const VALID_STATUSES = ['예약완료', '예약중', '취소중'];
-        const IS_VALID_FOR_COUNTING = (b) => b.MP == 1 && VALID_STATUSES.includes(b.Status);
+        const IS_VALID_FOR_COUNTING = (b) => b.MP != 0 && VALID_STATUSES.includes(b.Status);
 
         // 주중/주말 판단 함수 (WE 컬럼 기반)
         // 'WE' 컬럼이 "주 말"이면 주말, 공란이면 주중
@@ -822,9 +822,9 @@
             function renderEntertainmentView() {
                 entertainmentTableBody.innerHTML = '';
 
-                // 필터: MP == 1 && (Status == '예약완료' || Status == '우천취소')
+                // 필터: MP != 0 && (Status == '예약완료' || Status == '우천취소')
                 let entertainmentBookings = bookings.filter(b =>
-                    b.MP == 1 && (b.Status === '예약완료' || b.Status === '우천취소')
+                    b.MP != 0 && (b.Status === '예약완료' || b.Status === '우천취소')
                 );
 
                 // 이름 드롭다운 채우기
