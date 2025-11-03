@@ -853,6 +853,8 @@
             }
 
             function renderEntertainmentView() {
+                loadEntertainmentInputs(); // ▼▼▼ [수정 5] 함수 호출 추가 ▼▼▼
+
                 entertainmentTableBody.innerHTML = '';
 
                 if (!currentUser) return;
