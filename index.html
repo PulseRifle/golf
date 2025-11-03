@@ -160,6 +160,12 @@
                         </div>
                     </div>
                 </div>
+                <div id="adminEntertainmentFilter" class="mb-4 flex items-center gap-2 hidden">
+                    <label for="entertainmentNameFilter" class="text-sm font-medium text-gray-700">이름:</label>
+                    <select id="entertainmentNameFilter" class="px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white">
+                        <option value="전체">전체</option>
+                    </select>
+                </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full bg-white rounded-lg shadow-sm">
                         <thead class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
@@ -331,6 +337,7 @@
         let sortDirection = 'asc';
         let entertainmentSortColumn = 'Date';
         let entertainmentSortDirection = 'asc';
+        let entertainmentSelectedName = '전체'; // 관리자용 이름 필터
         let allEntertainmentLogs = []; // ▼▼▼ [수정 1] 전역 변수 추가 ▼▼▼
         
         // ##### DOMContentLoaded 이벤트 리스너 #####
@@ -378,6 +385,8 @@
             const commonEntertainment = document.getElementById('commonEntertainment');
             const personalEntertainment = document.getElementById('personalEntertainment');
             const saveEntertainmentBtn = document.getElementById('saveEntertainmentBtn');
+            const adminEntertainmentFilter = document.getElementById('adminEntertainmentFilter');
+            const entertainmentNameFilter = document.getElementById('entertainmentNameFilter');
 
             // ##### 초기화 함수 호출 #####
             showLoading(true);
@@ -849,14 +858,38 @@
 
                 if (!currentUser) return;
 
-                // 필터: 본인 건만 && MP != 0 && (Status == '예약완료' || Status == '우천취소' || Status == '예약중' || Status == '')
+                const isManager = currentUser.name === '신석중';
+
+                // 관리자 필터 표시/숨김
+                if (isManager) {
+                    adminEntertainmentFilter.classList.remove('hidden');
+                } else {
+                    adminEntertainmentFilter.classList.add('hidden');
+                }
+
+                // 필터: MP != 0 && (Status == '예약완료' || Status == '우천취소' || Status == '예약중' || Status == '')
                 let entertainmentBookings = bookings.filter(b =>
-                    b['Name'] === currentUser.name &&
                     b.MP != 0 &&
                     (b.Status === '예약완료' || b.Status === '우천취소' || b.Status === '예약중' || b.Status === '' || !b.Status)
                 );
 
-                // 접대비 총액 계산: Google Sheet의 'EE' 컬럼 값 사용 (본인 건만)
+                // 관리자: 이름 드롭다운 채우기 및 필터 적용
+                if (isManager) {
+                    const uniqueNames = ['전체', ...new Set(entertainmentBookings.map(b => b['Name']).filter(n => n))];
+                    entertainmentNameFilter.innerHTML = uniqueNames.map(name =>
+                        `<option value="${name}" ${name === entertainmentSelectedName ? 'selected' : ''}>${name}</option>`
+                    ).join('');
+
+                    // 선택된 이름으로 필터링
+                    if (entertainmentSelectedName !== '전체') {
+                        entertainmentBookings = entertainmentBookings.filter(b => b['Name'] === entertainmentSelectedName);
+                    }
+                } else {
+                    // 일반 사용자: 본인 건만
+                    entertainmentBookings = entertainmentBookings.filter(b => b['Name'] === currentUser.name);
+                }
+
+                // 접대비 총액 계산: Google Sheet의 'EE' 컬럼 값 사용
                 let totalCost = 0;
                 entertainmentBookings.forEach(booking => {
                     const cost = parseInt(booking['EE']) || 0;
@@ -1313,6 +1346,12 @@
                     // renderApp() -> renderEntertainmentView() -> loadEntertainmentInputs()가 실행되어
                     // 방금 저장한 값이 자동으로 다시 로드됩니다.
                     await postData('saveEntertainment', entertainmentData);
+                });
+
+                // 접대비 이름 필터 변경 (관리자용)
+                entertainmentNameFilter.addEventListener('change', (e) => {
+                    entertainmentSelectedName = e.target.value;
+                    renderEntertainmentView();
                 });
 
                 // 접대비 테이블 헤더 정렬
