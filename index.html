@@ -68,7 +68,7 @@
                     <button id="statusTabBtn" class="px-3 py-2 font-medium text-sm rounded-md text-gray-500 hover:text-gray-700">현황</button>
                     <button id="lookupTabBtn" class="px-3 py-2 font-medium text-sm rounded-md text-gray-500 hover:text-gray-700 hidden">조회</button>
                     <button id="anonymousTabBtn" class="px-3 py-2 font-medium text-sm rounded-md text-gray-500 hover:text-gray-700 hidden">무기명</button>
-                    <button id="entertainmentTabBtn" class="px-3 py-2 font-medium text-sm rounded-md text-gray-500 hover:text-gray-700 hidden">접대비 차감</button>
+                    <button id="entertainmentTabBtn" class="px-3 py-2 font-medium text-sm rounded-md text-gray-500 hover:text-gray-700">접대비 차감</button>
                 </nav>
             </div>
             <div id="calendarView" class="tab-content">
@@ -137,9 +137,15 @@
             <div id="entertainmentView" class="tab-content hidden">
                 <div class="mb-6 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <div>
-                            <h3 class="text-xl font-bold text-gray-800 mb-2">접대비 총액</h3>
-                            <p id="totalEntertainmentCost" class="text-3xl font-extrabold text-blue-600">₩0</p>
+                        <div class="flex gap-8">
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800 mb-2">접대비 차감 총액</h3>
+                                <p id="totalEntertainmentCost" class="text-3xl font-extrabold text-blue-600">₩0</p>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800 mb-2">잔여 접대비 차감액</h3>
+                                <p id="remainingEntertainmentCost" class="text-3xl font-extrabold text-green-600">₩0</p>
+                            </div>
                         </div>
                         <div class="flex flex-col gap-3 w-full md:w-auto">
                             <div class="flex items-center gap-2">
@@ -154,7 +160,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="mb-4 flex items-center gap-2">
+                <div id="adminEntertainmentFilter" class="mb-4 flex items-center gap-2 hidden">
                     <label for="entertainmentNameFilter" class="text-sm font-medium text-gray-700">이름:</label>
                     <select id="entertainmentNameFilter" class="px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white">
                         <option value="전체">전체</option>
@@ -331,7 +337,7 @@
         let sortDirection = 'asc';
         let entertainmentSortColumn = 'Date';
         let entertainmentSortDirection = 'asc';
-        let entertainmentNameFilter = '전체';
+        let entertainmentSelectedName = '전체'; // 관리자용 이름 필터
         let allEntertainmentLogs = []; // ▼▼▼ [수정 1] 전역 변수 추가 ▼▼▼
         
         // ##### DOMContentLoaded 이벤트 리스너 #####
@@ -375,10 +381,12 @@
             const entertainmentView = document.getElementById('entertainmentView');
             const entertainmentTableBody = document.getElementById('entertainmentTableBody');
             const totalEntertainmentCost = document.getElementById('totalEntertainmentCost');
+            const remainingEntertainmentCost = document.getElementById('remainingEntertainmentCost');
             const commonEntertainment = document.getElementById('commonEntertainment');
             const personalEntertainment = document.getElementById('personalEntertainment');
             const saveEntertainmentBtn = document.getElementById('saveEntertainmentBtn');
-            const entertainmentNameFilterSelect = document.getElementById('entertainmentNameFilter');
+            const adminEntertainmentFilter = document.getElementById('adminEntertainmentFilter');
+            const entertainmentNameFilter = document.getElementById('entertainmentNameFilter');
 
             // ##### 초기화 함수 호출 #####
             showLoading(true);
@@ -437,15 +445,15 @@
                 const isManager = currentUser && currentUser.name === '신석중';
                 anonymousTabBtn.classList.toggle('hidden', !isManager);
                 lookupTabBtn.classList.toggle('hidden', !isManager);
-                entertainmentTabBtn.classList.toggle('hidden', !isManager);
+                // 접대비 탭은 모든 사용자에게 표시
                 setupGolfCourseFilters();
                 setupStatusFilter();
                 setupAdminFilters();
                 renderCalendar();
                 renderStatus();
+                renderEntertainmentView(); // 모든 사용자가 자신의 접대비 데이터 확인 가능
                 if(isManager) {
                     renderAnonymousView();
-                    renderEntertainmentView();
                 }
 
                 const noticeShown = localStorage.getItem('golf_notice_202509');
@@ -815,14 +823,15 @@
 
             // ▼▼▼ [수정 4] 새 함수 `loadEntertainmentInputs` 추가 ▼▼▼
             /**
-             * 현재 사용자의 최근 접대비 내역을 입력창에 불러옵니다.
+             * 지정된 사용자의 최근 접대비 내역을 입력창에 불러옵니다.
+             * @param {string} targetName - 불러올 사용자 이름 (관리자가 선택한 이름 또는 현재 사용자)
              */
-            function loadEntertainmentInputs() {
-                if (!currentUser) return;
+            function loadEntertainmentInputs(targetName) {
+                if (!targetName) return;
 
-                // 1. 현재 사용자의 로그만 필터링
-                const userLogs = allEntertainmentLogs.filter(log => log.Name === currentUser.name);
-                
+                // 1. 대상 사용자의 로그만 필터링
+                const userLogs = allEntertainmentLogs.filter(log => log.Name === targetName);
+
                 if (userLogs.length === 0) {
                     // 저장된 내역이 없으면 입력창을 비웁니다.
                     commonEntertainment.value = '';
@@ -837,7 +846,7 @@
                 // 3. '공통접대비'와 '개인접대비' 값을 가져옵니다.
                 const commonValue = latestLog['공통접대비'] || '0';
                 const personalValue = latestLog['개인접대비'] || '0';
-                
+
                 // 4. 콤마를 포함하여 입력창에 값을 설정합니다.
                 commonEntertainment.value = formatNumberWithCommas(commonValue);
                 personalEntertainment.value = formatNumberWithCommas(personalValue);
@@ -848,23 +857,48 @@
 
                 entertainmentTableBody.innerHTML = '';
 
-                // 필터: MP != 0 && (Status == '예약완료' || Status == '우천취소' || Status == '예약중' || Status == '')
-                let entertainmentBookings = bookings.filter(b =>
-                    b.MP != 0 && (b.Status === '예약완료' || b.Status === '우천취소' || b.Status === '예약중' || b.Status === '' || !b.Status)
-                );
+                if (!currentUser) return;
 
-                // 이름 드롭다운 채우기
-                const uniqueNames = ['전체', ...new Set(entertainmentBookings.map(b => b['Name']).filter(n => n))];
-                entertainmentNameFilterSelect.innerHTML = uniqueNames.map(name =>
-                    `<option value="${name}" ${name === entertainmentNameFilter ? 'selected' : ''}>${name}</option>`
-                ).join('');
+                const isManager = currentUser.name === '신석중';
 
-                // 이름 필터 적용
-                if (entertainmentNameFilter !== '전체') {
-                    entertainmentBookings = entertainmentBookings.filter(b => b['Name'] === entertainmentNameFilter);
+                // 관리자 필터 표시/숨김
+                if (isManager) {
+                    adminEntertainmentFilter.classList.remove('hidden');
+                } else {
+                    adminEntertainmentFilter.classList.add('hidden');
                 }
 
-                // 접대비 총액 계산: Google Sheet의 'EE' 컬럼 값 사용 (필터링 적용 후)
+                // 필터: MP != 0 && (Status == '예약완료' || Status == '우천취소' || Status == '예약중' || Status == '')
+                let entertainmentBookings = bookings.filter(b =>
+                    b.MP != 0 &&
+                    (b.Status === '예약완료' || b.Status === '우천취소' || b.Status === '예약중' || b.Status === '' || !b.Status)
+                );
+
+                // 관리자: 이름 드롭다운 채우기 및 필터 적용
+                if (isManager) {
+                    const uniqueNames = ['전체', ...new Set(entertainmentBookings.map(b => b['Name']).filter(n => n))];
+                    entertainmentNameFilter.innerHTML = uniqueNames.map(name =>
+                        `<option value="${name}" ${name === entertainmentSelectedName ? 'selected' : ''}>${name}</option>`
+                    ).join('');
+
+                    // 선택된 이름으로 필터링
+                    if (entertainmentSelectedName !== '전체') {
+                        entertainmentBookings = entertainmentBookings.filter(b => b['Name'] === entertainmentSelectedName);
+                        // 선택된 사용자의 Entertainment Log 데이터 불러오기
+                        loadEntertainmentInputs(entertainmentSelectedName);
+                    } else {
+                        // '전체' 선택 시 입력창 비우기
+                        commonEntertainment.value = '';
+                        personalEntertainment.value = '';
+                    }
+                } else {
+                    // 일반 사용자: 본인 건만
+                    entertainmentBookings = entertainmentBookings.filter(b => b['Name'] === currentUser.name);
+                    // 본인의 Entertainment Log 데이터 불러오기
+                    loadEntertainmentInputs(currentUser.name);
+                }
+
+                // 접대비 총액 계산: Google Sheet의 'EE' 컬럼 값 사용
                 let totalCost = 0;
                 entertainmentBookings.forEach(booking => {
                     const cost = parseInt(booking['EE']) || 0;
@@ -873,6 +907,9 @@
 
                 // 총액 표시
                 totalEntertainmentCost.textContent = `₩${totalCost.toLocaleString()}`;
+
+                // 잔여 접대비 차감액 계산 및 표시
+                updateRemainingEntertainment(totalCost);
 
                 // 정렬 적용
                 entertainmentBookings.sort((a, b) => {
@@ -976,6 +1013,21 @@
 
             function removeCommas(value) {
                 return String(value).replace(/,/g, '');
+            }
+
+            // 잔여 접대비 차감액 계산 및 표시
+            function updateRemainingEntertainment(totalCost) {
+                const commonValue = parseInt(removeCommas(commonEntertainment.value || '0'));
+                const personalValue = parseInt(removeCommas(personalEntertainment.value || '0'));
+                const remaining = totalCost - (commonValue + personalValue);
+
+                // 잔여액 표시 (음수일 경우 빨간색으로 표시)
+                remainingEntertainmentCost.textContent = `₩${remaining.toLocaleString()}`;
+                if (remaining < 0) {
+                    remainingEntertainmentCost.className = 'text-3xl font-extrabold text-red-600';
+                } else {
+                    remainingEntertainmentCost.className = 'text-3xl font-extrabold text-green-600';
+                }
             }
             
             function updateAvailableGolfCourses(selectedDate) {
@@ -1266,10 +1318,16 @@
                 // ▼▼▼ [수정 3] 헬퍼 함수 2개가 밖으로 이동되어 이 리스너만 남습니다. ▼▼▼
                 commonEntertainment.addEventListener('input', (e) => {
                     e.target.value = formatNumberWithCommas(e.target.value);
+                    // 잔여 접대비 실시간 업데이트 (₩와 콤마 모두 제거)
+                    const totalCost = parseInt(totalEntertainmentCost.textContent.replace(/[^0-9]/g, '')) || 0;
+                    updateRemainingEntertainment(totalCost);
                 });
 
                 personalEntertainment.addEventListener('input', (e) => {
                     e.target.value = formatNumberWithCommas(e.target.value);
+                    // 잔여 접대비 실시간 업데이트 (₩와 콤마 모두 제거)
+                    const totalCost = parseInt(totalEntertainmentCost.textContent.replace(/[^0-9]/g, '')) || 0;
+                    updateRemainingEntertainment(totalCost);
                 });
 
                 // 접대비 저장 버튼
@@ -1299,9 +1357,9 @@
                     await postData('saveEntertainment', entertainmentData);
                 });
 
-                // 접대비 이름 필터 변경
-                entertainmentNameFilterSelect.addEventListener('change', (e) => {
-                    entertainmentNameFilter = e.target.value;
+                // 접대비 이름 필터 변경 (관리자용)
+                entertainmentNameFilter.addEventListener('change', (e) => {
+                    entertainmentSelectedName = e.target.value;
                     renderEntertainmentView();
                 });
 
