@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>골프 예약 시스템</title>
-    <!-- Tailwind CSS: 스타일링을 위한 라이브러리 -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- PapaParse: CSV 파일 처리를 위한 라이브러리 -->
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,7 +25,6 @@
 </head>
 <body class="bg-gray-100 p-8 md:p-16">
 
-    <!-- 로그인 화면 -->
     <div id="loginScreen" class="flex flex-col items-center justify-center min-h-screen">
         <div class="bg-white rounded-3xl shadow-lg p-8 w-full max-w-sm">
             <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">로그인</h2>
@@ -53,7 +50,6 @@
         </div>
     </div>
 
-    <!-- 메인 앱 -->
     <div id="mainApp" class="hidden">
         <div class="bg-white rounded-3xl shadow-lg p-6 md:p-12 max-w-7xl mx-auto">
             <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
@@ -85,8 +81,7 @@
                         <div id="statusFilterContainer" class="flex flex-wrap items-center gap-x-4 gap-y-2">
                         </div>
                         <div id="adminFilterContainer" class="hidden mt-4 flex flex-col md:flex-row items-start md:items-center gap-x-4 gap-y-2 p-4 bg-gray-50 rounded-lg border">
-                            <!-- 관리자 필터 드롭다운이 여기에 동적으로 추가됩니다. -->
-                        </div>
+                            </div>
                     </div>
                     <div class="flex gap-2 self-start md:self-auto">
                         <div id="adminOnlyControls" class="flex gap-2 hidden">
@@ -185,7 +180,6 @@
         </div>
     </div>
 
-    <!-- 예약 신청/수정 모달 -->
     <div id="bookingModal" class="modal-overlay">
         <div class="modal-content">
             <h2 id="modalTitle" class="text-2xl font-bold mb-6 text-gray-800">예약 신청</h2>
@@ -206,7 +200,6 @@
         </div>
     </div>
     
-    <!-- 공지사항 모달 -->
     <div id="noticeModal" class="modal-overlay">
         <div class="modal-content relative max-w-3xl max-h-[80vh] overflow-y-auto">
             <button id="closeNoticeBtn" class="absolute top-4 right-4 text-2xl text-gray-500 hover:text-gray-800">&times;</button>
@@ -279,7 +272,6 @@
         </div>
     </div>
 
-    <!-- 엑셀 업로드 모달 -->
     <div id="uploadModal" class="modal-overlay">
          <div class="modal-content">
             <h2 class="text-2xl font-bold mb-6">엑셀 파일 업로드</h2>
@@ -300,7 +292,7 @@
 
     <script>
         // ##### 설정 (Configuration) #####
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxq7t598f-Y7Phx-4f6Cc28rSgZA0j0UoVcDM0mzFEkaVaLwgdxbOJrqbkv8OW2CotI/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-xf0NKlY0LHjCA-cPL3iq243XzgoIJ87vtvhlEfxj1zRnei7tXZFGwN9f9cQ4nhMu/exec';
         
         const CALENDAR_GOLF_COURSES = ['레이크우드', '스카이밸리', '세라지오', '힐드로사이'];
         const MODAL_GOLF_COURSES = ['레이크우드', '스카이밸리', '세라지오', '힐드로사이'];
@@ -340,6 +332,7 @@
         let entertainmentSortColumn = 'Date';
         let entertainmentSortDirection = 'asc';
         let entertainmentNameFilter = '전체';
+        let allEntertainmentLogs = []; // ▼▼▼ [수정 1] 전역 변수 추가 ▼▼▼
         
         // ##### DOMContentLoaded 이벤트 리스너 #####
         document.addEventListener('DOMContentLoaded', async () => {
@@ -480,6 +473,7 @@
                     const data = await response.json();
                     bookings = data.bookings;
                     users = data.users;
+                    allEntertainmentLogs = data.entertainmentData || []; // ▼▼▼ [수정 2] 데이터 수신 ▼▼▼
                     userQuotas = data.quotas.reduce((acc, q) => {
                         acc[q.Name] = q;
                         return acc;
@@ -522,24 +516,24 @@
                 const dates = ['전체', ...[...new Set(bookings.map(b => b.Date))].sort((a,b) => b.localeCompare(a))];
 
                 let filtersHtml = `
-                    <div class="flex items-center gap-2 w-full md:w-auto">
-                        <label for="adminFilterCourse" class="text-sm font-medium text-gray-700">골프장</label>
-                        <select id="adminFilterCourse" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm">
-                            ${courses.map(c => `<option value="${c}">${c}</option>`).join('')}
-                        </select>
-                    </div>
-                    <div class="flex items-center gap-2 w-full md:w-auto">
-                        <label for="adminFilterName" class="text-sm font-medium text-gray-700">이름</label>
-                        <select id="adminFilterName" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm">
-                            ${names.map(n => `<option value="${n}">${n}</option>`).join('')}
-                        </select>
-                    </div>
-                    <div class="flex items-center gap-2 w-full md:w-auto">
-                        <label for="adminFilterDate" class="text-sm font-medium text-gray-700">날짜</label>
-                        <select id="adminFilterDate" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm">
-                            ${dates.map(d => `<option value="${d}">${d}</option>`).join('')}
-                        </select>
-                    </div>
+                        <div class="flex items-center gap-2 w-full md:w-auto">
+                            <label for="adminFilterCourse" class="text-sm font-medium text-gray-700">골프장</label>
+                            <select id="adminFilterCourse" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm">
+                                ${courses.map(c => `<option value="${c}">${c}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2 w-full md:w-auto">
+                            <label for="adminFilterName" class="text-sm font-medium text-gray-700">이름</label>
+                            <select id="adminFilterName" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm">
+                                ${names.map(n => `<option value="${n}">${n}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2 w-full md:w-auto">
+                            <label for="adminFilterDate" class="text-sm font-medium text-gray-700">날짜</label>
+                            <select id="adminFilterDate" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm">
+                                ${dates.map(d => `<option value="${d}">${d}</option>`).join('')}
+                            </select>
+                        </div>
                 `;
                 adminFilterContainer.innerHTML = filtersHtml;
 
@@ -819,7 +813,39 @@
                 container.innerHTML = tableHtml;
             }
 
+            // ▼▼▼ [수정 4] 새 함수 `loadEntertainmentInputs` 추가 ▼▼▼
+            /**
+             * 현재 사용자의 최근 접대비 내역을 입력창에 불러옵니다.
+             */
+            function loadEntertainmentInputs() {
+                if (!currentUser) return;
+
+                // 1. 현재 사용자의 로그만 필터링
+                const userLogs = allEntertainmentLogs.filter(log => log.Name === currentUser.name);
+                
+                if (userLogs.length === 0) {
+                    // 저장된 내역이 없으면 입력창을 비웁니다.
+                    commonEntertainment.value = '';
+                    personalEntertainment.value = '';
+                    return;
+                }
+
+                // 2. Timestamp를 기준으로 내림차순 정렬 (가장 최근 데이터가 0번째)
+                userLogs.sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp));
+                const latestLog = userLogs[0];
+
+                // 3. '공통접대비'와 '개인접대비' 값을 가져옵니다.
+                const commonValue = latestLog['공통접대비'] || '0';
+                const personalValue = latestLog['개인접대비'] || '0';
+                
+                // 4. 콤마를 포함하여 입력창에 값을 설정합니다.
+                commonEntertainment.value = formatNumberWithCommas(commonValue);
+                personalEntertainment.value = formatNumberWithCommas(personalValue);
+            }
+
             function renderEntertainmentView() {
+                loadEntertainmentInputs(); // ▼▼▼ [수정 5] 함수 호출 추가 ▼▼▼
+
                 entertainmentTableBody.innerHTML = '';
 
                 // 필터: MP != 0 && (Status == '예약완료' || Status == '우천취소' || Status == '예약중' || Status == '')
@@ -922,8 +948,8 @@
                     const result = await response.json();
                     if (result.status !== 'success') throw new Error(result.message);
                     alert(result.message);
-                    await fetchInitialData();
-                    renderApp();
+                    await fetchInitialData(); // 데이터를 다시 불러옵니다.
+                    renderApp(); // 앱을 다시 렌더링합니다.
                 } catch (error) {
                     console.error(`Error with action ${action}:`, error);
                     alert(`오류가 발생했습니다: ${error.message}`);
@@ -938,6 +964,18 @@
                 const date = new Date(dateStr);
                 const day = date.getDay();
                 return day === 0 || day === 6;
+            }
+
+            // ▼▼▼ [수정 3] 헬퍼 함수 2개, `setupEventListeners` 밖으로 이동 ▼▼▼
+            function formatNumberWithCommas(value) {
+                // 숫자만 추출
+                const number = String(value).replace(/[^0-9]/g, '');
+                // 천원 단위 콤마 추가
+                return number.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            }
+
+            function removeCommas(value) {
+                return String(value).replace(/,/g, '');
             }
             
             function updateAvailableGolfCourses(selectedDate) {
@@ -1225,18 +1263,7 @@
                     });
                 });
 
-                // 접대비 입력 필드 콤마 포맷팅
-                function formatNumberWithCommas(value) {
-                    // 숫자만 추출
-                    const number = value.replace(/[^0-9]/g, '');
-                    // 천원 단위 콤마 추가
-                    return number.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-                }
-
-                function removeCommas(value) {
-                    return value.replace(/,/g, '');
-                }
-
+                // ▼▼▼ [수정 3] 헬퍼 함수 2개가 밖으로 이동되어 이 리스너만 남습니다. ▼▼▼
                 commonEntertainment.addEventListener('input', (e) => {
                     e.target.value = formatNumberWithCommas(e.target.value);
                 });
@@ -1266,6 +1293,9 @@
                         personalEntertainment: personalValue || '0'
                     };
 
+                    // [중요] postData를 사용하면, 성공 시 fetchInitialData가 다시 호출되고,
+                    // renderApp() -> renderEntertainmentView() -> loadEntertainmentInputs()가 실행되어
+                    // 방금 저장한 값이 자동으로 다시 로드됩니다.
                     await postData('saveEntertainment', entertainmentData);
                 });
 
@@ -1348,16 +1378,16 @@
                         <div>
                              <h4 class="font-semibold mb-2">월별 사용 현황</h4>
                              <table class="w-full text-sm">
-                                <thead><tr><th>월</th><th>레이크(주중)</th><th>레이크(주말)</th><th>스카이밸리</th><th>힐드로사이</th><th>세라지오(주중)</th><th>세라지오(주말)</th></tr></thead>
-                                <tbody>`;
+                                 <thead><tr><th>월</th><th>레이크(주중)</th><th>레이크(주말)</th><th>스카이밸리</th><th>힐드로사이</th><th>세라지오(주중)</th><th>세라지오(주말)</th></tr></thead>
+                                 <tbody>`;
                     for(let i = 9; i <= 12; i++) resultHtml += `<tr><td>${i}월</td><td>${monthlyUsage[i].Lakewood_Weekday}</td><td>${monthlyUsage[i].Lakewood_Weekend}</td><td>${monthlyUsage[i].SkyValley}</td><td>${monthlyUsage[i].HillydeSicy}</td><td>${monthlyUsage[i].Seragio_Weekday}</td><td>${monthlyUsage[i].Seragio_Weekend}</td></tr>`;
                     resultHtml += `</tbody></table></div></div>`;
                     resultsDiv.innerHTML = resultHtml;
 
                 } else if (lookupDate) {
                     const availableCourses = getAvailableCoursesForDate(lookupDate);
-                     let resultHtml = `<h3 class="text-lg font-bold mb-2">${lookupDate} 예약 가능 여부 (현재 사용자 기준)</h3>
-                                  <ul class="list-disc list-inside">`;
+                       let resultHtml = `<h3 class="text-lg font-bold mb-2">${lookupDate} 예약 가능 여부 (현재 사용자 기준)</h3>
+                                     <ul class="list-disc list-inside">`;
                     MODAL_GOLF_COURSES.forEach(course => {
                         const isAvailable = availableCourses.includes(course);
                         resultHtml += `<li>${course}: <span class="font-bold ${isAvailable ? 'text-green-600' : 'text-red-600'}">${isAvailable ? '가능' : '불가능'}</span></li>`;
