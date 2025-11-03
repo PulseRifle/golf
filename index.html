@@ -1276,15 +1276,15 @@
                 // ▼▼▼ [수정 3] 헬퍼 함수 2개가 밖으로 이동되어 이 리스너만 남습니다. ▼▼▼
                 commonEntertainment.addEventListener('input', (e) => {
                     e.target.value = formatNumberWithCommas(e.target.value);
-                    // 잔여 접대비 실시간 업데이트
-                    const totalCost = parseInt(removeCommas(totalEntertainmentCost.textContent)) || 0;
+                    // 잔여 접대비 실시간 업데이트 (₩와 콤마 모두 제거)
+                    const totalCost = parseInt(totalEntertainmentCost.textContent.replace(/[^0-9]/g, '')) || 0;
                     updateRemainingEntertainment(totalCost);
                 });
 
                 personalEntertainment.addEventListener('input', (e) => {
                     e.target.value = formatNumberWithCommas(e.target.value);
-                    // 잔여 접대비 실시간 업데이트
-                    const totalCost = parseInt(removeCommas(totalEntertainmentCost.textContent)) || 0;
+                    // 잔여 접대비 실시간 업데이트 (₩와 콤마 모두 제거)
+                    const totalCost = parseInt(totalEntertainmentCost.textContent.replace(/[^0-9]/g, '')) || 0;
                     updateRemainingEntertainment(totalCost);
                 });
 
