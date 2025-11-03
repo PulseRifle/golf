@@ -316,9 +316,9 @@
         };
         
         // [수정됨] 유효한 예약만 카운트하기 위한 필터 조건 함수
-        // Status가 '예약완료', '예약중', '취소중'이고 MP가 0이 아닌 건만 카운트
-        const VALID_STATUSES = ['예약완료', '예약중', '취소중'];
-        const IS_VALID_FOR_COUNTING = (b) => b.MP != 0 && VALID_STATUSES.includes(b.Status);
+        // MP가 0이 아니고, Status가 '예약실패', '우천취소', '취소완료'가 아닌 건만 카운트
+        const EXCLUDED_STATUSES = ['예약실패', '우천취소', '취소완료'];
+        const IS_VALID_FOR_COUNTING = (b) => b.MP != 0 && !EXCLUDED_STATUSES.includes(b.Status);
 
         // 주중/주말 판단 함수 (WE 컬럼 기반)
         // 'WE' 컬럼이 "주 말"이면 주말, 공란이면 주중
@@ -591,9 +591,9 @@
                 const today = new Date();
                 const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-                // [수정됨] 10월~12월 캘린더만 표시
+                // [수정됨] 11월~12월 캘린더만 표시
                 const currentYear = today.getFullYear();
-                let currentDate = new Date(currentYear, 9, 1); // 10월 1일부터 시작 (월은 0부터 시작하므로 9=10월)
+                let currentDate = new Date(currentYear, 10, 1); // 11월 1일부터 시작 (월은 0부터 시작하므로 10=11월)
                 const limitDate = new Date(currentYear, 11, 31); // 12월 31일까지
 
                 while(currentDate <= limitDate) {
@@ -616,14 +616,13 @@
                         seragio_weekday: userMonthlyBookings.filter(b => b['Golf Course'] === '세라지오' && !isWeekendBooking(b)).length,
                         seragio_weekend: userMonthlyBookings.filter(b => b['Golf Course'] === '세라지오' && isWeekendBooking(b)).length
                     };
-                    const currentUserQuota = userQuotas[currentUser.name] || {};
                     const quotaHtml = `<div class="text-xs text-gray-600 grid grid-cols-3 gap-1 mb-1">
-                        <span>레이크(주중): ${quotaCounts.lakewood_weekday}/${currentUserQuota.Lakewood_Weekday || 0}</span>
-                        <span>레이크(주말): ${quotaCounts.lakewood_weekend}/${currentUserQuota.Lakewood_Weekend || 0}</span>
-                        <span>스카이밸리: ${quotaCounts.skyvalley}/${currentUserQuota.SkyValley || 0}</span>
-                        <span>힐드로사이: ${quotaCounts.hillydesicy}/${currentUserQuota.HillydeSicy || 0}</span>
-                        <span>세라지오(주중): ${quotaCounts.seragio_weekday}/${currentUserQuota.Seragio_Weekday || 0}</span>
-                        <span>세라지오(주말): ${quotaCounts.seragio_weekend}/${currentUserQuota.Seragio_Weekend || 0}</span>
+                        <span>레이크(주중): ${quotaCounts.lakewood_weekday}/9</span>
+                        <span>레이크(주말): ${quotaCounts.lakewood_weekend}/6</span>
+                        <span>스카이밸리: ${quotaCounts.skyvalley}/${userQuotas[currentUser.name]?.SkyValley || 0}</span>
+                        <span>힐드로사이: ${quotaCounts.hillydesicy}/${userQuotas[currentUser.name]?.HillydeSicy || 0}</span>
+                        <span>세라지오(주중): ${quotaCounts.seragio_weekday}/5</span>
+                        <span>세라지오(주말): ${quotaCounts.seragio_weekend}/3</span>
                     </div>`;
                     let warnings = [];
                     const lakewoodWeekdayCount = monthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && !isWeekendBooking(b)).length;
