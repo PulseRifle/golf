@@ -616,11 +616,12 @@
                         seragio_weekday: userMonthlyBookings.filter(b => b['Golf Course'] === '세라지오' && !isWeekendBooking(b)).length,
                         seragio_weekend: userMonthlyBookings.filter(b => b['Golf Course'] === '세라지오' && isWeekendBooking(b)).length
                     };
+                    const currentUserQuota = userQuotas[currentUser.name] || {};
                     const quotaHtml = `<div class="text-xs text-gray-600 grid grid-cols-3 gap-1 mb-1">
                         <span>레이크(주중): ${quotaCounts.lakewood_weekday}/9</span>
                         <span>레이크(주말): ${quotaCounts.lakewood_weekend}/6</span>
-                        <span>스카이밸리: ${quotaCounts.skyvalley}/${userQuotas[currentUser.name]?.SkyValley || 0}</span>
-                        <span>힐드로사이: ${quotaCounts.hillydesicy}/${userQuotas[currentUser.name]?.HillydeSicy || 0}</span>
+                        <span>스카이밸리: ${quotaCounts.skyvalley}/${currentUserQuota.SkyValley || 0}</span>
+                        <span>힐드로사이: ${quotaCounts.hillydesicy}/${currentUserQuota.HillydeSicy || 0}</span>
                         <span>세라지오(주중): ${quotaCounts.seragio_weekday}/5</span>
                         <span>세라지오(주말): ${quotaCounts.seragio_weekend}/3</span>
                     </div>`;
