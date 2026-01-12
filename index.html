@@ -1200,3 +1200,1205 @@
     </script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>골프 예약 시스템</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; font-size: 16px; } 
+        
+        /* 캘린더 레이아웃 */
+        .calendar-container { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); 
+            gap: 24px; 
+        }
+        
+        .day-cell { min-height: 80px; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; cursor: pointer; border: 1px solid #e5e7eb; }
+        .day-cell:hover { background-color: #f0f9ff; border-color: #3b82f6; }
+        .booking-info { font-size: 14px; line-height: 1.4; margin-top: 2px; width: 100%; text-align: center; font-weight: 700; }
+        
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background-color: white; padding: 40px; border-radius: 20px; width: 95%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        
+        th, td { padding: 12px 10px; font-size: 15px; white-space: nowrap; }
+        .col-comment { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        
+        #anonymousView table th, #anonymousView table td { text-align: center; border: 1px solid #cbd5e1; padding: 8px; font-size: 14px; white-space: nowrap; }
+        #anonymousView table th { background-color: #f1f5f9; font-weight: bold; }
+        
+        #lookupResults table th, #lookupResults table td { border: 1px solid #cbd5e1; padding: 12px; text-align: center; font-size: 16px; white-space: nowrap; }
+        #lookupResults table th { background-color: #f8fafc; font-weight: bold; }
+        
+        input, select { font-size: 16px !important; padding: 10px !important; }
+
+        /* 체크박스 커스텀 스타일 (라디오 버튼 대체) */
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+        }
+        .checkbox-label:hover {
+            background-color: #eff6ff;
+        }
+        .checkbox-input {
+            width: 1.2rem;
+            height: 1.2rem;
+            margin-right: 0.5rem;
+            accent-color: #2563eb;
+        }
+
+        @keyframes loadingSlide {
+            0% { left: -40%; width: 30%; }
+            50% { width: 60%; }
+            100% { left: 100%; width: 30%; }
+        }
+        .progress-bar-inner {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            background-color: #2563eb; 
+            border-radius: 9999px;
+            animation: loadingSlide 1.5s infinite ease-in-out;
+        }
+
+        /* [모바일 최적화 스타일] */
+        @media (max-width: 640px) {
+            body { padding: 0.5rem !important; font-size: 13px !important; }
+            .calendar-container { grid-template-columns: 1fr; gap: 12px; }
+            .day-cell { min-height: 50px; padding: 2px !important; }
+            .booking-info { font-size: 10px; line-height: 1.1; margin-top: 1px; }
+            
+            /* 모바일에서 테이블 패딩 및 폰트 축소 */
+            th, td { padding: 6px 4px !important; font-size: 12px !important; }
+            
+            /* 버튼 및 입력창 크기 축소 */
+            input, select { font-size: 13px !important; padding: 6px !important; }
+            button { padding-top: 6px !important; padding-bottom: 6px !important; font-size: 13px !important; }
+            
+            /* 모달 패딩 축소 */
+            .modal-content { padding: 20px !important; width: 98% !important; }
+            
+            /* 체크박스 라벨 축소 (더 타이트하게 수정) */
+            .checkbox-label { padding: 0.1rem 0.15rem; font-size: 11px; }
+            .checkbox-input { width: 0.9rem; height: 0.9rem; margin-right: 0.15rem; }
+            
+            /* 탭 버튼 축소 */
+            nav button { padding: 6px 12px !important; font-size: 13px !important; }
+            
+            /* 헤더 타이틀 축소 */
+            h1 { font-size: 1.25rem !important; margin-bottom: 0.25rem !important; }
+            
+            /* 숨김/표시 조정 */
+            .hidden-mobile { display: none; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 md:p-6">
+
+    <div id="loginScreen" class="flex flex-col items-center justify-center min-h-screen">
+        <div class="bg-white rounded-3xl shadow-xl p-6 md:p-10 w-full max-w-md border border-gray-200">
+            <h2 class="text-2xl md:text-4xl font-extrabold text-center text-gray-800 mb-6 md:mb-8">로그인</h2>
+            <form id="loginForm" class="space-y-4 md:space-y-6">
+                <div>
+                    <label for="loginUsername" class="block text-base md:text-lg font-bold text-gray-700 mb-1 md:mb-2">아이디 (이름)</label>
+                    <input type="text" id="loginUsername" required class="block w-full border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="loginPassword" class="block text-base md:text-lg font-bold text-gray-700 mb-1 md:mb-2">비밀번호</label>
+                    <input type="password" id="loginPassword" required class="block w-full border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex items-center pt-2">
+                    <input id="rememberMe" type="checkbox" class="h-5 w-5 md:h-6 md:w-6 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer">
+                    <label for="rememberMe" class="ml-2 md:ml-3 block text-base md:text-lg text-gray-900 cursor-pointer">아이디 저장</label>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg md:text-xl py-3 md:py-4 px-6 rounded-xl shadow-lg transition hover:scale-[1.02]">로그인 하기</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="mainApp" class="hidden">
+        <div class="bg-white rounded-2xl md:rounded-3xl shadow-xl p-3 md:p-10 max-w-[1400px] mx-auto border border-gray-200">
+            <header class="flex flex-col md:flex-row justify-between items-center mb-4 md:mb-8 gap-3 md:gap-6 border-b pb-3 md:pb-6">
+                <div class="text-center md:text-left">
+                    <h1 class="text-xl md:text-4xl font-black text-gray-900 tracking-tight">골프 예약 시스템</h1>
+                    <a href="#" id="noticeLink" class="text-xs md:text-lg text-blue-600 hover:text-blue-800 font-semibold inline-block">이용 및 취소 안내 보기</a>
+                </div>
+                <div class="flex items-center gap-2 md:gap-4">
+                    <button id="openModalBtn" class="bg-blue-600 hover:bg-blue-700 text-white text-sm md:text-lg font-bold py-2 px-4 md:py-3 md:px-8 rounded-full shadow-md transition-all flex items-center gap-1 md:gap-2 whitespace-nowrap">
+                        <span class="text-lg md:text-2xl">+</span> 예약 신청
+                    </button>
+                    <button id="logoutBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm md:text-lg font-bold py-2 px-3 md:py-3 md:px-6 rounded-full transition-colors whitespace-nowrap">로그아웃</button>
+                </div>
+            </header>
+
+            <div class="flex flex-wrap items-center gap-2 md:gap-4 mb-4 md:mb-8 p-3 md:p-6 bg-blue-50 rounded-xl md:rounded-2xl border border-blue-200 shadow-inner">
+                <div class="flex items-center gap-2 md:gap-3 w-full md:w-auto">
+                    <label class="text-sm md:text-lg font-bold text-blue-900 whitespace-nowrap">기간:</label>
+                    <select id="globalPeriodSelector" class="border-2 border-blue-300 rounded-lg bg-white text-gray-800 font-bold focus:ring-2 focus:ring-blue-500 outline-none w-full md:min-w-[280px] cursor-pointer shadow-sm text-sm"></select>
+                </div>
+            </div>
+
+            <div class="mb-4 md:mb-6 overflow-x-auto">
+                <nav class="flex space-x-2 md:space-x-4 pb-1" aria-label="Tabs">
+                    <button id="calendarTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-blue-600 text-white whitespace-nowrap">캘린더</button>
+                    <button id="statusTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 whitespace-nowrap">예약 현황</button>
+                    <button id="entertainmentTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 whitespace-nowrap">접대비 차감</button>
+                    <button id="lookupTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 hidden whitespace-nowrap">조회</button>
+                    <button id="anonymousTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 hidden whitespace-nowrap">무기명</button>
+                </nav>
+            </div>
+
+            <div id="calendarView" class="tab-content">
+                <!-- 캘린더 필터 영역 -->
+                <div class="bg-gray-50 p-2 md:p-4 rounded-xl border border-gray-200 mb-3 md:mb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-2 md:gap-4">
+                    <div class="flex flex-wrap gap-0.5 md:gap-2 items-center">
+                        <span class="font-bold text-gray-700 mr-0.5 md:mr-2 text-[11px] md:text-base whitespace-nowrap">골프장:</span>
+                        <!-- "전체" 삭제 및 나머지 기본 선택(checked) 처리 -->
+                        <!-- 모바일 반응형 텍스트 적용: md:hidden(모바일용 약칭), hidden md:inline(데스크탑용 전체이름) -->
+                        <label class="checkbox-label"><input type="checkbox" name="calCourseFilter" value="레이크우드" checked class="checkbox-input"><span class="md:hidden">레이크</span><span class="hidden md:inline">레이크우드</span></label>
+                        <label class="checkbox-label"><input type="checkbox" name="calCourseFilter" value="스카이밸리" checked class="checkbox-input"><span class="md:hidden">스카이</span><span class="hidden md:inline">스카이밸리</span></label>
+                        <label class="checkbox-label"><input type="checkbox" name="calCourseFilter" value="힐드로사이" checked class="checkbox-input"><span class="md:hidden">힐드로</span><span class="hidden md:inline">힐드로사이</span></label>
+                        <label class="checkbox-label"><input type="checkbox" name="calCourseFilter" value="벨루토" checked class="checkbox-input">벨루토</label>
+                    </div>
+                    <div class="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end">
+                        <!-- 관리자용 이름 검색 드롭다운 (캘린더) -->
+                        <div id="calendarNameFilterWrapper" class="hidden flex items-center gap-1 md:gap-2">
+                             <label class="font-bold text-gray-700 text-xs md:text-base">이름:</label>
+                             <select id="calendarNameSelect" class="border border-gray-300 rounded-lg p-1 md:p-2 text-xs md:text-sm min-w-[80px] md:min-w-[120px]"></select>
+                        </div>
+                        <label class="flex items-center cursor-pointer font-bold text-blue-800 bg-blue-100 px-2 py-1 md:px-4 md:py-2 rounded-lg hover:bg-blue-200 transition text-xs md:text-base">
+                            <input type="checkbox" id="calMyBookingFilter" class="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2 accent-blue-600">
+                            내 예약만
+                        </label>
+                    </div>
+                </div>
+                <div id="calendar" class="calendar-container"></div>
+            </div>
+
+            <div id="statusView" class="tab-content hidden">
+                 <!-- 상태 필터 영역 -->
+                 <div class="bg-gray-50 p-2 md:p-4 rounded-xl border border-gray-200 mb-3 md:mb-6 flex flex-col md:flex-row gap-2 md:gap-4 items-start md:items-center justify-between">
+                    <div class="flex flex-wrap gap-1 md:gap-4 items-center">
+                        <span class="font-bold text-gray-700 mr-1 md:mr-2 text-xs md:text-base">상태:</span>
+                        <label class="checkbox-label"><input type="checkbox" name="statusFilter" value="전체" checked class="checkbox-input">전체</label>
+                        <label class="checkbox-label"><input type="checkbox" name="statusFilter" value="예약완료" class="checkbox-input">완료</label>
+                        <label class="checkbox-label"><input type="checkbox" name="statusFilter" value="예약중" class="checkbox-input">예약중</label>
+                        <label class="checkbox-label"><input type="checkbox" name="statusFilter" value="취소" class="checkbox-input">취소</label>
+                    </div>
+                     <!-- 관리자용 이름 검색 드롭다운 (예약현황) -->
+                     <div id="statusNameFilterWrapper" class="hidden flex items-center gap-1 md:gap-2">
+                         <label class="font-bold text-gray-700 text-xs md:text-base">이름:</label>
+                         <select id="statusNameSelect" class="border border-gray-300 rounded-lg p-1 md:p-2 text-xs md:text-sm min-w-[80px] md:min-w-[120px]"></select>
+                     </div>
+                 </div>
+
+                 <div class="flex justify-end items-center mb-3 md:mb-6 gap-2 md:gap-4">
+                    <div class="flex gap-2 md:gap-3">
+                        <div id="adminOnlyControls" class="flex gap-2 md:gap-3 hidden">
+                            <button id="downloadExcelBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 md:py-2 md:px-5 rounded-lg text-xs md:text-base shadow-sm whitespace-nowrap">엑셀 다운</button>
+                            <button id="uploadExcelBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-3 md:py-2 md:px-5 rounded-lg text-xs md:text-base shadow-sm whitespace-nowrap">엑셀 업로드</button>
+                        </div>
+                        <button id="cancelSelectedBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1 px-3 md:py-2 md:px-5 rounded-lg text-xs md:text-base shadow-sm hidden whitespace-nowrap">선택 취소</button>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto rounded-xl border border-gray-300 shadow-sm">
+                    <table class="min-w-full bg-white">
+                        <thead id="statusTableHead" class="bg-gray-100 text-gray-800 uppercase text-xs md:text-sm font-extrabold border-b border-gray-300">
+                            <tr>
+                                <th class="py-2 px-2 md:py-4 md:px-4 text-left"><input type="checkbox" id="selectAllStatus" class="w-4 h-4 md:w-5 md:h-5 accent-blue-600"></th>
+                                <th class="py-2 px-2 md:py-4 md:px-4 text-left cursor-pointer" data-sort="Golf Course">골프장 <span class="sort-indicator"></span></th>
+                                <th class="py-2 px-2 md:py-4 md:px-4 text-left cursor-pointer" data-sort="Name">성명 <span class="sort-indicator"></span></th>
+                                <th class="py-2 px-2 md:py-4 md:px-4 text-left cursor-pointer" data-sort="Date">날짜 <span class="sort-indicator"></span></th>
+                                <th class="py-2 px-2 md:py-4 md:px-4 text-center cursor-pointer" data-sort="Team">팀 <span class="sort-indicator"></span></th>
+                                <th class="py-2 px-2 md:py-4 md:px-4 text-left cursor-pointer" data-sort="Time">시간 <span class="sort-indicator"></span></th>
+                                <th class="py-2 px-2 md:py-4 md:px-4 text-left cursor-pointer" data-sort="Status">상태 <span class="sort-indicator"></span></th>
+                                <th class="py-2 px-2 md:py-4 md:px-4 text-left cursor-pointer">비고</th>
+                            </tr>
+                        </thead>
+                        <tbody id="statusTableBody" class="text-gray-700 text-xs md:text-base"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="entertainmentView" class="tab-content hidden">
+                <div class="mb-4 md:mb-8 p-4 md:p-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl md:rounded-2xl border border-blue-200 shadow-sm">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 items-end">
+                        <div>
+                            <h3 class="text-sm md:text-base font-bold text-gray-600 mb-1 md:mb-2">접대비 합계</h3>
+                            <p id="totalEntertainmentCost" class="text-2xl md:text-3xl font-black text-blue-800">₩0</p>
+                        </div>
+                        <div>
+                            <h3 class="text-sm md:text-base font-bold text-gray-600 mb-1 md:mb-2">잔여 차감액</h3>
+                            <p id="remainingEntertainmentCost" class="text-2xl md:text-3xl font-black text-green-700">₩0</p>
+                        </div>
+                        <div class="space-y-2 md:space-y-3">
+                            <input type="text" id="commonEntertainment" class="block w-full border-gray-300 rounded-lg shadow-sm text-sm" placeholder="공통접대비 입력">
+                            <input type="text" id="personalEntertainment" class="block w-full border-gray-300 rounded-lg shadow-sm text-sm" placeholder="개인접대비 입력">
+                        </div>
+                        <button id="saveEntertainmentBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 md:py-3 md:px-6 rounded-xl shadow-lg transition-transform hover:scale-105 whitespace-nowrap text-sm md:text-base">설정 저장</button>
+                    </div>
+                </div>
+                <div id="adminEntertainmentFilter" class="mb-3 md:mb-6 hidden items-center gap-2 md:gap-3">
+                    <label class="text-sm md:text-lg font-bold text-gray-800">대상자(이름):</label>
+                    <select id="entertainmentNameFilter" class="border-gray-300 rounded-lg shadow-sm bg-white min-w-[120px] md:min-w-[150px] text-sm"></select>
+                </div>
+                <div class="overflow-x-auto rounded-xl border border-gray-300 shadow-sm">
+                    <table class="min-w-full bg-white">
+                        <thead class="bg-gray-100 text-gray-800 uppercase text-xs md:text-sm font-extrabold">
+                            <tr>
+                                <th class="py-2 px-2 md:py-4 md:px-4 text-left">골프장</th>
+                                <th class="py-2 px-2 md:py-4 md:px-4 text-left">성명</th>
+                                <th class="py-2 px-2 md:py-4 md:px-4 text-left">날짜</th>
+                                <th class="py-2 px-2 md:py-4 md:px-4 text-center">팀</th>
+                                <th class="py-2 px-2 md:py-4 md:px-4 text-left">시간</th>
+                                <th class="py-2 px-2 md:py-4 md:px-4 text-left">상태</th>
+                                <th class="py-2 px-2 md:py-4 md:px-4 text-right">접대비</th>
+                            </tr>
+                        </thead>
+                        <tbody id="entertainmentTableBody" class="text-gray-700 text-xs md:text-base"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="lookupView" class="tab-content hidden">
+                <div class="bg-gray-50 p-4 md:p-8 rounded-xl md:rounded-2xl border border-gray-200 mb-4 md:mb-8 flex flex-wrap gap-4 md:gap-6 items-center shadow-sm">
+                    <div class="flex items-center gap-2 md:gap-3">
+                        <label class="text-sm md:text-lg font-bold text-gray-700">성명:</label>
+                        <input type="text" id="lookupName" class="border-gray-300 rounded-lg shadow-sm w-32 md:w-40 text-sm">
+                    </div>
+                    <div class="flex items-center gap-2 md:gap-3">
+                        <label class="text-sm md:text-lg font-bold text-gray-700">조회일자:</label>
+                        <input type="date" id="lookupDate" class="border-gray-300 rounded-lg shadow-sm text-sm">
+                    </div>
+                    <button id="lookupBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 md:py-3 md:px-8 rounded-xl shadow-md text-sm md:text-lg whitespace-nowrap">데이터 조회</button>
+                </div>
+                <div id="lookupResults" class="space-y-4 md:space-y-8"></div>
+            </div>
+
+            <div id="anonymousView" class="tab-content hidden">
+                <div id="anonymousTableContainer" class="overflow-x-auto rounded-xl border border-gray-300 shadow-sm"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="bookingModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 id="modalTitle" class="text-2xl md:text-3xl font-extrabold mb-4 md:mb-8 text-gray-800 border-b pb-2 md:pb-4">예약 신청</h2>
+            <form id="bookingForm" class="space-y-3 md:space-y-6">
+                <input type="hidden" id="bookingId">
+                <div class="grid grid-cols-2 gap-3 md:gap-6">
+                    <div class="col-span-2">
+                        <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">신청인</label>
+                        <input type="text" id="userName" required class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-gray-50">
+                    </div>
+                    <div>
+                        <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">예약날짜 (연도4자리)</label>
+                        <input type="date" id="bookingDate" required max="9999-12-31" class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">골프장</label>
+                        <select id="golfCourse" required class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">팀 수</label>
+                        <input type="number" id="numberOfTeams" min="1" required class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">티오프 시간</label>
+                        <input type="time" id="bookingTime" class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">상태</label>
+                        <input type="text" id="bookingStatus" class="block w-full border-gray-300 rounded-lg shadow-sm bg-gray-50">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">비고</label>
+                        <input type="text" id="notes" class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-2 md:space-x-4 pt-4 md:pt-8 border-t">
+                    <button type="button" id="closeModalBtn" class="px-4 py-2 md:px-8 md:py-3 rounded-xl border-2 border-gray-300 font-bold text-gray-600 hover:bg-gray-100 text-sm md:text-lg transition-colors whitespace-nowrap">닫기</button>
+                    <button type="submit" class="px-4 py-2 md:px-8 md:py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 text-sm md:text-lg shadow-md transition-colors whitespace-nowrap">저장하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 공지사항 모달 내용 업데이트 -->
+    <div id="noticeModal" class="modal-overlay">
+        <div class="modal-content relative max-w-3xl max-h-[80vh] overflow-y-auto">
+            <button id="closeNoticeBtn" class="absolute top-4 right-4 text-2xl text-gray-500 hover:text-gray-800">&times;</button>
+            <h2 class="text-xl md:text-2xl font-bold mb-2 text-center text-gray-800">골프예약시스템 안내</h2>
+            <p class="text-xs md:text-sm text-center text-gray-500 mb-4 md:mb-6">[2026.01월, 인사총무팀]</p>
+            <div class="prose max-w-none text-gray-700 space-y-3 md:space-y-4 text-sm md:text-base">
+                <div>
+                    <h3 class="text-base md:text-lg font-bold">신청가능 골프회원권 현황</h3>
+                    <div class="pl-2 md:pl-4 mt-1 md:mt-2 space-y-2 md:space-y-3">
+                        <div>
+                            <h4 class="font-semibold">1. 무기명회원권</h4>
+                            <p class="text-xs md:text-sm">이용방식 : 각 법인 배정 횟수 내 무기명 사용 (1팀 회원가 적용)</p>
+                            <ul class="list-disc list-inside text-xs md:text-sm space-y-1 mt-1">
+                                <li><strong>📍 레이크우드CC</strong>
+                                    <ul class="list-['-_'] list-inside ml-2 md:ml-4">
+                                        <li>월 이용횟수 : 주중 9회, 주말 6회</li>
+                                        <li>배정대상 : 주중(국내영업팀 등 9개팀), 주말(국내영업담당임원 등 6명)</li>
+                                    </ul>
+                                </li>
+                                <li><strong>📍 시에나 벨루토CC</strong>
+                                    <ul class="list-['-_'] list-inside ml-2 md:ml-4">
+                                        <li>월 이용횟수 : 주중 5회, 주말 3회</li>
+                                        <li>대체 이용 : 스카이밸리 1회 대체 사용 가능</li>
+                                        <li>배정현황 : 기명회원권 미보유 정회원 등 (배정 후 잔여티 국내영업팀 등 사용 가능)</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold">2. 선불제회원권</h4>
+                            <ul class="list-disc list-inside text-xs md:text-sm space-y-1 mt-1">
+                                <li><strong>대상 골프장</strong> : 스카이밸리CC, 힐드로사이CC</li>
+                                <li><strong>배정대상</strong> : 국내영업팀 및 담당임원 구장별 월 1회</li>
+                                <li><strong>비용 구조</strong> : 총 비용 80만원/팀 (선불금에서 차감)</li>
+                                <li><strong>지원 내역</strong> : 인사총무팀 지원(50만원), 개인/공통접대비(30만원)</li>
+                                <li><strong>적용가격</strong> : 일반 인터넷회원가 (회원특가 없음)</li>
+                                <li><strong>⚠️ 주의사항</strong> : 반기말(6월/12월) 인사총무팀에서 접대비 일괄 차감. 접대비 사용시 차감 금액을 미리 고려하여 사용 필요</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-base md:text-lg font-bold">🎯 골프장 예약방법</h3>
+                    <ul class="list-disc list-inside text-xs md:text-sm space-y-1 mt-1 md:mt-2">
+                        <li><strong>무기명/선불제회원권</strong>: 골프 예약 시스템을 통한 예약</li>
+                        <li><strong>오픈 순서</strong> : 임원 → 국내영업팀 9개팀 → 국내영업 외 팀 (오픈 주기: 반기초마다)</li>
+                        <li><strong>기타 예약</strong> : 월 횟수 미배정 또는 대중 오픈 예약일 이용 희망시 담당자(신석중 과장)에게 연락</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-base md:text-lg font-bold">❌ 예약취소</h3>
+                     <ul class="list-disc list-inside text-xs md:text-sm space-y-1 mt-1 md:mt-2">
+                        <li><strong>일반 취소</strong>: 시스템 취소는 티오프일 8일 전까지 가능 (골프장별 취소기준 상이)</li>
+                        <li><strong>우천취소</strong>: 골프장 기준에 따라 가능, 당일 골프장에 직접 연락 후 취소 진행</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-base md:text-lg font-bold">⏰ 티오프 당일 안내</h3>
+                    <ul class="list-disc list-inside text-xs md:text-sm space-y-1 mt-1 md:mt-2">
+                        <li><strong>체크인</strong>: 티오프 시간 30분 전 체크인 완료</li>
+                        <li><strong>특이사항 통보</strong>: 티오프 후 특이사항 발생시 당일 또는 익영업일에 담당자(신석중 과장)에게 메모 전달</li>
+                        <li><strong>우천으로 인한 취소</strong>: 홀아웃 등으로 인한 차감금액 상이 등</li>
+                    </ul>
+                </div>
+                 <div>
+                    <h3 class="text-base md:text-lg font-bold">📞 문의사항</h3>
+                     <p class="text-xs md:text-sm mt-1 md:mt-2">신석중 과장 (인사총무팀)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 알림 메시지용 커스텀 모달 -->
+    <div id="alertModal" class="modal-overlay">
+        <div class="modal-content max-w-sm text-center">
+            <h3 class="text-lg md:text-xl font-bold mb-3 md:mb-4 text-gray-800">알림</h3>
+            <p id="alertMessage" class="text-gray-600 mb-4 md:mb-6 whitespace-pre-wrap font-medium text-sm md:text-base"></p>
+            <button id="closeAlertBtn" class="bg-blue-600 text-white px-6 py-2 md:px-8 rounded-lg font-bold hover:bg-blue-700 transition text-sm md:text-base">확인</button>
+        </div>
+    </div>
+
+    <!-- 확인 메시지용 커스텀 모달 (신규) -->
+    <div id="confirmModal" class="modal-overlay">
+        <div class="modal-content max-w-sm text-center">
+            <h3 class="text-lg md:text-xl font-bold mb-3 md:mb-4 text-gray-800">확인</h3>
+            <p id="confirmMessage" class="text-gray-600 mb-4 md:mb-6 whitespace-pre-wrap font-medium text-sm md:text-base"></p>
+            <div class="flex justify-center gap-3 md:gap-4">
+                <button id="confirmCancelBtn" class="border border-gray-300 text-gray-600 px-4 py-2 md:px-6 rounded-lg font-bold hover:bg-gray-50 transition text-sm md:text-base">취소</button>
+                <button id="confirmOkBtn" class="bg-blue-600 text-white px-4 py-2 md:px-6 rounded-lg font-bold hover:bg-blue-700 transition text-sm md:text-base">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="uploadModal" class="modal-overlay">
+         <div class="modal-content">
+            <h2 class="text-2xl md:text-3xl font-bold mb-4 md:mb-8">데이터 업로드 (.csv)</h2>
+            <form id="uploadForm" class="space-y-4 md:space-y-6">
+                <input type="file" id="excelFile" accept=".csv" required class="block w-full text-sm md:text-base text-gray-500 file:mr-3 md:file:mr-6 file:py-2 md:file:py-3 file:px-4 md:file:px-6 file:rounded-full file:border-0 file:text-sm md:file:text-base file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                <div class="flex justify-end space-x-2 md:space-x-4 pt-4 md:pt-6 border-t">
+                    <button type="button" id="closeUploadModalBtn" class="px-4 py-2 md:px-8 md:py-3 border-2 rounded-xl font-bold text-sm md:text-lg hover:bg-gray-50 whitespace-nowrap">취소</button>
+                    <button type="submit" class="px-4 py-2 md:px-8 md:py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 text-sm md:text-lg shadow-md whitespace-nowrap">업로드</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="loadingOverlay" class="modal-overlay" style="display: none;">
+        <div class="bg-white p-6 md:p-10 rounded-3xl shadow-2xl w-full max-w-md text-center border border-gray-100">
+            <h3 id="loadingText" class="text-xl md:text-2xl font-black text-gray-800 mb-4 md:mb-8 tracking-tight">처리 중입니다...</h3>
+            <div class="w-full bg-gray-100 rounded-full h-4 md:h-6 overflow-hidden relative shadow-inner">
+                <div class="progress-bar-inner"></div>
+            </div>
+            <p class="mt-2 md:mt-4 text-gray-500 text-xs md:text-sm font-bold animate-pulse">잠시만 기다려주세요</p>
+        </div>
+    </div>
+
+    <script>
+        // ##### 설정 (Configuration) #####
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-xf0NKlY0LHjCA-cPL3iq243XzgoIJ87vtvhlEfxj1zRnei7tXZFGwN9f9cQ4nhMu/exec';
+        
+        const CALENDAR_GOLF_COURSES = ['레이크우드', '스카이밸리', '벨루토', '힐드로사이'];
+        const MODAL_GOLF_COURSES = ['레이크우드', '스카이밸리', '벨루토', '힐드로사이'];
+
+        const GOLF_COURSE_COLORS = {
+            '레이크우드': 'text-black',
+            '스카이밸리': 'text-blue-600',
+            '벨루토': 'text-green-600',
+            '힐드로사이': 'text-red-600'
+        };
+
+        const COURSE_ABBR = {
+            '레이크우드': '레이크',
+            '스카이밸리': '스카이',
+            '벨루토': '벨루토',
+            '힐드로사이': '힐드로'
+        };
+
+        const holidays = {
+            '2024-01-01': '신정', '2024-02-09': '설날', '2024-02-10': '설날', '2024-02-11': '설날', '2024-02-12': '설날 대체공휴일', '2024-03-01': '삼일절', '2024-04-10': '국회의원 선거', '2024-05-01': '근로자의 날', '2024-05-05': '어린이날', '2024-05-06': '어린이날 대체공휴일', '2024-05-15': '부처님 오신 날', '2024-06-06': '현충일', '2024-08-15': '광복절', '2024-09-16': '추석', '2024-09-17': '추석', '2024-09-18': '추석', '2024-10-03': '개천절', '2024-10-09': '한글날', '2024-12-25': '크리스마스',
+            '2025-01-01': '신정', '2025-01-28': '설날', '2025-01-29': '설날', '2025-01-30': '설날', '2025-03-01': '삼일절', '2025-05-01': '근로자의 날', '2025-05-05': '어린이날', '2025-05-06': '부처님 오신 날', '2025-06-06': '현충일', '2025-08-15': '광복절', '2025-10-03': '개천절', '2025-10-06': '추석', '2025-10-07': '추석', '2025-10-08': '추석', '2025-10-09': '한글날', '2025-12-25': '크리스마스',
+            '2026-01-01': '신정', '2026-02-16': '설날', '2026-02-17': '설날', '2026-02-18': '설날', '2026-03-01': '삼일절', '2026-05-01': '근로자의 날', '2026-05-05': '어린이날', '2026-05-24': '부처님 오신 날', '2026-06-06': '현충일', '2026-08-15': '광복절', '2026-09-24': '추석', '2026-09-25': '추석', '2026-09-26': '추석', '2026-10-03': '개천절', '2026-10-09': '한글날', '2026-12-25': '크리스마스'
+        };
+        
+        const VALID_STATUSES = ['예약완료', '예약중', '취소중'];
+        const IS_VALID_FOR_COUNTING = (b) => b.MP != 0 && VALID_STATUSES.includes(b.Status);
+        const isWeekendBooking = (booking) => booking['WE'] === '주 말';
+
+        let currentUser = null;
+        let bookings = [];
+        let userQuotas = {};
+        let users = [];
+        let allEntertainmentLogs = [];
+        
+        let selectedYear = new Date().getFullYear();
+        let selectedHalf = new Date().getMonth() < 6 ? '1' : '2';
+        
+        let calendarMyBookingFilter = false;
+        
+        let calendarNameFilter = '전체';
+        let statusNameFilter = '전체';
+
+        let sortColumn = 'Date';
+        let sortDirection = 'asc';
+        let entertainmentSortColumn = 'Date';
+        let entertainmentSortDirection = 'asc';
+        let entertainmentSelectedName = '전체';
+
+        // 컨펌 모달 콜백 저장용 변수
+        let confirmCallback = null;
+
+        function isInSelectedPeriod(dateStr) {
+            if (!dateStr) return false;
+            const cleanDateStr = String(dateStr).replace(/\./g, '-').substring(0, 10);
+            const date = new Date(cleanDateStr);
+            if (isNaN(date.getTime())) return false;
+            const year = date.getFullYear();
+            const month = date.getMonth(); 
+            if (year !== parseInt(selectedYear)) return false;
+            if (selectedHalf === '1') return month >= 0 && month <= 5;
+            return month >= 6 && month <= 11;
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const globalPeriodSelector = document.getElementById('globalPeriodSelector');
+            
+            let periodOptions = '';
+            for(let y=2024; y<=2027; y++) {
+                periodOptions += `<option value="${y}-1">${y}년 상반기 (1월~6월)</option>`;
+                periodOptions += `<option value="${y}-2">${y}년 하반기 (7월~12월)</option>`;
+            }
+            globalPeriodSelector.innerHTML = periodOptions;
+            globalPeriodSelector.value = `${selectedYear}-${selectedHalf}`;
+
+            globalPeriodSelector.addEventListener('change', (e) => {
+                const parts = e.target.value.split('-');
+                selectedYear = parseInt(parts[0]);
+                selectedHalf = parts[1];
+                renderApp();
+            });
+
+            setupCheckboxLogic('calCourseFilter', renderCalendar);
+            setupCheckboxLogic('statusFilter', renderStatus);
+
+            document.getElementById('calMyBookingFilter').addEventListener('change', (e) => {
+                calendarMyBookingFilter = e.target.checked;
+                renderCalendar();
+            });
+
+            document.getElementById('bookingDate').addEventListener('change', (e) => {
+                const val = e.target.value;
+                if(val >= '2026-07-01') {
+                    showAlert("하반기 예약은 아직 오픈되지 않았습니다.");
+                    e.target.value = '';
+                } else {
+                    updateAvailableGolfCourses(val);
+                }
+            });
+
+            showLoading(true, "시스템 데이터를 불러오는 중입니다...");
+            try {
+                await fetchInitialData();
+                initializeLoginState();
+            } catch (error) {
+                console.error(error);
+                showAlert("데이터 로드 실패. 관리자에게 문의하세요.");
+            } finally {
+                showLoading(false);
+            }
+            
+            setupEventListeners();
+        });
+
+        // ########## Functions ##########
+
+        function showAlert(message) {
+            document.getElementById('alertMessage').textContent = message;
+            document.getElementById('alertModal').style.display = 'flex';
+        }
+
+        function showConfirm(msg, callback) {
+            document.getElementById('confirmMessage').textContent = msg;
+            document.getElementById('confirmModal').style.display = 'flex';
+            confirmCallback = callback;
+        }
+
+        function setupCheckboxLogic(name, renderFunc) {
+            const inputs = document.querySelectorAll(`input[name="${name}"]`);
+            inputs.forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const val = e.target.value;
+                    const isChecked = e.target.checked;
+                    if (val === '전체') {
+                        if (isChecked) {
+                            inputs.forEach(i => { if(i.value !== '전체') i.checked = false; });
+                        }
+                    } else {
+                        if (isChecked) {
+                            const allInput = document.querySelector(`input[name="${name}"][value="전체"]`);
+                            if(allInput) allInput.checked = false;
+                        } else {
+                            const anyChecked = Array.from(inputs).some(i => i.value !== '전체' && i.checked);
+                            if (!anyChecked) {
+                                const allInput = document.querySelector(`input[name="${name}"][value="전체"]`);
+                                if(allInput) allInput.checked = true;
+                            }
+                        }
+                    }
+                    renderFunc();
+                });
+            });
+        }
+
+        function initializeLoginState() {
+            const savedUser = sessionStorage.getItem('golf_currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                if (users.some(u => u.name === currentUser.name && String(u.phone) === String(currentUser.phone))) {
+                    showMainApp();
+                } else {
+                    sessionStorage.removeItem('golf_currentUser');
+                    showLoginScreen();
+                }
+            } else { showLoginScreen(); }
+        }
+
+        function showLoginScreen() {
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+        }
+        
+        function showMainApp() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            renderApp();
+        }
+
+        function renderApp() {
+            const isManager = currentUser && currentUser.name === '신석중';
+            document.getElementById('anonymousTabBtn').classList.toggle('hidden', !isManager);
+            document.getElementById('lookupTabBtn').classList.toggle('hidden', !isManager);
+            
+            document.getElementById('adminOnlyControls').classList.toggle('hidden', !isManager);
+            document.getElementById('cancelSelectedBtn').classList.toggle('hidden', !isManager);
+            document.getElementById('calendarNameFilterWrapper').classList.toggle('hidden', !isManager);
+            document.getElementById('statusNameFilterWrapper').classList.toggle('hidden', !isManager);
+            document.getElementById('adminEntertainmentFilter').classList.toggle('hidden', !isManager);
+
+            if (isManager) populateNameOptions();
+
+            renderCalendar();
+            renderStatus();
+            renderEntertainmentView();
+            if(isManager) renderAnonymousView();
+        }
+
+        function populateNameOptions() {
+            const nameSet = new Set(users.map(u => u.name));
+            bookings.forEach(b => { if(b.Name) nameSet.add(b.Name); });
+            const sortedNames = Array.from(nameSet).sort((a, b) => a.localeCompare(b));
+
+            const options = `<option value="전체">전체</option>` + sortedNames.map(name => `<option value="${name}">${name}</option>`).join('');
+
+            const calSelect = document.getElementById('calendarNameSelect');
+            const statSelect = document.getElementById('statusNameSelect');
+            const entSelect = document.getElementById('entertainmentNameFilter');
+
+            const currentCalVal = calSelect.value || '전체';
+            const currentStatVal = statSelect.value || '전체';
+            const currentEntVal = entSelect.value || '전체';
+
+            calSelect.innerHTML = options;
+            statSelect.innerHTML = options;
+            entSelect.innerHTML = options;
+            
+            calSelect.value = currentCalVal;
+            statSelect.value = currentStatVal;
+            entSelect.value = currentEntVal;
+        }
+
+        function showLoading(isLoading, message = "처리 중입니다...") {
+            const overlay = document.getElementById('loadingOverlay');
+            const text = document.getElementById('loadingText');
+            if (isLoading) {
+                text.textContent = message;
+                overlay.style.display = 'flex';
+            } else {
+                overlay.style.display = 'none';
+            }
+        }
+
+        async function fetchInitialData() {
+            const response = await fetch(`${SCRIPT_URL}?action=read`);
+            const data = await response.json();
+            bookings = data.bookings || [];
+            users = data.users || [];
+            allEntertainmentLogs = data.entertainmentData || [];
+            userQuotas = data.quotas.reduce((acc, q) => { acc[q.Name] = q; return acc; }, {});
+        }
+
+        function renderCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            calendarEl.innerHTML = '';
+            
+            const startMonth = selectedHalf === '1' ? 0 : 6;
+            const endMonth = selectedHalf === '1' ? 5 : 11;
+            const isManager = currentUser && currentUser.name === '신석중';
+
+            const checkedCourses = Array.from(document.querySelectorAll('input[name="calCourseFilter"]:checked')).map(cb => cb.value);
+            let filteredBookings = bookings.filter(b => isInSelectedPeriod(b.Date) && IS_VALID_FOR_COUNTING(b));
+
+            if (!checkedCourses.includes('전체')) {
+                filteredBookings = filteredBookings.filter(b => checkedCourses.includes(b['Golf Course']));
+            }
+            
+            if (isManager && calendarNameFilter !== '전체') {
+                filteredBookings = filteredBookings.filter(b => b.Name === calendarNameFilter);
+            }
+
+            if (calendarMyBookingFilter) {
+                filteredBookings = filteredBookings.filter(b => b.Name === currentUser.name);
+            }
+
+            const bookingMap = new Map();
+            filteredBookings.forEach(b => {
+                const normDate = String(b.Date).replace(/\./g, '-').substring(0, 10);
+                if (!bookingMap.has(normDate)) bookingMap.set(normDate, []);
+                bookingMap.get(normDate).push(b);
+            });
+
+            for (let m = startMonth; m <= endMonth; m++) {
+                const firstDay = new Date(selectedYear, m, 1);
+                const lastDay = new Date(selectedYear, m + 1, 0);
+                
+                const monthlyBookings = bookings.filter(b => {
+                    if (!IS_VALID_FOR_COUNTING(b)) return false;
+                    const d = new Date(String(b.Date).replace(/\./g, '-'));
+                    return !isNaN(d) && d.getFullYear() === selectedYear && d.getMonth() === m;
+                });
+                
+                const userMonthly = monthlyBookings.filter(b => b.Name === currentUser.name);
+                const q = userQuotas[currentUser.name] || {};
+
+                let warnings = [];
+                const lakewoodWd = monthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && !isWeekendBooking(b)).length;
+                const lakewoodWe = monthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && isWeekendBooking(b)).length;
+                if (lakewoodWd >= 9) warnings.push('※ 레이크 주중 마감');
+                if (lakewoodWe >= 6) warnings.push('※ 레이크 주말 마감');
+
+                const vellutoWd = monthlyBookings.filter(b => b['Golf Course'] === '벨루토' && !isWeekendBooking(b)).length;
+                const vellutoWe = monthlyBookings.filter(b => b['Golf Course'] === '벨루토' && isWeekendBooking(b)).length;
+                if (vellutoWd >= 5) warnings.push('※ 벨루토 주중 마감');
+                if (vellutoWe >= 3) warnings.push('※ 벨루토 주말 마감');
+
+                const monthContainer = document.createElement('div');
+                monthContainer.className = 'bg-white p-2 md:p-4 rounded-xl md:rounded-2xl shadow-sm border border-gray-200';
+                
+                const quotaHtml = `<div class="text-[10px] md:text-xs font-bold text-gray-500 grid grid-cols-2 gap-x-1 md:gap-x-2 mb-1 md:mb-2 gap-y-0.5 md:gap-y-1">
+                    <span>레이크(주중): ${userMonthly.filter(b => b['Golf Course'] === '레이크우드' && !isWeekendBooking(b)).length}/${q.Lakewood_Weekday||0}</span>
+                    <span>레이크(주말): ${userMonthly.filter(b => b['Golf Course'] === '레이크우드' && isWeekendBooking(b)).length}/${q.Lakewood_Weekend||0}</span>
+                    <span>스카이밸리: ${userMonthly.filter(b => b['Golf Course'] === '스카이밸리').length}/${q.SkyValley||0}</span>
+                    <span>힐드로사이: ${userMonthly.filter(b => b['Golf Course'] === '힐드로사이').length}/${q.HillydeSicy||0}</span>
+                    <span>벨루토(주중): ${userMonthly.filter(b => b['Golf Course'] === '벨루토' && !isWeekendBooking(b)).length}/${q.Velluto_Weekday || q.Seragio_Weekday || 0}</span>
+                    <span>벨루토(주말): ${userMonthly.filter(b => b['Golf Course'] === '벨루토' && isWeekendBooking(b)).length}/${q.Velluto_Weekend || q.Seragio_Weekend || 0}</span>
+                </div>`;
+
+                const warningHtml = warnings.length > 0 
+                    ? `<div class="mb-2 md:mb-3 text-[10px] md:text-xs font-bold text-red-600 bg-red-50 p-1 md:p-2 rounded-lg text-center border border-red-100">${warnings.join('<br>')}</div>` 
+                    : `<div class="mb-2 md:mb-3 border-b"></div>`;
+
+                monthContainer.innerHTML = `${quotaHtml}${warningHtml}<div class="text-base md:text-xl font-black text-center mb-2 md:mb-4 text-gray-800">${selectedYear}년 ${m + 1}월</div><div class="grid grid-cols-7 gap-1 text-center text-xs md:text-sm font-bold text-gray-400 mb-1 md:mb-2"><div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div></div>`;
+                
+                const dayGrid = document.createElement('div');
+                dayGrid.className = 'grid grid-cols-7 gap-1';
+                for (let i = 0; i < firstDay.getDay(); i++) dayGrid.innerHTML += '<div></div>';
+                
+                for (let d = 1; d <= lastDay.getDate(); d++) {
+                    const dateStr = `${selectedYear}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                    const dayCell = document.createElement('div');
+                    dayCell.className = 'day-cell rounded-lg md:rounded-xl p-1 transition-transform active:scale-95';
+                    
+                    let bookingHtml = '';
+                    if (bookingMap.has(dateStr)) {
+                        const dayBookings = bookingMap.get(dateStr);
+                        const uniqueCourses = [...new Set(dayBookings.map(b => b['Golf Course']))];
+                        
+                        uniqueCourses.forEach(course => {
+                            bookingHtml += `<div class="booking-info ${GOLF_COURSE_COLORS[course] || ''} truncate">${COURSE_ABBR[course] || course}</div>`;
+                        });
+                    }
+                    
+                    const dayOfWeek = new Date(selectedYear, m, d).getDay();
+                    let color = 'text-gray-700';
+                    if (dayOfWeek === 0 || holidays[dateStr]) color = 'text-red-600';
+                    else if (dayOfWeek === 6) color = 'text-blue-600';
+
+                    dayCell.innerHTML = `<div class="text-sm md:text-lg font-bold ${color} mb-0 md:mb-1">${d}</div>${bookingHtml}`;
+                    dayCell.onclick = () => openBookingModal(null, dateStr);
+                    dayGrid.appendChild(dayCell);
+                }
+                monthContainer.appendChild(dayGrid);
+                calendarEl.appendChild(monthContainer);
+            }
+        }
+
+        function renderStatus() {
+            const statusTableBody = document.getElementById('statusTableBody');
+            statusTableBody.innerHTML = '';
+            const isManager = currentUser.name === '신석중';
+            
+            let filtered = bookings.filter(b => isInSelectedPeriod(b.Date));
+
+            if (!isManager) {
+                filtered = filtered.filter(b => b.Name === currentUser.name);
+            } else {
+                if (statusNameFilter !== '전체') {
+                    filtered = filtered.filter(b => b.Name === statusNameFilter);
+                }
+            }
+
+            const checkedStatuses = Array.from(document.querySelectorAll('input[name="statusFilter"]:checked')).map(cb => cb.value);
+
+            if (!checkedStatuses.includes('전체')) {
+                filtered = filtered.filter(b => {
+                    if (checkedStatuses.includes(b.Status)) return true;
+                    if (checkedStatuses.includes('취소') && ['우천취소', '취소완료', '취소중'].includes(b.Status)) return true;
+                    return false;
+                });
+            }
+
+            if (filtered.length === 0) {
+                statusTableBody.innerHTML = `<tr><td colspan="8" class="text-center py-6 md:py-10 text-gray-500 font-bold text-sm md:text-base">조건에 맞는 예약 내역이 없습니다.</td></tr>`;
+                return;
+            }
+
+            filtered.sort((a, b) => {
+                let vA = a[sortColumn], vB = b[sortColumn];
+                return sortDirection === 'asc' ? String(vA).localeCompare(String(vB)) : String(vB).localeCompare(String(vA));
+            }).forEach(b => {
+                const displayDate = String(b.Date).replace(/\./g, '-').substring(5, 10);
+                
+                let rowClass = "border-b hover:bg-blue-50 cursor-pointer transition-colors";
+                const status = b.Status || '';
+                if (['우천취소', '취소완료', '취소중'].includes(status)) {
+                    rowClass = "border-b hover:bg-red-50 bg-red-50 text-red-900 cursor-pointer transition-colors";
+                }
+
+                const row = document.createElement('tr');
+                row.className = rowClass;
+                row.innerHTML = `<td class="p-2 md:p-4 text-center"><input type="checkbox" class="booking-checkbox w-4 h-4 md:w-5 md:h-5 accent-blue-600" data-id="${b.id}"></td>
+                    <td class="p-2 md:p-4 font-bold text-gray-800">${b['Golf Course']}</td>
+                    <td class="p-2 md:p-4 font-bold">${b.Name}</td>
+                    <td class="p-2 md:p-4 font-bold text-gray-600">${displayDate}</td>
+                    <td class="p-2 md:p-4 text-center font-bold">${b.Team}</td>
+                    <td class="p-2 md:p-4">${b.Time || '-'}</td>
+                    <td class="p-2 md:p-4"><span class="px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-bold bg-white border border-gray-300 shadow-sm whitespace-nowrap">${status || '미정'}</span></td>
+                    <td class="p-2 md:p-4 text-xs md:text-sm text-gray-500 col-comment" title="${b.Comment || ''}">${b.Comment || ''}</td>`;
+                row.onclick = (e) => { if(e.target.type !== 'checkbox') openBookingModal(b); };
+                statusTableBody.appendChild(row);
+            });
+        }
+
+        function renderEntertainmentView() {
+            const entertainmentTableBody = document.getElementById('entertainmentTableBody');
+            entertainmentTableBody.innerHTML = '';
+            const isManager = currentUser.name === '신석중';
+            
+            let filtered = bookings.filter(b => 
+                isInSelectedPeriod(b.Date) && b.MP != 0 &&
+                (b.Status === '예약완료' || b.Status === '우천취소' || b.Status === '예약중' || !b.Status)
+            );
+
+            if (isManager) {
+                if (entertainmentSelectedName !== '전체') filtered = filtered.filter(b => b.Name === entertainmentSelectedName);
+            } else {
+                filtered = filtered.filter(b => b.Name === currentUser.name);
+            }
+
+            let total = 0;
+            filtered.forEach(b => {
+                total += parseInt(b.EE) || 0;
+                const displayDate = String(b.Date).replace(/\./g, '-');
+                const row = document.createElement('tr');
+                row.className = "border-b text-xs md:text-sm hover:bg-gray-50";
+                row.innerHTML = `<td class="p-2 md:p-4 font-bold">${b['Golf Course']}</td><td class="p-2 md:p-4">${b.Name}</td><td class="p-2 md:p-4">${displayDate}</td><td class="p-2 md:p-4 text-center">${b.Team}</td><td class="p-2 md:p-4">${b.Time||''}</td><td class="p-2 md:p-4">${b.Status||''}</td><td class="p-2 md:p-4 text-right font-black text-blue-700 text-sm md:text-lg">₩${(parseInt(b.EE)||0).toLocaleString()}</td>`;
+                entertainmentTableBody.appendChild(row);
+            });
+
+            document.getElementById('totalEntertainmentCost').textContent = `₩${total.toLocaleString()}`;
+            loadEntertainmentInputs(isManager ? entertainmentSelectedName : currentUser.name);
+        }
+
+        function renderAnonymousView() {
+            const container = document.getElementById('anonymousTableContainer');
+            container.innerHTML = '';
+            
+            const cats = ['Lakewood_Weekday', 'Lakewood_Weekend', 'Velluto_Weekday', 'Velluto_Weekend'];
+            const catNames = { 
+                'Lakewood_Weekday': '레이크 주중', 'Lakewood_Weekend': '레이크 주말', 
+                'Velluto_Weekday': '벨루토 주중', 'Velluto_Weekend': '벨루토 주말' 
+            };
+            
+            const startM = selectedHalf === '1' ? 1 : 7;
+            const endM = selectedHalf === '1' ? 6 : 12;
+
+            const userNames = [...new Set(bookings.filter(b => isInSelectedPeriod(b.Date)).map(b => b.Name))].sort();
+            
+            let html = `<table class="w-full border-collapse"><thead><tr class="bg-gray-50">
+                <th rowspan="2" class="p-2 md:p-3 border font-bold text-xs md:text-base">성명</th>`;
+            cats.forEach(c => html += `<th colspan="6" class="p-1 md:p-2 border text-xs md:text-sm font-bold bg-blue-50 text-blue-800">${catNames[c]}</th>`);
+            html += `</tr><tr>`;
+            cats.forEach(() => { for(let i=startM; i<=endM; i++) html += `<th class="p-1 md:p-2 border text-[10px] md:text-xs text-gray-500">${i}월</th>`; });
+            html += `</tr></thead><tbody>`;
+
+            userNames.forEach(name => {
+                html += `<tr><td class="p-2 md:p-3 border font-bold bg-gray-50 text-xs md:text-base">${name}</td>`;
+                cats.forEach(cat => {
+                    for(let m=startM; m<=endM; m++) {
+                        const days = bookings.filter(b => b.Name === name && IS_VALID_FOR_COUNTING(b))
+                            .filter(b => {
+                                const d = new Date(String(b.Date).replace(/\./g, '-'));
+                                if(isNaN(d)) return false;
+                                const isTargetMonth = (d.getMonth() + 1) === m && d.getFullYear() === selectedYear;
+                                if(!isTargetMonth) return false;
+
+                                const isW = isWeekendBooking(b);
+                                if(cat.startsWith('Lakewood')) return b['Golf Course'] === '레이크우드' && (cat.endsWith('Weekend') ? isW : !isW);
+                                if(cat.startsWith('Velluto')) return b['Golf Course'] === '벨루토' && (cat.endsWith('Weekend') ? isW : !isW);
+                                return false;
+                            }).map(b => new Date(String(b.Date).replace(/\./g, '-')).getDate()).join(',');
+                        html += `<td class="p-1 md:p-2 border text-xs md:text-sm font-bold text-center text-blue-700">${days}</td>`;
+                    }
+                });
+                html += `</tr>`;
+            });
+            container.innerHTML = html + `</tbody></table>`;
+        }
+
+        function setupEventListeners() {
+            const btns = ['calendarTabBtn', 'statusTabBtn', 'entertainmentTabBtn', 'lookupTabBtn', 'anonymousTabBtn'];
+            btns.forEach(id => {
+                document.getElementById(id)?.addEventListener('click', () => {
+                    btns.forEach(b => {
+                        const el = document.getElementById(b);
+                        el.classList.remove('bg-blue-600', 'text-white', 'shadow-md');
+                        el.classList.add('bg-white', 'text-gray-600', 'border');
+                        document.getElementById(b.replace('TabBtn', 'View')).classList.add('hidden');
+                    });
+                    const target = document.getElementById(id);
+                    target.classList.remove('bg-white', 'text-gray-600', 'border');
+                    target.classList.add('bg-blue-600', 'text-white', 'shadow-md');
+                    document.getElementById(id.replace('TabBtn', 'View')).classList.remove('hidden');
+                });
+            });
+            
+            document.getElementById('logoutBtn').onclick = () => {
+                sessionStorage.removeItem('golf_currentUser');
+                location.reload();
+            };
+            
+            document.getElementById('noticeLink').addEventListener('click', (e) => {
+                e.preventDefault();
+                document.getElementById('noticeModal').style.display = 'flex';
+            });
+            
+            document.getElementById('closeNoticeBtn').addEventListener('click', () => {
+                document.getElementById('noticeModal').style.display = 'none';
+            });
+
+            document.getElementById('closeAlertBtn').addEventListener('click', () => {
+                document.getElementById('alertModal').style.display = 'none';
+            });
+
+            // 컨펌 모달 이벤트
+            document.getElementById('confirmOkBtn').onclick = () => {
+                document.getElementById('confirmModal').style.display = 'none';
+                if(confirmCallback) confirmCallback();
+            };
+            document.getElementById('confirmCancelBtn').onclick = () => {
+                document.getElementById('confirmModal').style.display = 'none';
+            };
+            
+            document.getElementById('openModalBtn').onclick = () => openBookingModal();
+            document.getElementById('closeModalBtn').onclick = () => document.getElementById('bookingModal').style.display='none';
+            
+            document.getElementById('loginForm').onsubmit = (e) => {
+                e.preventDefault();
+                const u = document.getElementById('loginUsername').value;
+                const p = document.getElementById('loginPassword').value;
+                const found = users.find(user => user.name === u && String(user.phone) === p);
+                
+                if(found) {
+                    const now = new Date();
+                    const openDateVIP = new Date('2026-01-13T00:00:00');
+                    const openDateGeneral = new Date('2026-01-19T00:00:00');
+                    
+                    if (found.name !== '신석중') {
+                        const isVIP = String(p).toLowerCase().startsWith('iw');
+                        if (isVIP) {
+                            if (now < openDateVIP) {
+                                showAlert("오픈 예정입니다. (2026년 1월 13일 00시 오픈)");
+                                return;
+                            }
+                        } else {
+                            if (now < openDateGeneral) {
+                                showAlert("오픈 예정입니다. (2026년 1월 19일 00시 오픈)");
+                                return;
+                            }
+                        }
+                    }
+                    
+                    currentUser = found;
+                    sessionStorage.setItem('golf_currentUser', JSON.stringify(found));
+                    showMainApp(); 
+                } else showAlert("로그인 정보가 올바르지 않습니다.");
+            };
+
+            document.getElementById('lookupBtn').onclick = () => {
+                const name = document.getElementById('lookupName').value;
+                const results = document.getElementById('lookupResults');
+                if (!name) return showAlert("이름을 입력하세요.");
+                
+                const q = userQuotas[name];
+                if (!q) return results.innerHTML = `<p class="text-red-600 font-bold p-4">⚠️ 해당 사용자의 정보가 없습니다.</p>`;
+
+                const periodBookings = bookings.filter(b => b.Name === name && isInSelectedPeriod(b.Date) && IS_VALID_FOR_COUNTING(b));
+
+                let html = `<div class="p-4 md:p-6 bg-white border border-gray-200 rounded-xl md:rounded-2xl shadow-sm"><h3 class="font-black text-xl md:text-2xl mb-4 md:mb-6 text-gray-800 border-b pb-2 md:pb-4">${name}님 ${selectedYear}년 ${selectedHalf==='1'?'상반기':'하반기'} 이용 현황</h3>`;
+                html += `<table class="w-full text-sm md:text-base border-collapse"><thead><tr class="bg-gray-100 text-gray-700"><th class="p-2 md:p-3 border">항목</th><th class="p-2 md:p-3 border">한도(6개월)</th><th class="p-2 md:p-3 border">사용</th><th class="p-2 md:p-3 border">잔여</th></tr></thead><tbody>`;
+                
+                const items = [
+                    {k: '레이크 주중', val: q.Lakewood_Weekday, used: periodBookings.filter(b => b['Golf Course']==='레이크우드' && !isWeekendBooking(b)).length},
+                    {k: '레이크 주말', val: q.Lakewood_Weekend, used: periodBookings.filter(b => b['Golf Course']==='레이크우드' && isWeekendBooking(b)).length},
+                    {k: '스카이밸리', val: q.SkyValley, used: periodBookings.filter(b => b['Golf Course']==='스카이밸리').length},
+                    {k: '힐드로사이', val: q.HillydeSicy, used: periodBookings.filter(b => b['Golf Course']==='힐드로사이').length},
+                    {k: '벨루토 주중', val: q.Velluto_Weekday || q.Seragio_Weekday, used: periodBookings.filter(b => b['Golf Course']==='벨루토' && !isWeekendBooking(b)).length},
+                    {k: '벨루토 주말', val: q.Velluto_Weekend || q.Seragio_Weekend, used: periodBookings.filter(b => b['Golf Course']==='벨루토' && isWeekendBooking(b)).length}
+                ];
+
+                items.forEach(i => {
+                    const totalLimit = (i.val || 0) * 6;
+                    const remaining = totalLimit - i.used;
+                    html += `<tr class="border-b hover:bg-gray-50 text-center"><td class="p-2 md:p-3 font-bold text-gray-700 text-left">${i.k}</td><td class="p-2 md:p-3 text-gray-600">${totalLimit}</td><td class="p-2 md:p-3 text-blue-600 font-bold">${i.used}</td><td class="p-2 md:p-3 font-black text-base md:text-lg ${remaining < 0 ? 'text-red-500' : 'text-green-600'}">${remaining}</td></tr>`;
+                });
+                results.innerHTML = html + `</tbody></table></div>`;
+            };
+
+            document.getElementById('calendarNameSelect').addEventListener('change', (e) => {
+                calendarNameFilter = e.target.value;
+                renderCalendar();
+            });
+
+            document.getElementById('statusNameSelect').addEventListener('change', (e) => {
+                statusNameFilter = e.target.value;
+                renderStatus();
+            });
+
+            document.getElementById('entertainmentNameFilter').addEventListener('change', (e) => {
+                entertainmentSelectedName = e.target.value;
+                renderEntertainmentView();
+            });
+
+            // [신규] 전체 선택 체크박스 로직
+            document.addEventListener('change', function(e) {
+                if(e.target && e.target.id === 'selectAllStatus') {
+                    const isChecked = e.target.checked;
+                    document.querySelectorAll('.booking-checkbox').forEach(cb => cb.checked = isChecked);
+                }
+            });
+
+            // [수정] 선택 취소 버튼 이벤트 리스너 (위치 이동 및 로직 수정)
+            document.getElementById('cancelSelectedBtn').addEventListener('click', async () => {
+                const checkedBoxes = document.querySelectorAll('.booking-checkbox:checked');
+                if (checkedBoxes.length === 0) {
+                    showAlert("취소할 내역을 선택해주세요.");
+                    return;
+                }
+
+                showConfirm(`선택한 ${checkedBoxes.length}건의 예약을 취소하시겠습니까?\n상태가 '취소중'으로 변경됩니다.`, async () => {
+                    showLoading(true, "선택한 예약을 취소 처리 중입니다...");
+
+                    try {
+                        const updatePromises = Array.from(checkedBoxes).map(cb => {
+                            const id = cb.getAttribute('data-id');
+                            const originalBooking = bookings.find(b => String(b.id) === String(id));
+                            
+                            if (!originalBooking) return null;
+
+                            const updatedBooking = { ...originalBooking, Status: '취소중' };
+                            return postData('update', { user: currentUser.name, booking: updatedBooking }, true);
+                        }).filter(p => p !== null);
+
+                        await Promise.all(updatePromises);
+                        
+                        showAlert("선택한 예약이 일괄 취소(상태 변경) 되었습니다.");
+                        await fetchInitialData();
+                        renderApp();
+                    } catch (error) {
+                        console.error(error);
+                        showAlert("일괄 처리 중 일부 오류가 발생했습니다.");
+                        await fetchInitialData(); 
+                        renderApp();
+                    } finally {
+                        showLoading(false);
+                    }
+                });
+            });
+        }
+
+        function openBookingModal(booking = null, dateStr = null) {
+            const modal = document.getElementById('bookingModal');
+            const title = document.getElementById('modalTitle');
+            const form = document.getElementById('bookingForm');
+            
+            updateAvailableGolfCourses(dateStr || new Date().toISOString().split('T')[0]);
+
+            if (booking) {
+                title.textContent = "예약 수정";
+                document.getElementById('bookingId').value = booking.id;
+                document.getElementById('userName').value = booking.Name;
+                document.getElementById('bookingDate').value = String(booking.Date).replace(/\./g, '-');
+                document.getElementById('golfCourse').value = booking['Golf Course'];
+                document.getElementById('numberOfTeams').value = booking.Team;
+                document.getElementById('bookingTime').value = booking.Time || '';
+                document.getElementById('bookingStatus').value = booking.Status || '예약중';
+                document.getElementById('notes').value = booking.Comment || '';
+                
+                updateAvailableGolfCourses(String(booking.Date).replace(/\./g, '-'));
+                document.getElementById('golfCourse').value = booking['Golf Course'];
+
+            } else {
+                title.textContent = "예약 신청";
+                form.reset();
+                document.getElementById('bookingId').value = '';
+                document.getElementById('userName').value = currentUser ? currentUser.name : '';
+                document.getElementById('bookingStatus').value = '예약중';
+                
+                if (dateStr) {
+                    document.getElementById('bookingDate').value = dateStr;
+                    updateAvailableGolfCourses(dateStr);
+                }
+            }
+            modal.style.display = 'flex';
+        }
+
+        function updateAvailableGolfCourses(date) { 
+            const s = document.getElementById('golfCourse');
+            s.innerHTML = MODAL_GOLF_COURSES.map(c => `<option value="${c}">${c}</option>`).join('');
+        }
+        function loadEntertainmentInputs(name) { }
+        
+        async function postData(action, data, silent = false) {
+            let msg = "처리 중입니다...";
+            if(action === 'add' || action === 'update') msg = "예약 정보를 저장하고 있습니다...";
+            else if(action === 'saveEntertainment') msg = "접대비 정보를 저장하고 있습니다...";
+            else if(action === 'cancel') msg = "예약을 취소하고 있습니다...";
+
+            if (!silent) showLoading(true, msg);
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action, ...data }) });
+                const result = await response.json();
+                if (result.status !== 'success') throw new Error(result.message);
+                
+                if (!silent) {
+                    showAlert(result.message);
+                    document.getElementById('bookingModal').style.display = 'none';
+                    await fetchInitialData();
+                    renderApp();
+                }
+                return result;
+            } catch (error) {
+                if (!silent) showAlert(`오류가 발생했습니다: ${error.message}`);
+                throw error;
+            } finally {
+                if (!silent) showLoading(false);
+            }
+        }
+        
+        document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const dateVal = document.getElementById('bookingDate').value;
+            if(dateVal >= '2026-07-01') {
+                showAlert("하반기 예약은 아직 오픈되지 않았습니다.");
+                return;
+            }
+
+            const bookingData = {
+                'id': document.getElementById('bookingId').value, 'Golf Course': document.getElementById('golfCourse').value,
+                'Name': document.getElementById('userName').value, 'Date': dateVal,
+                'Team': document.getElementById('numberOfTeams').value, 'Time': document.getElementById('bookingTime').value,
+                'Status': document.getElementById('bookingStatus').value, 'Comment': document.getElementById('notes').value
+            };
+            
+            if (bookingData.id) {
+                await postData('update', { user: currentUser.name, booking: bookingData });
+            } else {
+                await postData('add', { user: currentUser.name, booking: bookingData });
+            }
+        });
+        
+        function formatNumberWithCommas(value) { return String(value).replace(/[^0-9]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+        function removeCommas(value) { return String(value).replace(/,/g, ''); }
+    </script>
+</body>
+</html>
