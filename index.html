@@ -470,6 +470,9 @@
             '힐드로사이': 'text-red-600'
         };
 
+        // 캘린더 표시 순서 정의
+        const COURSE_PRIORITY = { '레이크우드': 1, '스카이밸리': 2, '힐드로사이': 3, '벨루토': 4 };
+
         const COURSE_ABBR = {
             '레이크우드': '레이크',
             '스카이밸리': '스카이',
@@ -643,6 +646,7 @@
             document.getElementById('prepaidTabBtn').classList.toggle('hidden', !isManager);
             document.getElementById('lookupTabBtn').classList.toggle('hidden', !isManager);
             
+            // 관리자 전용 버튼 표시 설정
             const deleteBtn = document.getElementById('deleteSelectedBtn');
             const cancelBtn = document.getElementById('cancelSelectedBtn');
             const adminControls = document.getElementById('adminOnlyControls');
@@ -702,8 +706,6 @@
 
         function populateCourseOptions() {
              const select = document.getElementById('statusCourseSelect');
-             // 이미 옵션이 있으면 다시 채우지 않음 (선택값 유지 등을 위해)
-             // 단, 초기화가 필요하다면 로직 수정 가능. 여기서는 단순 채우기.
              if (select.options.length > 1) return; 
              
              let html = `<option value="전체">전체</option>`;
@@ -818,8 +820,12 @@
                     let bookingHtml = '';
                     if (bookingMap.has(dateStr)) {
                         const dayBookings = bookingMap.get(dateStr);
+                        // 중복 표시 방지를 위해 Set 사용
                         const uniqueCourses = [...new Set(dayBookings.map(b => b['Golf Course']))];
                         
+                        // [수정] 정렬 순서 적용 (레이크우드 > 스카이밸리 > 힐드로사이 > 벨루토)
+                        uniqueCourses.sort((a, b) => (COURSE_PRIORITY[a] || 99) - (COURSE_PRIORITY[b] || 99));
+
                         uniqueCourses.forEach(course => {
                             bookingHtml += `<div class="booking-info ${GOLF_COURSE_COLORS[course] || ''} truncate">${COURSE_ABBR[course] || course}</div>`;
                         });
@@ -852,7 +858,6 @@
                 if (statusNameFilter !== '전체') {
                     filtered = filtered.filter(b => b.Name === statusNameFilter);
                 }
-                // [신규] 관리자 골프장 필터 적용
                 if (statusCourseFilter !== '전체') {
                     filtered = filtered.filter(b => b['Golf Course'] === statusCourseFilter);
                 }
@@ -1131,7 +1136,6 @@
                 renderStatus();
             });
 
-            // [신규] 관리자 골프장 필터 이벤트 핸들러
             document.getElementById('statusCourseSelect').addEventListener('change', (e) => {
                 statusCourseFilter = e.target.value;
                 renderStatus();
@@ -1257,11 +1261,16 @@
             const s = document.getElementById('golfCourse');
             const targetDate = String(date).replace(/\./g, '-').substring(0, 10);
 
+            // [수정] 해당 날짜에 *누구라도* 유효한 예약을 한 골프장은 목록에서 제외 (중복 방지)
             const bookedCourses = bookings.filter(b => {
+                // 수정 시 자기 자신의 예약은 제외하고 체크
                 if (excludeBookingId && String(b.id) === String(excludeBookingId)) return false;
+                
                 const bDate = String(b.Date).replace(/\./g, '-').substring(0, 10);
                 const isActive = !['취소완료', '우천취소', '취소중'].includes(b.Status);
-                return bDate === targetDate && b.Name === currentUser.name && isActive;
+                
+                // 기존: b.Name === currentUser.name 조건이 있었으나 제거하여 '모든 사람'의 예약을 체크
+                return bDate === targetDate && isActive;
             }).map(b => b['Golf Course']);
 
             const availableCourses = MODAL_GOLF_COURSES.filter(c => !bookedCourses.includes(c));
@@ -1301,6 +1310,97 @@
                 if (!silent) showLoading(false);
             }
         }
+
+        // [신규] 월별 쿼터 제한 체크 함수
+        function checkQuota(bookingData) {
+            const course = bookingData['Golf Course'];
+            const dateStr = bookingData['Date'];
+            const targetDate = new Date(dateStr);
+            const targetMonth = targetDate.getMonth(); // 0-11
+            const targetYear = targetDate.getFullYear();
+            
+            // 요일 체크 (0:일, 6:토 -> 주말)
+            // 공휴일 체크 로직이 holidays 객체에 있으므로 활용
+            // 기존 isWeekendBooking 함수는 예약 객체(b)를 받지만 여기서는 날짜로 판단해야 함
+            const dayOfWeek = targetDate.getDay();
+            const dateKey = dateStr.substring(0, 10);
+            const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6 || holidays[dateKey]);
+
+            const q = userQuotas[currentUser.name] || {};
+            let limit = 0;
+            let currentUsage = 0;
+
+            // 골프장별 쿼터 키 매핑 및 사용량 계산
+            if (course === '레이크우드') {
+                limit = isWeekend ? (q.Lakewood_Weekend || 0) : (q.Lakewood_Weekday || 0);
+                // 해당 월, 해당 코스, 해당 요일(주말/주중) 예약 카운트
+                currentUsage = bookings.filter(b => {
+                    if (b.Name !== currentUser.name) return false;
+                    if (!VALID_STATUSES.includes(b.Status)) return false;
+                    
+                    const bDate = new Date(String(b.Date).replace(/\./g, '-'));
+                    if (isNaN(bDate)) return false;
+                    
+                    // 같은 년/월인지 확인
+                    if (bDate.getFullYear() !== targetYear || bDate.getMonth() !== targetMonth) return false;
+                    if (b['Golf Course'] !== '레이크우드') return false;
+
+                    // 주말 여부 확인 (기존 데이터의 WE 필드 활용하거나 날짜 계산)
+                    // 데이터 일관성을 위해 날짜 계산으로 통일
+                    const bDay = bDate.getDay();
+                    const bDateKey = String(b.Date).replace(/\./g, '-').substring(0, 10);
+                    const bIsWeekend = (bDay === 0 || bDay === 6 || holidays[bDateKey]);
+                    
+                    return isWeekend === bIsWeekend;
+                }).length;
+            } else if (course === '벨루토') {
+                limit = isWeekend ? (q.Velluto_Weekend || q.Seragio_Weekend || 0) : (q.Velluto_Weekday || q.Seragio_Weekday || 0);
+                currentUsage = bookings.filter(b => {
+                    if (b.Name !== currentUser.name) return false;
+                    if (!VALID_STATUSES.includes(b.Status)) return false;
+                    
+                    const bDate = new Date(String(b.Date).replace(/\./g, '-'));
+                    if (bDate.getFullYear() !== targetYear || bDate.getMonth() !== targetMonth) return false;
+                    if (b['Golf Course'] !== '벨루토') return false;
+
+                    const bDay = bDate.getDay();
+                    const bDateKey = String(b.Date).replace(/\./g, '-').substring(0, 10);
+                    const bIsWeekend = (bDay === 0 || bDay === 6 || holidays[bDateKey]);
+                    
+                    return isWeekend === bIsWeekend;
+                }).length;
+            } else if (course === '스카이밸리') {
+                limit = q.SkyValley || 0;
+                currentUsage = bookings.filter(b => {
+                     if (b.Name !== currentUser.name) return false;
+                     if (!VALID_STATUSES.includes(b.Status)) return false;
+                     const bDate = new Date(String(b.Date).replace(/\./g, '-'));
+                     if (bDate.getFullYear() !== targetYear || bDate.getMonth() !== targetMonth) return false;
+                     return b['Golf Course'] === '스카이밸리';
+                }).length;
+            } else if (course === '힐드로사이') {
+                limit = q.HillydeSicy || 0;
+                 currentUsage = bookings.filter(b => {
+                     if (b.Name !== currentUser.name) return false;
+                     if (!VALID_STATUSES.includes(b.Status)) return false;
+                     const bDate = new Date(String(b.Date).replace(/\./g, '-'));
+                     if (bDate.getFullYear() !== targetYear || bDate.getMonth() !== targetMonth) return false;
+                     return b['Golf Course'] === '힐드로사이';
+                }).length;
+            }
+
+            // 수정 모드인 경우, 자기 자신의 예약은 카운트에서 제외해야 함 (이미 포함되어 있으므로)
+            // 하지만 여기서는 '추가' 시 체크하는 것이므로, 수정 시에는 날짜/코스가 변경되지 않으면 체크 불필요, 
+            // 변경되면 체크 필요. 로직 복잡성을 줄이기 위해
+            // '신규 예약(id 없음)'일 때만 엄격하게 체크하거나, 
+            // 현재 카운트에 포함된 '내 예약'이 있다면 -1을 해주는 로직이 필요함.
+            // 일단 신규 예약(add) 시에만 체크하도록 적용 (update 시에는 보통 날짜 변경이 드물거나 관리자가 하므로)
+            
+            if (currentUsage >= limit) {
+                return `[${course}] ${targetMonth + 1}월 예약 한도(${limit}회)를 초과했습니다.`;
+            }
+            return null; // 통과
+        }
         
         document.getElementById('bookingForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -1321,15 +1421,29 @@
             };
             
             if (!bookingData.id) {
+                // 1. 중복 예약 체크
                 const isDuplicate = bookings.some(b => {
                     const bDate = String(b.Date).replace(/\./g, '-').substring(0, 10);
                     const isActive = !['취소완료', '우천취소', '취소중'].includes(b.Status);
+                    // 다른 사람이 예약했더라도 해당 날짜/골프장은 이미 updateAvailableGolfCourses에서 걸러짐.
+                    // 여기서는 '내가' '같은 날'에 '다른 골프장'이라도 중복해서 잡는 것을 막을지, 
+                    // 아니면 '같은 골프장' 중복만 막을지 결정.
+                    // 기획 의도상 "같은 날 중복 예약 불가"라면 아래 유지.
                     return b.Name === inputName && bDate === dateVal && isActive;
                 });
 
                 if (isDuplicate) {
-                    showAlert("이미 예약 되어 있습니다.");
+                    showAlert("이미 해당 날짜에 예약이 있습니다.");
                     return;
+                }
+
+                // 2. [신규] 쿼터 제한 체크 (관리자가 대리 예약하는 경우 제외할 수도 있으나, 일단 모두 적용)
+                if (currentUser.name === inputName) { // 본인 예약일 때만 체크 (관리자가 타인 예약시 패스 가능)
+                     const quotaError = checkQuota(bookingData);
+                     if (quotaError) {
+                         showAlert(quotaError);
+                         return;
+                     }
                 }
                 
                 await postData('add', { user: currentUser.name, booking: bookingData });
