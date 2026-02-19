@@ -38,6 +38,60 @@
         
         input, select { font-size: 16px !important; padding: 10px !important; }
 
+        /* 금일 예약 테이블 스타일 (컴팩트 & 리사이징) */
+        .compact-table {
+            table-layout: fixed; /* 리사이징을 위해 고정 레이아웃 사용 */
+        }
+        .compact-table th, .compact-table td {
+            font-size: 11px !important;
+            padding: 4px 2px !important;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden; /* 내용이 넘칠 경우 숨김 */
+            text-overflow: ellipsis;
+        }
+        .compact-table th {
+            background-color: #f8fafc;
+            font-weight: 700;
+            color: #475569;
+            position: relative; /* 리사이저 위치 기준 */
+        }
+        
+        /* 컬럼 리사이저 핸들 */
+        .col-resizer {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 5px;
+            height: 100%;
+            cursor: col-resize;
+            background-color: transparent;
+            z-index: 10;
+        }
+        .col-resizer:hover, .col-resizer.resizing {
+            background-color: #3b82f6; /* 호버 시 파란색 가이드 */
+        }
+
+        /* 테이블 인풋 스타일 최적화 (Time 등) */
+        .table-input {
+            font-size: 11px !important;
+            padding: 0px 2px !important;
+            height: 22px !important;
+            min-width: auto;
+            width: 100%;
+            background-color: transparent;
+            border: 1px solid transparent;
+            text-align: center;
+        }
+        .table-input:focus {
+            background-color: #eff6ff;
+            border-color: #3b82f6;
+        }
+        .table-input[type="time"] {
+            min-width: 60px;
+        }
+
         /* 체크박스 커스텀 스타일 */
         .checkbox-label {
             display: flex;
@@ -232,7 +286,14 @@
             </div>
             
             <!-- [신규] 금일 예약 탭 -->
-            <div id="todayView" class="tab-content hidden space-y-8">
+            <div id="todayView" class="tab-content hidden space-y-4">
+                 <!-- 컬럼 토글 컨트롤 -->
+                 <div class="bg-gray-50 p-2 rounded-lg border border-gray-200 flex flex-wrap gap-2 items-center text-xs">
+                     <span class="font-bold text-gray-700 mr-2">표시할 항목:</span>
+                     <!-- JS로 동적 생성됨 -->
+                     <div id="todayColumnControls" class="flex flex-wrap gap-2"></div>
+                 </div>
+
                  <div id="yesterdayContainer"></div>
                  <div id="todayContainer"></div>
                  <div id="tomorrowContainer"></div>
@@ -304,6 +365,7 @@
         </div>
     </div>
 
+    <!-- ... (이하 모달 및 스크립트 영역 유지) ... -->
     <div id="bookingModal" class="modal-overlay">
         <div class="modal-content">
             <h2 id="modalTitle" class="text-2xl md:text-3xl font-extrabold mb-4 md:mb-8 text-gray-800 border-b pb-2 md:pb-4">예약 신청</h2>
@@ -517,7 +579,17 @@
         // [수정] 취소중 상태는 쿼터 계산에서 제외 (복구)
         const VALID_STATUSES = ['예약완료', '예약중'];
         const IS_VALID_FOR_COUNTING = (b) => b.MP != 0 && VALID_STATUSES.includes(b.Status);
-        const isWeekendBooking = (booking) => booking['WE'] === '주 말';
+        
+        // [수정] 날짜 기반으로 주말/공휴일 판단 (데이터의 WE 컬럼 의존성 제거)
+        const isWeekendBooking = (booking) => {
+            if (!booking || !booking.Date) return false;
+            const dateStr = String(booking.Date).replace(/\./g, '-').substring(0, 10);
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) return false;
+            const day = date.getDay();
+            // 0:일, 6:토 또는 공휴일 목록에 있으면 주말 처리
+            return day === 0 || day === 6 || holidays[dateStr];
+        };
 
         let currentUser = null;
         let bookings = [];
@@ -812,6 +884,7 @@
                 const q = userQuotas[currentUser.name] || {};
 
                 let warnings = [];
+                // [수정] 주말/주중 판별을 날짜 기반 함수(isWeekendBooking)로 변경하여 정확도 향상
                 const lakewoodWd = monthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && !isWeekendBooking(b)).length;
                 const lakewoodWe = monthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && isWeekendBooking(b)).length;
                 if (lakewoodWd >= 9) warnings.push('※ 레이크 주중 마감');
@@ -934,7 +1007,7 @@
             });
         }
 
-        // [신규] 금일 예약 렌더링 함수
+        // [신규] 금일 예약 렌더링 함수 (UI 개선)
         function renderTodayView() {
             const getFormattedDate = (d) => d.toISOString().split('T')[0];
             const today = new Date();
@@ -944,6 +1017,46 @@
             const todayStr = getFormattedDate(today);
             const yesterdayStr = getFormattedDate(yesterday);
             const tomorrowStr = getFormattedDate(tomorrow);
+
+            // [신규] 컬럼 정의 (표시 이름 및 내부 키)
+            const columns = [
+                { name: '골프장', key: 'golfCourse' },
+                { name: '성명', key: 'name' },
+                { name: '날짜(Play)', key: 'playDate' },
+                { name: '요일', key: 'day' },
+                { name: 'WE', key: 'we' },
+                { name: 'Team', key: 'team' },
+                { name: 'Time', key: 'time' },
+                { name: 'Status', key: 'status' },
+                { name: '비고', key: 'comment' },
+                { name: '전화번호', key: 'phone' },
+                { name: '부킹일자', key: 'bookingDate' },
+                { name: '전달여부', key: 'deliveryStatus' }
+            ];
+
+            // 체크박스 생성 로직 (최초 1회만 생성)
+            const controlsContainer = document.getElementById('todayColumnControls');
+            if (controlsContainer.innerHTML === '') {
+                columns.forEach((col, index) => {
+                    const label = document.createElement('label');
+                    label.className = 'checkbox-label bg-white border border-gray-200';
+                    label.innerHTML = `<input type="checkbox" checked class="checkbox-input col-toggle" data-col-index="${index}">${col.name}`;
+                    controlsContainer.appendChild(label);
+                });
+
+                // 이벤트 리스너: 컬럼 토글
+                controlsContainer.addEventListener('change', (e) => {
+                    if (e.target.classList.contains('col-toggle')) {
+                        const index = e.target.getAttribute('data-col-index');
+                        const isVisible = e.target.checked;
+                        // 모든 todayView 테이블의 해당 컬럼 제어 (nth-child는 1부터 시작하므로 index + 1)
+                        const cells = document.querySelectorAll(`#todayView table tr > *:nth-child(${parseInt(index) + 1})`);
+                        cells.forEach(cell => {
+                            cell.style.display = isVisible ? '' : 'none';
+                        });
+                    }
+                });
+            }
 
             const sections = [
                 { id: 'yesterdayContainer', title: `어제 (${yesterdayStr})`, dateStr: yesterdayStr, bg: 'bg-gray-100', text: 'text-gray-600' },
@@ -961,18 +1074,18 @@
                 });
 
                 let html = `<div class="rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                    <div class="${section.bg} p-3 md:p-4 font-black text-lg md:text-xl ${section.text} border-b border-gray-200">${section.title}</div>
+                    <div class="${section.bg} p-2 md:p-3 font-black text-sm md:text-base ${section.text} border-b border-gray-200">${section.title}</div>
                     <div class="overflow-x-auto">
-                        <table class="grid-view-table w-full">
+                        <table class="grid-view-table compact-table w-full">
                             <thead class="bg-white">
                                 <tr>
-                                    <th>골프장</th><th>성명</th><th>날짜(Play)</th><th>요일</th><th>WE</th><th>Team</th><th>Time</th><th>Status</th><th>비고</th><th>전화번호</th><th>부킹일자</th><th>전달여부</th>
+                                    ${columns.map(c => `<th class="relative p-2 border select-none overflow-hidden text-ellipsis" style="width: ${c.key === 'comment' ? '200px' : 'auto'}">${c.name}<div class="col-resizer"></div></th>`).join('')}
                                 </tr>
                             </thead>
                             <tbody>`;
                 
                 if (filtered.length === 0) {
-                    html += `<tr><td colspan="12" class="p-4 text-center text-gray-500">예약 내역이 없습니다.</td></tr>`;
+                    html += `<tr><td colspan="${columns.length}" class="p-4 text-center text-gray-500">예약 내역이 없습니다.</td></tr>`;
                 } else {
                     filtered.forEach(b => {
                         html += `<tr>
@@ -982,12 +1095,12 @@
                             <td>${b.Day || ''}</td>
                             <td>${b.WE || ''}</td>
                             <td>${b.Team}</td>
-                            <td class="p-0"><input type="time" class="w-full h-full p-2 border-none text-center bg-transparent focus:bg-blue-50 inline-edit" data-id="${b.id}" data-field="Time" value="${b.Time || ''}"></td>
-                            <td class="p-0"><input type="text" class="w-full h-full p-2 border-none text-center bg-transparent focus:bg-blue-50 inline-edit" data-id="${b.id}" data-field="Status" value="${b.Status || ''}"></td>
-                            <td class="col-comment" title="${b.Comment||''}">${b.Comment || ''}</td>
+                            <td class="p-0"><input type="time" class="table-input inline-edit" data-id="${b.id}" data-field="Time" value="${b.Time || ''}"></td>
+                            <td class="p-0"><input type="text" class="table-input inline-edit" data-id="${b.id}" data-field="Status" value="${b.Status || ''}"></td>
+                            <td class="truncate px-1" title="${b.Comment||''}">${b.Comment || ''}</td>
                             <td>${b.Phone || ''}</td>
                             <td>${b.BookingDate ? String(b.BookingDate).replace(/\./g, '-').substring(5) : ''}</td>
-                            <td class="p-0"><input type="text" class="w-full h-full p-2 border-none text-center bg-transparent focus:bg-blue-50 inline-edit" data-id="${b.id}" data-field="DeliveryStatus" value="${b.DeliveryStatus || ''}"></td>
+                            <td class="p-0"><input type="text" class="table-input inline-edit" data-id="${b.id}" data-field="DeliveryStatus" value="${b.DeliveryStatus || ''}"></td>
                         </tr>`;
                     });
                 }
@@ -995,7 +1108,7 @@
                 container.innerHTML = html;
             });
             
-            // 인라인 수정 이벤트 리스너
+            // 인라인 수정 이벤트 리스너 재등록
             document.querySelectorAll('.inline-edit').forEach(input => {
                 input.addEventListener('change', async (e) => {
                     const id = e.target.getAttribute('data-id');
@@ -1008,6 +1121,55 @@
                         await postData('update', { user: currentUser.name, booking: updatedBooking, logMessage: `[금일예약] ${field} 수정` }, true);
                     }
                 });
+            });
+
+            // 체크박스 상태 반영 (새로 렌더링된 테이블에 대해)
+            const toggles = document.querySelectorAll('.col-toggle');
+            toggles.forEach(toggle => {
+                if (!toggle.checked) {
+                    const index = toggle.getAttribute('data-col-index');
+                    const cells = document.querySelectorAll(`#todayView table tr > *:nth-child(${parseInt(index) + 1})`);
+                    cells.forEach(cell => cell.style.display = 'none');
+                }
+            });
+
+            // 컬럼 리사이징 이벤트 바인딩
+            enableColumnResizing();
+        }
+
+        // 컬럼 리사이징 기능 활성화 함수
+        function enableColumnResizing() {
+            document.querySelectorAll('.compact-table th').forEach(th => {
+                const resizer = th.querySelector('.col-resizer');
+                if (!resizer) return;
+
+                let startX, startWidth;
+
+                const onMouseDown = (e) => {
+                    e.preventDefault();
+                    startX = e.pageX;
+                    startWidth = th.offsetWidth;
+                    resizer.classList.add('resizing');
+
+                    const onMouseMove = (e) => {
+                        const width = startWidth + (e.pageX - startX);
+                        if (width > 30) { // 최소 너비 제한
+                            th.style.width = `${width}px`;
+                            th.style.minWidth = `${width}px`; // 강제 적용
+                        }
+                    };
+
+                    const onMouseUp = () => {
+                        document.removeEventListener('mousemove', onMouseMove);
+                        document.removeEventListener('mouseup', onMouseUp);
+                        resizer.classList.remove('resizing');
+                    };
+
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.addEventListener('mouseup', onMouseUp);
+                };
+
+                resizer.addEventListener('mousedown', onMouseDown);
             });
         }
 
