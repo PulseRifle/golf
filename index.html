@@ -1021,18 +1021,18 @@
             }
 
             const columns = [
-                { name: '골프장', key: 'golfCourse' },
-                { name: '성명', key: 'name' },
-                { name: '날짜(Play)', key: 'playDate' },
-                { name: '요일', key: 'day' },
-                { name: 'WE', key: 'we' },
-                { name: 'Team', key: 'team' },
-                { name: 'Time', key: 'time' },
-                { name: 'Status', key: 'status' },
-                { name: '비고', key: 'comment' },
-                { name: '전화번호', key: 'phone' },
-                { name: '부킹일자', key: 'bookingDate' },
-                { name: '전달여부', key: 'deliveryStatus' }
+                { name: '골프장', key: 'golfCourse', isTight: true, width: '50px' },
+                { name: '성명', key: 'name', isTight: true, width: '50px' },
+                { name: '날짜(Play)', key: 'playDate', isTight: true, width: '45px' },
+                { name: '요일', key: 'day', isTight: true, width: '30px' },
+                { name: 'Team', key: 'team', isTight: true, width: '30px' },
+                { name: '전화번호', key: 'phone', isTight: false, width: '90px' },
+                { name: '비고', key: 'comment', isTight: false, width: '180px' },
+                { name: 'WE', key: 'we', isTight: true, width: '30px' },
+                { name: 'Time', key: 'time', isTight: true, width: '60px' },
+                { name: 'Status', key: 'status', isTight: true, width: '50px' },
+                { name: '부킹일자', key: 'bookingDate', isTight: true, width: '45px' },
+                { name: '전달여부', key: 'deliveryStatus', isTight: true, width: '40px' }
             ];
 
             // 체크박스 생성 로직 (최초 1회만 생성, 상태 반영)
@@ -1117,13 +1117,13 @@
                             <td>${displayCourse}</td>
                             <td>${b.Name}</td>
                             <td>${String(b.Date).replace(/\./g, '-').substring(5)}</td>
-                            <td>${b.Day || ''}</td>
-                            <td>${b.WE || ''}</td>
-                            <td>${b.Team}</td>
-                            <td class="p-0"><input type="time" class="table-input inline-edit" data-id="${b.id}" data-field="Time" value="${b.Time || ''}"></td>
-                            <td class="p-0"><input type="text" class="table-input inline-edit" data-id="${b.id}" data-field="Status" value="${b.Status || ''}"></td>
-                            <td class="truncate px-1 wrap-text" title="${b.Comment||''}">${b.Comment || ''}</td>
+                            <td class="tight-col">${b.Day || ''}</td>
+                            <td class="tight-col">${b.Team}</td>
                             <td>${b.Phone || ''}</td>
+                            <td class="truncate px-1 wrap-text" title="${b.Comment||''}">${b.Comment || ''}</td>
+                            <td class="tight-col">${b.WE || ''}</td>
+                            <td class="p-0"><input type="time" class="table-input inline-edit" data-id="${b.id}" data-field="Time" value="${b.Time || ''}"></td>
+                            <td class="p-0 tight-col"><input type="text" class="table-input inline-edit" data-id="${b.id}" data-field="Status" value="${b.Status || ''}"></td>
                             <td>${b.BookingDate ? String(b.BookingDate).replace(/\./g, '-').substring(5) : ''}</td>
                             <td class="p-0"><input type="text" class="table-input inline-edit" data-id="${b.id}" data-field="DeliveryStatus" value="${b.DeliveryStatus || ''}"></td>
                         </tr>`;
