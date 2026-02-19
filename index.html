@@ -63,14 +63,15 @@
             position: absolute;
             right: 0;
             top: 0;
-            width: 5px;
+            width: 15px; /* 터치 영역 확보를 위해 넓힘 */
             height: 100%;
             cursor: col-resize;
             background-color: transparent;
             z-index: 10;
+            transform: translateX(50%); /* 중앙 정렬 */
         }
         .col-resizer:hover, .col-resizer.resizing {
-            background-color: #3b82f6; /* 호버 시 파란색 가이드 */
+            background-color: rgba(59, 130, 246, 0.5); /* 호버 시 파란색 가이드 */
         }
 
         /* 테이블 인풋 스타일 최적화 (Time 등) */
@@ -150,7 +151,7 @@
             .compact-table td.mobile-wrap-comment {
                 white-space: normal !important;
                 word-break: break-all;
-                min-width: 120px; /* 최소 너비 확보 */
+                min-width: 100px; /* 최소 너비 줄임 */
                 text-align: left;
                 line-height: 1.3;
             }
@@ -1046,18 +1047,18 @@
             }
 
             const columns = [
-                { name: '골프장', key: 'golfCourse', isTight: false },
-                { name: '성명', key: 'name', isTight: false },
-                { name: '날짜(Play)', key: 'playDate', isTight: false },
-                { name: '요일', key: 'day', isTight: true },
-                { name: 'WE', key: 'we', isTight: true },
-                { name: 'Team', key: 'team', isTight: true },
-                { name: 'Time', key: 'time', isTight: false },
-                { name: 'Status', key: 'status', isTight: true },
-                { name: '비고', key: 'comment', isTight: false },
-                { name: '전화번호', key: 'phone', isTight: false },
-                { name: '부킹일자', key: 'bookingDate', isTight: false },
-                { name: '전달여부', key: 'deliveryStatus', isTight: false }
+                { name: '골프장', key: 'golfCourse', isTight: false, width: '90px' },
+                { name: '성명', key: 'name', isTight: false, width: '70px' },
+                { name: '날짜(Play)', key: 'playDate', isTight: false, width: '80px' },
+                { name: '요일', key: 'day', isTight: true, width: '40px' },
+                { name: 'WE', key: 'we', isTight: true, width: '40px' },
+                { name: 'Team', key: 'team', isTight: true, width: '40px' },
+                { name: 'Time', key: 'time', isTight: false, width: '70px' },
+                { name: 'Status', key: 'status', isTight: true, width: '70px' },
+                { name: '비고', key: 'comment', isTight: false, width: '120px' }, // 200 -> 120
+                { name: '전화번호', key: 'phone', isTight: false, width: '100px' },
+                { name: '부킹일자', key: 'bookingDate', isTight: false, width: '80px' },
+                { name: '전달여부', key: 'deliveryStatus', isTight: false, width: '70px' }
             ];
 
             // 체크박스 생성 로직 (최초 1회만 생성, 상태 반영)
@@ -1127,7 +1128,7 @@
                                     ${columns.map(c => {
                                         // 모바일 타이트 폭 클래스 적용
                                         const tightClass = c.isTight ? 'tight-col' : '';
-                                        return `<th class="relative p-2 border select-none overflow-hidden text-ellipsis ${tightClass}" style="width: ${c.key === 'comment' ? '200px' : 'auto'}">${c.name}<div class="col-resizer"></div></th>`;
+                                        return `<th class="relative p-2 border select-none overflow-hidden text-ellipsis ${tightClass}" style="width: ${c.width || 'auto'}">${c.name}<div class="col-resizer"></div></th>`;
                                     }).join('')}
                                 </tr>
                             </thead>
@@ -1200,13 +1201,19 @@
                 let startX, startWidth;
 
                 const onMouseDown = (e) => {
-                    e.preventDefault();
-                    startX = e.pageX;
+                    // 터치 이벤트인지 확인
+                    const isTouch = e.type === 'touchstart';
+                    if (!isTouch) e.preventDefault(); // 마우스일 때만 기본 동작 방지 (터치는 스크롤 등 고려)
+                    
+                    startX = isTouch ? e.touches[0].pageX : e.pageX;
                     startWidth = th.offsetWidth;
                     resizer.classList.add('resizing');
 
-                    const onMouseMove = (e) => {
-                        const width = startWidth + (e.pageX - startX);
+                    const onMouseMove = (moveEvent) => {
+                        const isMoveTouch = moveEvent.type === 'touchmove';
+                        const pageX = isMoveTouch ? moveEvent.touches[0].pageX : moveEvent.pageX;
+                        
+                        const width = startWidth + (pageX - startX);
                         if (width > 30) { // 최소 너비 제한
                             th.style.width = `${width}px`;
                             th.style.minWidth = `${width}px`; // 강제 적용
@@ -1216,14 +1223,19 @@
                     const onMouseUp = () => {
                         document.removeEventListener('mousemove', onMouseMove);
                         document.removeEventListener('mouseup', onMouseUp);
+                        document.removeEventListener('touchmove', onMouseMove);
+                        document.removeEventListener('touchend', onMouseUp);
                         resizer.classList.remove('resizing');
                     };
 
                     document.addEventListener('mousemove', onMouseMove);
                     document.addEventListener('mouseup', onMouseUp);
+                    document.addEventListener('touchmove', onMouseMove);
+                    document.addEventListener('touchend', onMouseUp);
                 };
 
                 resizer.addEventListener('mousedown', onMouseDown);
+                resizer.addEventListener('touchstart', onMouseDown);
             });
         }
 
