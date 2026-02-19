@@ -29,7 +29,7 @@
         th, td { padding: 12px 10px; font-size: 15px; white-space: nowrap; }
         .col-comment { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         
-        /* 그리드 뷰 (무기명/선불제) 테이블 스타일 */
+        /* 그리드 뷰 (무기명/선불제/금일예약) 테이블 스타일 */
         .grid-view-table th, .grid-view-table td { text-align: center; border: 1px solid #cbd5e1; padding: 8px; font-size: 14px; white-space: nowrap; }
         .grid-view-table th { background-color: #f1f5f9; font-weight: bold; }
         
@@ -143,6 +143,7 @@
                 <nav class="flex space-x-2 md:space-x-4 pb-1" aria-label="Tabs">
                     <button id="calendarTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-blue-600 text-white whitespace-nowrap">캘린더</button>
                     <button id="statusTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 whitespace-nowrap">예약 현황</button>
+                    <button id="todayTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 hidden whitespace-nowrap">금일 예약</button>
                     <button id="entertainmentTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 whitespace-nowrap">접대비 차감</button>
                     <button id="lookupTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 hidden whitespace-nowrap">조회</button>
                     <button id="anonymousTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 hidden whitespace-nowrap">무기명</button>
@@ -196,7 +197,7 @@
                              <label class="font-bold text-gray-700 text-xs md:text-base">이름:</label>
                              <select id="statusNameSelect" class="border border-gray-300 rounded-lg p-1 md:p-2 text-xs md:text-sm min-w-[80px] md:min-w-[120px]"></select>
                          </div>
-                     </div>
+                      </div>
                  </div>
 
                  <div class="flex justify-end items-center mb-3 md:mb-6 gap-2 md:gap-4">
@@ -228,6 +229,13 @@
                         <tbody id="statusTableBody" class="text-gray-700 text-xs md:text-base"></tbody>
                     </table>
                 </div>
+            </div>
+            
+            <!-- [신규] 금일 예약 탭 -->
+            <div id="todayView" class="tab-content hidden space-y-8">
+                 <div id="yesterdayContainer"></div>
+                 <div id="todayContainer"></div>
+                 <div id="tomorrowContainer"></div>
             </div>
 
             <div id="entertainmentView" class="tab-content hidden">
@@ -306,9 +314,19 @@
                         <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">신청인</label>
                         <input type="text" id="userName" required class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-gray-50">
                     </div>
+                    <!-- 신규 필드: 전화번호 -->
+                     <div class="col-span-2">
+                        <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">전화번호</label>
+                        <input type="text" id="userPhone" class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white">
+                    </div>
                     <div>
                         <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">예약날짜 (연도4자리)</label>
                         <input type="date" id="bookingDate" required max="9999-12-31" class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <!-- 신규 필드: 요일 -->
+                    <div>
+                         <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">요일</label>
+                         <input type="text" id="bookingDay" class="block w-full border-gray-300 rounded-lg shadow-sm bg-gray-50">
                     </div>
                     <div>
                         <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">골프장</label>
@@ -325,6 +343,16 @@
                     <div>
                         <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">상태</label>
                         <input type="text" id="bookingStatus" class="block w-full border-gray-300 rounded-lg shadow-sm bg-gray-50">
+                    </div>
+                    <!-- 신규 필드: 부킹일자 -->
+                    <div>
+                        <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">부킹일자</label>
+                        <input type="date" id="bookingRecordDate" class="block w-full border-gray-300 rounded-lg shadow-sm bg-white">
+                    </div>
+                     <!-- 신규 필드: 전달여부 -->
+                     <div>
+                        <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">전달여부</label>
+                        <input type="text" id="deliveryStatus" class="block w-full border-gray-300 rounded-lg shadow-sm bg-white">
                     </div>
                     <div class="col-span-2">
                         <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">비고</label>
@@ -486,7 +514,8 @@
             '2026-01-01': '신정', '2026-02-16': '설날', '2026-02-17': '설날', '2026-02-18': '설날', '2026-03-01': '삼일절', '2026-05-01': '근로자의 날', '2026-05-05': '어린이날', '2026-05-24': '부처님 오신 날', '2026-06-06': '현충일', '2026-08-15': '광복절', '2026-09-24': '추석', '2026-09-25': '추석', '2026-09-26': '추석', '2026-10-03': '개천절', '2026-10-09': '한글날', '2026-12-25': '크리스마스'
         };
         
-        const VALID_STATUSES = ['예약완료', '예약중', '취소중'];
+        // [수정] 취소중 상태는 쿼터 계산에서 제외 (복구)
+        const VALID_STATUSES = ['예약완료', '예약중'];
         const IS_VALID_FOR_COUNTING = (b) => b.MP != 0 && VALID_STATUSES.includes(b.Status);
         const isWeekendBooking = (booking) => booking['WE'] === '주 말';
 
@@ -645,6 +674,7 @@
             document.getElementById('anonymousTabBtn').classList.toggle('hidden', !isManager);
             document.getElementById('prepaidTabBtn').classList.toggle('hidden', !isManager);
             document.getElementById('lookupTabBtn').classList.toggle('hidden', !isManager);
+            document.getElementById('todayTabBtn').classList.toggle('hidden', !isManager); // 금일예약 탭 관리자 전용
             
             // 관리자 전용 버튼 표시 설정
             const deleteBtn = document.getElementById('deleteSelectedBtn');
@@ -677,6 +707,7 @@
             if(isManager) {
                 renderAnonymousView();
                 renderPrepaidView();
+                renderTodayView(); // [신규] 금일 예약 렌더링
             }
         }
 
@@ -745,6 +776,7 @@
 
             const checkedCourses = Array.from(document.querySelectorAll('input[name="calCourseFilter"]:checked')).map(cb => cb.value);
             
+            // [수정] 캘린더에서 취소중은 안보이거나 카운트 안되게 할지? 기존 로직 유지 (VALID_STATUSES만 보임)
             let filteredBookings = bookings.filter(b => isInSelectedPeriod(b.Date) && VALID_STATUSES.includes(b.Status));
 
             if (!checkedCourses.includes('전체')) {
@@ -820,10 +852,7 @@
                     let bookingHtml = '';
                     if (bookingMap.has(dateStr)) {
                         const dayBookings = bookingMap.get(dateStr);
-                        // 중복 표시 방지를 위해 Set 사용
                         const uniqueCourses = [...new Set(dayBookings.map(b => b['Golf Course']))];
-                        
-                        // [수정] 정렬 순서 적용 (레이크우드 > 스카이밸리 > 힐드로사이 > 벨루토)
                         uniqueCourses.sort((a, b) => (COURSE_PRIORITY[a] || 99) - (COURSE_PRIORITY[b] || 99));
 
                         uniqueCourses.forEach(course => {
@@ -902,6 +931,83 @@
                     <td class="p-2 md:p-4 text-xs md:text-sm text-gray-500 col-comment" title="${b.Comment || ''}">${b.Comment || ''}</td>`;
                 row.onclick = (e) => { if(e.target.type !== 'checkbox') openBookingModal(b); };
                 statusTableBody.appendChild(row);
+            });
+        }
+
+        // [신규] 금일 예약 렌더링 함수
+        function renderTodayView() {
+            const getFormattedDate = (d) => d.toISOString().split('T')[0];
+            const today = new Date();
+            const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+            const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+
+            const todayStr = getFormattedDate(today);
+            const yesterdayStr = getFormattedDate(yesterday);
+            const tomorrowStr = getFormattedDate(tomorrow);
+
+            const sections = [
+                { id: 'yesterdayContainer', title: `어제 (${yesterdayStr})`, dateStr: yesterdayStr, bg: 'bg-gray-100', text: 'text-gray-600' },
+                { id: 'todayContainer', title: `오늘 (${todayStr})`, dateStr: todayStr, bg: 'bg-blue-50', text: 'text-blue-800' },
+                { id: 'tomorrowContainer', title: `내일 (${tomorrowStr})`, dateStr: tomorrowStr, bg: 'bg-green-50', text: 'text-green-800' }
+            ];
+
+            sections.forEach(section => {
+                const container = document.getElementById(section.id);
+                // BookingDate (N열) 기준 필터링
+                const filtered = bookings.filter(b => {
+                    if(!b.BookingDate) return false;
+                    const bDate = String(b.BookingDate).replace(/\./g, '-').substring(0, 10);
+                    return bDate === section.dateStr;
+                });
+
+                let html = `<div class="rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    <div class="${section.bg} p-3 md:p-4 font-black text-lg md:text-xl ${section.text} border-b border-gray-200">${section.title}</div>
+                    <div class="overflow-x-auto">
+                        <table class="grid-view-table w-full">
+                            <thead class="bg-white">
+                                <tr>
+                                    <th>골프장</th><th>성명</th><th>날짜(Play)</th><th>요일</th><th>WE</th><th>Team</th><th>Time</th><th>Status</th><th>비고</th><th>전화번호</th><th>부킹일자</th><th>전달여부</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+                
+                if (filtered.length === 0) {
+                    html += `<tr><td colspan="12" class="p-4 text-center text-gray-500">예약 내역이 없습니다.</td></tr>`;
+                } else {
+                    filtered.forEach(b => {
+                        html += `<tr>
+                            <td>${b['Golf Course']}</td>
+                            <td>${b.Name}</td>
+                            <td>${String(b.Date).replace(/\./g, '-').substring(5)}</td>
+                            <td>${b.Day || ''}</td>
+                            <td>${b.WE || ''}</td>
+                            <td>${b.Team}</td>
+                            <td class="p-0"><input type="time" class="w-full h-full p-2 border-none text-center bg-transparent focus:bg-blue-50 inline-edit" data-id="${b.id}" data-field="Time" value="${b.Time || ''}"></td>
+                            <td class="p-0"><input type="text" class="w-full h-full p-2 border-none text-center bg-transparent focus:bg-blue-50 inline-edit" data-id="${b.id}" data-field="Status" value="${b.Status || ''}"></td>
+                            <td class="col-comment" title="${b.Comment||''}">${b.Comment || ''}</td>
+                            <td>${b.Phone || ''}</td>
+                            <td>${b.BookingDate ? String(b.BookingDate).replace(/\./g, '-').substring(5) : ''}</td>
+                            <td class="p-0"><input type="text" class="w-full h-full p-2 border-none text-center bg-transparent focus:bg-blue-50 inline-edit" data-id="${b.id}" data-field="DeliveryStatus" value="${b.DeliveryStatus || ''}"></td>
+                        </tr>`;
+                    });
+                }
+                html += `</tbody></table></div></div>`;
+                container.innerHTML = html;
+            });
+            
+            // 인라인 수정 이벤트 리스너
+            document.querySelectorAll('.inline-edit').forEach(input => {
+                input.addEventListener('change', async (e) => {
+                    const id = e.target.getAttribute('data-id');
+                    const field = e.target.getAttribute('data-field');
+                    const value = e.target.value;
+                    const booking = bookings.find(b => String(b.id) === String(id));
+                    
+                    if(booking) {
+                        const updatedBooking = { ...booking, [field]: value };
+                        await postData('update', { user: currentUser.name, booking: updatedBooking, logMessage: `[금일예약] ${field} 수정` }, true);
+                    }
+                });
             });
         }
 
@@ -1019,7 +1125,7 @@
         }
 
         function setupEventListeners() {
-            const btns = ['calendarTabBtn', 'statusTabBtn', 'entertainmentTabBtn', 'lookupTabBtn', 'anonymousTabBtn', 'prepaidTabBtn'];
+            const btns = ['calendarTabBtn', 'statusTabBtn', 'todayTabBtn', 'entertainmentTabBtn', 'lookupTabBtn', 'anonymousTabBtn', 'prepaidTabBtn'];
             btns.forEach(id => {
                 document.getElementById(id)?.addEventListener('click', () => {
                     btns.forEach(b => {
@@ -1239,6 +1345,12 @@
                 document.getElementById('bookingStatus').value = booking.Status || '예약중';
                 document.getElementById('notes').value = booking.Comment || '';
                 
+                // 신규 필드 로드
+                document.getElementById('userPhone').value = booking.Phone || '';
+                document.getElementById('bookingDay').value = booking.Day || '';
+                document.getElementById('bookingRecordDate').value = booking.BookingDate ? String(booking.BookingDate).replace(/\./g, '-') : '';
+                document.getElementById('deliveryStatus').value = booking.DeliveryStatus || '';
+                
                 updateAvailableGolfCourses(String(booking.Date).replace(/\./g, '-'), booking.id);
                 document.getElementById('golfCourse').value = booking['Golf Course'];
 
@@ -1319,9 +1431,6 @@
             const targetMonth = targetDate.getMonth(); // 0-11
             const targetYear = targetDate.getFullYear();
             
-            // 요일 체크 (0:일, 6:토 -> 주말)
-            // 공휴일 체크 로직이 holidays 객체에 있으므로 활용
-            // 기존 isWeekendBooking 함수는 예약 객체(b)를 받지만 여기서는 날짜로 판단해야 함
             const dayOfWeek = targetDate.getDay();
             const dateKey = dateStr.substring(0, 10);
             const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6 || holidays[dateKey]);
@@ -1330,10 +1439,8 @@
             let limit = 0;
             let currentUsage = 0;
 
-            // 골프장별 쿼터 키 매핑 및 사용량 계산
             if (course === '레이크우드') {
                 limit = isWeekend ? (q.Lakewood_Weekend || 0) : (q.Lakewood_Weekday || 0);
-                // 해당 월, 해당 코스, 해당 요일(주말/주중) 예약 카운트
                 currentUsage = bookings.filter(b => {
                     if (b.Name !== currentUser.name) return false;
                     if (!VALID_STATUSES.includes(b.Status)) return false;
@@ -1341,12 +1448,9 @@
                     const bDate = new Date(String(b.Date).replace(/\./g, '-'));
                     if (isNaN(bDate)) return false;
                     
-                    // 같은 년/월인지 확인
                     if (bDate.getFullYear() !== targetYear || bDate.getMonth() !== targetMonth) return false;
                     if (b['Golf Course'] !== '레이크우드') return false;
 
-                    // 주말 여부 확인 (기존 데이터의 WE 필드 활용하거나 날짜 계산)
-                    // 데이터 일관성을 위해 날짜 계산으로 통일
                     const bDay = bDate.getDay();
                     const bDateKey = String(b.Date).replace(/\./g, '-').substring(0, 10);
                     const bIsWeekend = (bDay === 0 || bDay === 6 || holidays[bDateKey]);
@@ -1389,13 +1493,6 @@
                 }).length;
             }
 
-            // 수정 모드인 경우, 자기 자신의 예약은 카운트에서 제외해야 함 (이미 포함되어 있으므로)
-            // 하지만 여기서는 '추가' 시 체크하는 것이므로, 수정 시에는 날짜/코스가 변경되지 않으면 체크 불필요, 
-            // 변경되면 체크 필요. 로직 복잡성을 줄이기 위해
-            // '신규 예약(id 없음)'일 때만 엄격하게 체크하거나, 
-            // 현재 카운트에 포함된 '내 예약'이 있다면 -1을 해주는 로직이 필요함.
-            // 일단 신규 예약(add) 시에만 체크하도록 적용 (update 시에는 보통 날짜 변경이 드물거나 관리자가 하므로)
-            
             if (currentUsage >= limit) {
                 return `[${course}] ${targetMonth + 1}월 예약 한도(${limit}회)를 초과했습니다.`;
             }
@@ -1417,7 +1514,12 @@
                 'id': document.getElementById('bookingId').value, 'Golf Course': document.getElementById('golfCourse').value,
                 'Name': inputName, 'Date': dateVal,
                 'Team': document.getElementById('numberOfTeams').value, 'Time': document.getElementById('bookingTime').value,
-                'Status': document.getElementById('bookingStatus').value, 'Comment': document.getElementById('notes').value
+                'Status': document.getElementById('bookingStatus').value, 'Comment': document.getElementById('notes').value,
+                // 신규 필드 추가
+                'Phone': document.getElementById('userPhone').value,
+                'Day': document.getElementById('bookingDay').value,
+                'BookingDate': document.getElementById('bookingRecordDate').value,
+                'DeliveryStatus': document.getElementById('deliveryStatus').value
             };
             
             if (!bookingData.id) {
@@ -1425,10 +1527,6 @@
                 const isDuplicate = bookings.some(b => {
                     const bDate = String(b.Date).replace(/\./g, '-').substring(0, 10);
                     const isActive = !['취소완료', '우천취소', '취소중'].includes(b.Status);
-                    // 다른 사람이 예약했더라도 해당 날짜/골프장은 이미 updateAvailableGolfCourses에서 걸러짐.
-                    // 여기서는 '내가' '같은 날'에 '다른 골프장'이라도 중복해서 잡는 것을 막을지, 
-                    // 아니면 '같은 골프장' 중복만 막을지 결정.
-                    // 기획 의도상 "같은 날 중복 예약 불가"라면 아래 유지.
                     return b.Name === inputName && bDate === dateVal && isActive;
                 });
 
@@ -1437,13 +1535,13 @@
                     return;
                 }
 
-                // 2. [신규] 쿼터 제한 체크 (관리자가 대리 예약하는 경우 제외할 수도 있으나, 일단 모두 적용)
-                if (currentUser.name === inputName) { // 본인 예약일 때만 체크 (관리자가 타인 예약시 패스 가능)
-                     const quotaError = checkQuota(bookingData);
-                     if (quotaError) {
-                         showAlert(quotaError);
-                         return;
-                     }
+                // 2. 쿼터 제한 체크
+                if (currentUser.name === inputName) { 
+                      const quotaError = checkQuota(bookingData);
+                      if (quotaError) {
+                          showAlert(quotaError);
+                          return;
+                      }
                 }
                 
                 await postData('add', { user: currentUser.name, booking: bookingData });
