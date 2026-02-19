@@ -38,40 +38,32 @@
         
         input, select { font-size: 16px !important; padding: 10px !important; }
 
-        /* 금일 예약 테이블 스타일 (컴팩트 & 리사이징) */
+        /* 금일 예약 테이블 스타일 (자동 너비) */
         .compact-table {
-            table-layout: fixed; /* 리사이징을 위해 고정 레이아웃 사용 */
+            table-layout: auto; /* 내용에 맞춰 너비 자동 조정 */
+            width: auto; /* 컨텐츠만큼 늘어나도록 설정 (스크롤바 유도) */
+            min-width: 100%; /* 최소 화면 꽉 채움 */
         }
         .compact-table th, .compact-table td {
             font-size: 11px !important;
-            padding: 4px 2px !important;
+            padding: 4px 6px !important; /* 가독성을 위해 패딩 약간 확보 */
             border: 1px solid #e2e8f0;
             text-align: center;
-            white-space: nowrap;
-            overflow: hidden; /* 내용이 넘칠 경우 숨김 */
-            text-overflow: ellipsis;
+            white-space: nowrap; /* 기본 줄바꿈 금지 */
         }
         .compact-table th {
             background-color: #f8fafc;
             font-weight: 700;
             color: #475569;
-            position: relative; /* 리사이저 위치 기준 */
         }
         
-        /* 컬럼 리사이저 핸들 */
-        .col-resizer {
-            position: absolute;
-            right: 0;
-            top: 0;
-            width: 15px; /* 터치 영역 확보를 위해 넓힘 */
-            height: 100%;
-            cursor: col-resize;
-            background-color: transparent;
-            z-index: 10;
-            transform: translateX(50%); /* 중앙 정렬 */
-        }
-        .col-resizer:hover, .col-resizer.resizing {
-            background-color: rgba(59, 130, 246, 0.5); /* 호버 시 파란색 가이드 */
+        /* 비고란 전용 스타일: 줄바꿈 허용 및 최소 너비 */
+        .compact-table td.wrap-text {
+            white-space: normal !important;
+            min-width: 150px;
+            max-width: 300px;
+            text-align: left;
+            word-break: break-word;
         }
 
         /* 테이블 인풋 스타일 최적화 (Time 등) */
@@ -79,8 +71,8 @@
             font-size: 11px !important;
             padding: 0px 2px !important;
             height: 22px !important;
-            min-width: auto;
             width: 100%;
+            min-width: 60px; /* 최소 입력폭 확보 */
             background-color: transparent;
             border: 1px solid transparent;
             text-align: center;
@@ -88,9 +80,6 @@
         .table-input:focus {
             background-color: #eff6ff;
             border-color: #3b82f6;
-        }
-        .table-input[type="time"] {
-            min-width: 60px;
         }
 
         /* 체크박스 커스텀 스타일 */
@@ -146,21 +135,6 @@
             h1 { font-size: 1.25rem !important; margin-bottom: 0.25rem !important; }
             
             .hidden-mobile { display: none; }
-
-            /* [모바일] 금일 예약 탭 비고란 줄바꿈 허용 */
-            .compact-table td.mobile-wrap-comment {
-                white-space: normal !important;
-                word-break: break-all;
-                min-width: 100px; /* 최소 너비 줄임 */
-                text-align: left;
-                line-height: 1.3;
-            }
-            
-            /* [모바일] 타이트한 컬럼용 스타일 */
-            .tight-col {
-                padding: 4px 1px !important;
-                width: 30px !important;
-            }
         }
     </style>
 </head>
@@ -310,9 +284,9 @@
                      <div id="todayColumnControls" class="flex flex-wrap gap-2"></div>
                  </div>
 
-                 <div id="yesterdayContainer"></div>
-                 <div id="todayContainer"></div>
-                 <div id="tomorrowContainer"></div>
+                 <div id="yesterdayContainer" class="overflow-x-auto"></div>
+                 <div id="todayContainer" class="overflow-x-auto"></div>
+                 <div id="tomorrowContainer" class="overflow-x-auto"></div>
             </div>
 
             <div id="entertainmentView" class="tab-content hidden">
@@ -1047,18 +1021,18 @@
             }
 
             const columns = [
-                { name: '골프장', key: 'golfCourse', isTight: true, width: '50px' },
-                { name: '성명', key: 'name', isTight: true, width: '50px' },
-                { name: '날짜', key: 'playDate', isTight: true, width: '45px' },
-                { name: '요일', key: 'day', isTight: true, width: '30px' },
-                { name: 'WE', key: 'we', isTight: true, width: '30px' },
-                { name: 'Team', key: 'team', isTight: true, width: '30px' },
-                { name: 'Time', key: 'time', isTight: true, width: '60px' },
-                { name: 'Status', key: 'status', isTight: true, width: '50px' },
-                { name: '비고', key: 'comment', isTight: false, width: '180px' }, // 비고란은 여유있게
-                { name: '전화번호', key: 'phone', isTight: false, width: '90px' },
-                { name: '부킹일자', key: 'bookingDate', isTight: true, width: '45px' },
-                { name: '전달여부', key: 'deliveryStatus', isTight: true, width: '40px' }
+                { name: '골프장', key: 'golfCourse' },
+                { name: '성명', key: 'name' },
+                { name: '날짜(Play)', key: 'playDate' },
+                { name: '요일', key: 'day' },
+                { name: 'WE', key: 'we' },
+                { name: 'Team', key: 'team' },
+                { name: 'Time', key: 'time' },
+                { name: 'Status', key: 'status' },
+                { name: '비고', key: 'comment' },
+                { name: '전화번호', key: 'phone' },
+                { name: '부킹일자', key: 'bookingDate' },
+                { name: '전달여부', key: 'deliveryStatus' }
             ];
 
             // 체크박스 생성 로직 (최초 1회만 생성, 상태 반영)
@@ -1125,11 +1099,7 @@
                         <table class="grid-view-table compact-table w-full">
                             <thead class="bg-white">
                                 <tr>
-                                    ${columns.map(c => {
-                                        // 모바일 타이트 폭 클래스 적용
-                                        const tightClass = c.isTight ? 'tight-col' : '';
-                                        return `<th class="relative p-2 border select-none overflow-hidden text-ellipsis ${tightClass}" style="width: ${c.width || 'auto'}">${c.name}<div class="col-resizer"></div></th>`;
-                                    }).join('')}
+                                    ${columns.map(c => `<th class="relative p-2 border select-none overflow-hidden text-ellipsis">${c.name}</th>`).join('')}
                                 </tr>
                             </thead>
                             <tbody>`;
@@ -1147,12 +1117,12 @@
                             <td>${displayCourse}</td>
                             <td>${b.Name}</td>
                             <td>${String(b.Date).replace(/\./g, '-').substring(5)}</td>
-                            <td class="tight-col">${b.Day || ''}</td>
-                            <td class="tight-col">${b.WE || ''}</td>
-                            <td class="tight-col">${b.Team}</td>
+                            <td>${b.Day || ''}</td>
+                            <td>${b.WE || ''}</td>
+                            <td>${b.Team}</td>
                             <td class="p-0"><input type="time" class="table-input inline-edit" data-id="${b.id}" data-field="Time" value="${b.Time || ''}"></td>
-                            <td class="p-0 tight-col"><input type="text" class="table-input inline-edit" data-id="${b.id}" data-field="Status" value="${b.Status || ''}"></td>
-                            <td class="truncate px-1 mobile-wrap-comment" title="${b.Comment||''}">${b.Comment || ''}</td>
+                            <td class="p-0"><input type="text" class="table-input inline-edit" data-id="${b.id}" data-field="Status" value="${b.Status || ''}"></td>
+                            <td class="truncate px-1 wrap-text" title="${b.Comment||''}">${b.Comment || ''}</td>
                             <td>${b.Phone || ''}</td>
                             <td>${b.BookingDate ? String(b.BookingDate).replace(/\./g, '-').substring(5) : ''}</td>
                             <td class="p-0"><input type="text" class="table-input inline-edit" data-id="${b.id}" data-field="DeliveryStatus" value="${b.DeliveryStatus || ''}"></td>
@@ -1186,56 +1156,6 @@
                     const cells = document.querySelectorAll(`#todayView table tr > *:nth-child(${parseInt(index) + 1})`);
                     cells.forEach(cell => cell.style.display = 'none');
                 }
-            });
-
-            // 컬럼 리사이징 이벤트 바인딩
-            enableColumnResizing();
-        }
-
-        // 컬럼 리사이징 기능 활성화 함수
-        function enableColumnResizing() {
-            document.querySelectorAll('.compact-table th').forEach(th => {
-                const resizer = th.querySelector('.col-resizer');
-                if (!resizer) return;
-
-                let startX, startWidth;
-
-                const onMouseDown = (e) => {
-                    // 터치 이벤트인지 확인
-                    const isTouch = e.type === 'touchstart';
-                    if (!isTouch) e.preventDefault(); // 마우스일 때만 기본 동작 방지 (터치는 스크롤 등 고려)
-                    
-                    startX = isTouch ? e.touches[0].pageX : e.pageX;
-                    startWidth = th.offsetWidth;
-                    resizer.classList.add('resizing');
-
-                    const onMouseMove = (moveEvent) => {
-                        const isMoveTouch = moveEvent.type === 'touchmove';
-                        const pageX = isMoveTouch ? moveEvent.touches[0].pageX : moveEvent.pageX;
-                        
-                        const width = startWidth + (pageX - startX);
-                        if (width > 30) { // 최소 너비 제한
-                            th.style.width = `${width}px`;
-                            th.style.minWidth = `${width}px`; // 강제 적용
-                        }
-                    };
-
-                    const onMouseUp = () => {
-                        document.removeEventListener('mousemove', onMouseMove);
-                        document.removeEventListener('mouseup', onMouseUp);
-                        document.removeEventListener('touchmove', onMouseMove);
-                        document.removeEventListener('touchend', onMouseUp);
-                        resizer.classList.remove('resizing');
-                    };
-
-                    document.addEventListener('mousemove', onMouseMove);
-                    document.addEventListener('mouseup', onMouseUp);
-                    document.addEventListener('touchmove', onMouseMove);
-                    document.addEventListener('touchend', onMouseUp);
-                };
-
-                resizer.addEventListener('mousedown', onMouseDown);
-                resizer.addEventListener('touchstart', onMouseDown);
             });
         }
 
