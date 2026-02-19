@@ -1487,6 +1487,83 @@
                     }
                 });
             });
+
+            // [추가] 엑셀 다운로드 기능
+            document.getElementById('downloadExcelBtn')?.addEventListener('click', () => {
+                // 수정: 전체 bookings 대신 현재 기간(isInSelectedPeriod)에 해당하는 데이터만 필터링
+                const filteredBookings = bookings.filter(b => isInSelectedPeriod(b.Date));
+
+                if (!filteredBookings || filteredBookings.length === 0) {
+                    showAlert("다운로드할 데이터가 없습니다.");
+                    return;
+                }
+                
+                // [수정] 관리자 비고란(Comment) 제외하고 다운로드
+                const dataToExport = filteredBookings.map(b => {
+                    const { Comment, ...rest } = b; // Comment 필드 분리
+                    return rest; // Comment가 제외된 객체 반환
+                });
+                
+                // BOM 추가하여 한글 깨짐 방지
+                const csv = Papa.unparse(dataToExport);
+                const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.setAttribute("href", url);
+                
+                const today = new Date();
+                const dateStr = today.getFullYear() + String(today.getMonth()+1).padStart(2,'0') + String(today.getDate()).padStart(2,'0');
+                // 파일명에 기간 정보 추가
+                link.setAttribute("download", `golf_bookings_${selectedYear}_${selectedHalf === '1' ? '1H' : '2H'}_${dateStr}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+
+            // [추가] 엑셀 업로드 모달 열기
+            document.getElementById('uploadExcelBtn')?.addEventListener('click', () => {
+                document.getElementById('uploadModal').style.display = 'flex';
+            });
+
+            // [추가] 엑셀 업로드 모달 닫기
+            document.getElementById('closeUploadModalBtn')?.addEventListener('click', () => {
+                document.getElementById('uploadModal').style.display = 'none';
+                document.getElementById('uploadForm').reset();
+            });
+
+            // [추가] 엑셀 업로드 처리
+            document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const fileInput = document.getElementById('excelFile');
+                const file = fileInput.files[0];
+                if (!file) return;
+
+                // PapaParse로 CSV 파싱
+                Papa.parse(file, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: async function(results) {
+                        const uploadedData = results.data;
+                        if (!uploadedData || uploadedData.length === 0) {
+                            showAlert("업로드할 데이터가 없습니다.");
+                            return;
+                        }
+
+                        showConfirm(`${uploadedData.length}건의 데이터를 업로드하시겠습니까?`, async () => {
+                            // 모달 닫기
+                            document.getElementById('uploadModal').style.display = 'none';
+                            // 백엔드 전송
+                            await postData('addMultiple', { user: currentUser.name, bookings: uploadedData });
+                            // 폼 초기화
+                            document.getElementById('uploadForm').reset();
+                        });
+                    },
+                    error: function(err) {
+                        showAlert("파일 파싱 중 오류가 발생했습니다: " + err.message);
+                    }
+                });
+            });
         }
 
         function openBookingModal(booking = null, dateStr = null) {
