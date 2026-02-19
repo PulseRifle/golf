@@ -145,6 +145,21 @@
             h1 { font-size: 1.25rem !important; margin-bottom: 0.25rem !important; }
             
             .hidden-mobile { display: none; }
+
+            /* [모바일] 금일 예약 탭 비고란 줄바꿈 허용 */
+            .compact-table td.mobile-wrap-comment {
+                white-space: normal !important;
+                word-break: break-all;
+                min-width: 120px; /* 최소 너비 확보 */
+                text-align: left;
+                line-height: 1.3;
+            }
+            
+            /* [모바일] 타이트한 컬럼용 스타일 */
+            .tight-col {
+                padding: 4px 1px !important;
+                width: 30px !important;
+            }
         }
     </style>
 </head>
@@ -1019,44 +1034,74 @@
             const tomorrowStr = getFormattedDate(tomorrow);
 
             // [신규] 컬럼 정의 (표시 이름 및 내부 키)
+            // 기본 hidden 값: Status, 부킹일자, WE, 전달여부는 체크 해제
+            const defaultHiddenColumns = ['status', 'bookingDate', 'we', 'deliveryStatus'];
+            
+            // localStorage에서 상태 불러오기 (없으면 디폴트)
+            let savedState = JSON.parse(localStorage.getItem('golfBooking_todayColumnState') || 'null');
+            if (!savedState) {
+                savedState = {};
+                // 디폴트로 숨길 항목 설정 (true = 숨김, false = 표시 로 해도 되고, 체크여부로 해도 됨)
+                // 여기선 'checked' 여부를 저장한다고 가정. 숨길 항목은 checked=false
+            }
+
             const columns = [
-                { name: '골프장', key: 'golfCourse' },
-                { name: '성명', key: 'name' },
-                { name: '날짜(Play)', key: 'playDate' },
-                { name: '요일', key: 'day' },
-                { name: 'WE', key: 'we' },
-                { name: 'Team', key: 'team' },
-                { name: 'Time', key: 'time' },
-                { name: 'Status', key: 'status' },
-                { name: '비고', key: 'comment' },
-                { name: '전화번호', key: 'phone' },
-                { name: '부킹일자', key: 'bookingDate' },
-                { name: '전달여부', key: 'deliveryStatus' }
+                { name: '골프장', key: 'golfCourse', isTight: false },
+                { name: '성명', key: 'name', isTight: false },
+                { name: '날짜(Play)', key: 'playDate', isTight: false },
+                { name: '요일', key: 'day', isTight: true },
+                { name: 'WE', key: 'we', isTight: true },
+                { name: 'Team', key: 'team', isTight: true },
+                { name: 'Time', key: 'time', isTight: false },
+                { name: 'Status', key: 'status', isTight: true },
+                { name: '비고', key: 'comment', isTight: false },
+                { name: '전화번호', key: 'phone', isTight: false },
+                { name: '부킹일자', key: 'bookingDate', isTight: false },
+                { name: '전달여부', key: 'deliveryStatus', isTight: false }
             ];
 
-            // 체크박스 생성 로직 (최초 1회만 생성)
+            // 체크박스 생성 로직 (최초 1회만 생성, 상태 반영)
             const controlsContainer = document.getElementById('todayColumnControls');
-            if (controlsContainer.innerHTML === '') {
-                columns.forEach((col, index) => {
-                    const label = document.createElement('label');
-                    label.className = 'checkbox-label bg-white border border-gray-200';
-                    label.innerHTML = `<input type="checkbox" checked class="checkbox-input col-toggle" data-col-index="${index}">${col.name}`;
-                    controlsContainer.appendChild(label);
-                });
+            controlsContainer.innerHTML = ''; // 리셋 후 다시 생성 (상태 반영 위해)
 
-                // 이벤트 리스너: 컬럼 토글
-                controlsContainer.addEventListener('change', (e) => {
-                    if (e.target.classList.contains('col-toggle')) {
-                        const index = e.target.getAttribute('data-col-index');
-                        const isVisible = e.target.checked;
-                        // 모든 todayView 테이블의 해당 컬럼 제어 (nth-child는 1부터 시작하므로 index + 1)
-                        const cells = document.querySelectorAll(`#todayView table tr > *:nth-child(${parseInt(index) + 1})`);
-                        cells.forEach(cell => {
-                            cell.style.display = isVisible ? '' : 'none';
-                        });
-                    }
-                });
-            }
+            columns.forEach((col, index) => {
+                const label = document.createElement('label');
+                label.className = 'checkbox-label bg-white border border-gray-200';
+                
+                // 상태 결정: 저장된 값이 있으면 사용, 없으면 디폴트 리스트 확인
+                let isChecked = true;
+                if (savedState[col.key] !== undefined) {
+                    isChecked = savedState[col.key];
+                } else {
+                    if (defaultHiddenColumns.includes(col.key)) isChecked = false;
+                }
+
+                label.innerHTML = `<input type="checkbox" ${isChecked ? 'checked' : ''} class="checkbox-input col-toggle" data-col-index="${index}" data-col-key="${col.key}">${col.name}`;
+                controlsContainer.appendChild(label);
+            });
+
+            // 이벤트 리스너: 컬럼 토글 및 상태 저장
+            // 기존 리스너 중복 방지를 위해 container에 직접 리스너 연결 방식 유지하되, 새로 생성했으므로 다시 연결 필요 없음(위임).
+            // 하지만 innerHTML로 밀어넣었으므로 연결 로직을 밖으로 빼거나 여기서 재연결.
+            // 간단하게 여기서 onchange 처리
+            controlsContainer.onchange = (e) => {
+                if (e.target.classList.contains('col-toggle')) {
+                    const index = e.target.getAttribute('data-col-index');
+                    const key = e.target.getAttribute('data-col-key');
+                    const isVisible = e.target.checked;
+                    
+                    // 상태 저장
+                    const currentState = JSON.parse(localStorage.getItem('golfBooking_todayColumnState') || '{}');
+                    currentState[key] = isVisible;
+                    localStorage.setItem('golfBooking_todayColumnState', JSON.stringify(currentState));
+
+                    // 컬럼 제어
+                    const cells = document.querySelectorAll(`#todayView table tr > *:nth-child(${parseInt(index) + 1})`);
+                    cells.forEach(cell => {
+                        cell.style.display = isVisible ? '' : 'none';
+                    });
+                }
+            };
 
             const sections = [
                 { id: 'yesterdayContainer', title: `어제 (${yesterdayStr})`, dateStr: yesterdayStr, bg: 'bg-gray-100', text: 'text-gray-600' },
@@ -1079,7 +1124,11 @@
                         <table class="grid-view-table compact-table w-full">
                             <thead class="bg-white">
                                 <tr>
-                                    ${columns.map(c => `<th class="relative p-2 border select-none overflow-hidden text-ellipsis" style="width: ${c.key === 'comment' ? '200px' : 'auto'}">${c.name}<div class="col-resizer"></div></th>`).join('')}
+                                    ${columns.map(c => {
+                                        // 모바일 타이트 폭 클래스 적용
+                                        const tightClass = c.isTight ? 'tight-col' : '';
+                                        return `<th class="relative p-2 border select-none overflow-hidden text-ellipsis ${tightClass}" style="width: ${c.key === 'comment' ? '200px' : 'auto'}">${c.name}<div class="col-resizer"></div></th>`;
+                                    }).join('')}
                                 </tr>
                             </thead>
                             <tbody>`;
@@ -1088,16 +1137,21 @@
                     html += `<tr><td colspan="${columns.length}" class="p-4 text-center text-gray-500">예약 내역이 없습니다.</td></tr>`;
                 } else {
                     filtered.forEach(b => {
+                        // 골프장 명칭 처리 (모바일 약어)
+                        const courseName = b['Golf Course'];
+                        const abbr = COURSE_ABBR[courseName] || courseName;
+                        const displayCourse = `<span class="md:hidden">${abbr}</span><span class="hidden md:inline">${courseName}</span>`;
+
                         html += `<tr>
-                            <td>${b['Golf Course']}</td>
+                            <td>${displayCourse}</td>
                             <td>${b.Name}</td>
                             <td>${String(b.Date).replace(/\./g, '-').substring(5)}</td>
-                            <td>${b.Day || ''}</td>
-                            <td>${b.WE || ''}</td>
-                            <td>${b.Team}</td>
+                            <td class="tight-col">${b.Day || ''}</td>
+                            <td class="tight-col">${b.WE || ''}</td>
+                            <td class="tight-col">${b.Team}</td>
                             <td class="p-0"><input type="time" class="table-input inline-edit" data-id="${b.id}" data-field="Time" value="${b.Time || ''}"></td>
-                            <td class="p-0"><input type="text" class="table-input inline-edit" data-id="${b.id}" data-field="Status" value="${b.Status || ''}"></td>
-                            <td class="truncate px-1" title="${b.Comment||''}">${b.Comment || ''}</td>
+                            <td class="p-0 tight-col"><input type="text" class="table-input inline-edit" data-id="${b.id}" data-field="Status" value="${b.Status || ''}"></td>
+                            <td class="truncate px-1 mobile-wrap-comment" title="${b.Comment||''}">${b.Comment || ''}</td>
                             <td>${b.Phone || ''}</td>
                             <td>${b.BookingDate ? String(b.BookingDate).replace(/\./g, '-').substring(5) : ''}</td>
                             <td class="p-0"><input type="text" class="table-input inline-edit" data-id="${b.id}" data-field="DeliveryStatus" value="${b.DeliveryStatus || ''}"></td>
@@ -1123,7 +1177,7 @@
                 });
             });
 
-            // 체크박스 상태 반영 (새로 렌더링된 테이블에 대해)
+            // 체크박스 초기 상태 반영 (숨김 처리)
             const toggles = document.querySelectorAll('.col-toggle');
             toggles.forEach(toggle => {
                 if (!toggle.checked) {
