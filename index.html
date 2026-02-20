@@ -40,16 +40,16 @@
 
         /* 금일 예약 테이블 스타일 (자동 너비) */
         .compact-table {
-            table-layout: auto; /* 내용에 맞춰 너비 자동 조정 */
-            width: auto; /* 컨텐츠만큼 늘어나도록 설정 (스크롤바 유도) */
-            min-width: 100%; /* 최소 화면 꽉 채움 */
+            table-layout: auto; 
+            width: auto; 
+            min-width: 100%; 
         }
         .compact-table th, .compact-table td {
             font-size: 11px !important;
-            padding: 4px 6px !important; /* 가독성을 위해 패딩 약간 확보 */
+            padding: 4px 6px !important; 
             border: 1px solid #e2e8f0;
             text-align: center;
-            white-space: nowrap; /* 기본 줄바꿈 금지 */
+            white-space: nowrap; 
         }
         .compact-table th {
             background-color: #f8fafc;
@@ -72,7 +72,7 @@
             padding: 0px 2px !important;
             height: 22px !important;
             width: 100%;
-            min-width: 60px; /* 최소 입력폭 확보 */
+            min-width: 60px; 
             background-color: transparent;
             border: 1px solid transparent;
             text-align: center;
@@ -99,6 +99,15 @@
             height: 1.2rem;
             margin-right: 0.5rem;
             accent-color: #2563eb;
+        }
+
+        /* [추가] 가로 스크롤바 숨기기 (줄바꿈 방지 컨테이너용) */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
 
         @keyframes loadingSlide {
@@ -191,29 +200,27 @@
                     <button id="entertainmentTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 whitespace-nowrap">접대비 차감</button>
                     <button id="lookupTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 hidden whitespace-nowrap">조회</button>
                     <button id="anonymousTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 hidden whitespace-nowrap">무기명</button>
-                    <!-- 선불제 탭 버튼 -->
                     <button id="prepaidTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 hidden whitespace-nowrap">선불제</button>
                 </nav>
             </div>
 
             <div id="calendarView" class="tab-content">
-                <!-- 캘린더 필터 영역 -->
-                <div class="bg-gray-50 p-2 md:p-4 rounded-xl border border-gray-200 mb-3 md:mb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-2 md:gap-4">
-                    <div class="flex flex-wrap gap-0.5 md:gap-2 items-center">
-                        <span class="font-bold text-gray-700 mr-0.5 md:mr-2 text-[11px] md:text-base whitespace-nowrap">골프장:</span>
-                        <!-- 모바일 반응형: md:hidden(약칭), hidden md:inline(전체) -->
-                        <label class="checkbox-label"><input type="checkbox" name="calCourseFilter" value="레이크우드" checked class="checkbox-input"><span class="md:hidden">레이크</span><span class="hidden md:inline">레이크우드</span></label>
-                        <label class="checkbox-label"><input type="checkbox" name="calCourseFilter" value="스카이밸리" checked class="checkbox-input"><span class="md:hidden">스카이</span><span class="hidden md:inline">스카이밸리</span></label>
-                        <label class="checkbox-label"><input type="checkbox" name="calCourseFilter" value="힐드로사이" checked class="checkbox-input"><span class="md:hidden">힐드로</span><span class="hidden md:inline">힐드로사이</span></label>
-                        <label class="checkbox-label"><input type="checkbox" name="calCourseFilter" value="벨루토" checked class="checkbox-input">벨루토</label>
+                <!-- [수정됨] 캘린더 필터 영역: 줄바꿈 방지 및 글자 축소 적용 -->
+                <div class="bg-gray-50 p-1.5 md:p-4 rounded-xl border border-gray-200 mb-3 md:mb-4 flex flex-row justify-between items-center gap-1 md:gap-4 overflow-x-auto whitespace-nowrap scrollbar-hide">
+                    <div class="flex flex-nowrap gap-0.5 md:gap-2 items-center flex-shrink-0">
+                        <span class="font-bold text-gray-700 mr-0.5 md:mr-2 text-[10px] sm:text-[11px] md:text-base">골프장:</span>
+                        <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calCourseFilter" value="레이크우드" checked class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm md:hidden">레이크</span><span class="hidden md:inline md:text-sm">레이크우드</span></label>
+                        <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calCourseFilter" value="스카이밸리" checked class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm md:hidden">스카이</span><span class="hidden md:inline md:text-sm">스카이밸리</span></label>
+                        <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calCourseFilter" value="힐드로사이" checked class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm md:hidden">힐드로</span><span class="hidden md:inline md:text-sm">힐드로사이</span></label>
+                        <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calCourseFilter" value="벨루토" checked class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">벨루토</span></label>
                     </div>
-                    <div class="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end">
-                        <div id="calendarNameFilterWrapper" class="hidden flex items-center gap-1 md:gap-2">
-                             <label class="font-bold text-gray-700 text-xs md:text-base">이름:</label>
-                             <select id="calendarNameSelect" class="border border-gray-300 rounded-lg p-1 md:p-2 text-xs md:text-sm min-w-[80px] md:min-w-[120px]"></select>
+                    <div class="flex items-center gap-1 md:gap-2 flex-shrink-0 ml-auto">
+                        <div id="calendarNameFilterWrapper" class="hidden flex items-center gap-0.5 md:gap-2">
+                             <label class="font-bold text-gray-700 text-[10px] sm:text-[11px] md:text-base">이름:</label>
+                             <select id="calendarNameSelect" class="border border-gray-300 rounded-lg p-0.5 md:p-2 text-[10px] sm:text-xs md:text-sm w-[55px] sm:w-[70px] md:min-w-[120px] h-[22px] md:h-auto leading-none bg-white"></select>
                         </div>
-                        <label class="flex items-center cursor-pointer font-bold text-blue-800 bg-blue-100 px-2 py-1 md:px-4 md:py-2 rounded-lg hover:bg-blue-200 transition text-xs md:text-base">
-                            <input type="checkbox" id="calMyBookingFilter" class="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2 accent-blue-600">
+                        <label class="flex items-center cursor-pointer font-bold text-blue-800 bg-blue-100 px-1.5 py-1 md:px-4 md:py-2 rounded-lg hover:bg-blue-200 transition text-[10px] sm:text-[11px] md:text-base flex-shrink-0">
+                            <input type="checkbox" id="calMyBookingFilter" class="w-3 h-3 md:w-5 md:h-5 mr-1 md:mr-2 accent-blue-600">
                             내 예약만
                         </label>
                     </div>
@@ -231,7 +238,6 @@
                         <label class="checkbox-label"><input type="checkbox" name="statusFilter" value="예약중" class="checkbox-input">예약중</label>
                         <label class="checkbox-label"><input type="checkbox" name="statusFilter" value="취소" class="checkbox-input">취소</label>
                     </div>
-                    <!-- 관리자용 필터 그룹 -->
                      <div class="flex flex-wrap gap-2 items-center justify-end w-full lg:w-auto">
                         <div id="statusCourseFilterWrapper" class="hidden flex items-center gap-1 md:gap-2">
                             <label class="font-bold text-gray-700 text-xs md:text-base">골프장:</label>
@@ -275,12 +281,9 @@
                 </div>
             </div>
             
-            <!-- [신규] 금일 예약 탭 -->
             <div id="todayView" class="tab-content hidden space-y-4">
-                 <!-- 컬럼 토글 컨트롤 -->
                  <div class="bg-gray-50 p-2 rounded-lg border border-gray-200 flex flex-wrap gap-2 items-center text-xs">
                      <span class="font-bold text-gray-700 mr-2">표시할 항목:</span>
-                     <!-- JS로 동적 생성됨 -->
                      <div id="todayColumnControls" class="flex flex-wrap gap-2"></div>
                  </div>
 
@@ -348,14 +351,13 @@
                 <div id="anonymousTableContainer" class="overflow-x-auto rounded-xl border border-gray-300 shadow-sm"></div>
             </div>
 
-            <!-- 선불제 탭 컨테이너 -->
             <div id="prepaidView" class="tab-content hidden">
                 <div id="prepaidTableContainer" class="overflow-x-auto rounded-xl border border-gray-300 shadow-sm"></div>
             </div>
         </div>
     </div>
 
-    <!-- ... (이하 모달 및 스크립트 영역 유지) ... -->
+    <!-- 모달 등 -->
     <div id="bookingModal" class="modal-overlay">
         <div class="modal-content">
             <h2 id="modalTitle" class="text-2xl md:text-3xl font-extrabold mb-4 md:mb-8 text-gray-800 border-b pb-2 md:pb-4">예약 신청</h2>
@@ -366,7 +368,6 @@
                         <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">신청인</label>
                         <input type="text" id="userName" required class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-gray-50">
                     </div>
-                    <!-- 신규 필드: 전화번호 -->
                      <div class="col-span-2">
                         <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">전화번호</label>
                         <input type="text" id="userPhone" class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white">
@@ -375,7 +376,6 @@
                         <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">예약날짜 (연도4자리)</label>
                         <input type="date" id="bookingDate" required max="9999-12-31" class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                    <!-- 신규 필드: 요일 -->
                     <div>
                          <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">요일</label>
                          <input type="text" id="bookingDay" class="block w-full border-gray-300 rounded-lg shadow-sm bg-gray-50">
@@ -390,18 +390,16 @@
                     </div>
                     <div>
                         <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">티오프 시간</label>
-                        <input type="time" id="bookingTime" class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <input type="text" id="bookingTime" placeholder="HH:MM" maxlength="5" oninput="formatTimeInput(event)" class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white">
                     </div>
                     <div>
                         <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">상태</label>
                         <input type="text" id="bookingStatus" class="block w-full border-gray-300 rounded-lg shadow-sm bg-gray-50">
                     </div>
-                    <!-- 신규 필드: 부킹일자 -->
                     <div>
                         <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">부킹일자</label>
                         <input type="date" id="bookingRecordDate" class="block w-full border-gray-300 rounded-lg shadow-sm bg-white">
                     </div>
-                     <!-- 신규 필드: 전달여부 -->
                      <div>
                         <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">전달여부</label>
                         <input type="text" id="deliveryStatus" class="block w-full border-gray-300 rounded-lg shadow-sm bg-white">
@@ -419,7 +417,6 @@
         </div>
     </div>
     
-    <!-- Notice Modal -->
     <div id="noticeModal" class="modal-overlay">
         <div class="modal-content relative max-w-3xl max-h-[80vh] overflow-y-auto">
             <button id="closeNoticeBtn" class="absolute top-4 right-4 text-2xl text-gray-500 hover:text-gray-800">&times;</button>
@@ -492,7 +489,6 @@
         </div>
     </div>
 
-    <!-- Alert Modal -->
     <div id="alertModal" class="modal-overlay">
         <div class="modal-content max-w-sm text-center">
             <h3 class="text-lg md:text-xl font-bold mb-3 md:mb-4 text-gray-800">알림</h3>
@@ -501,7 +497,6 @@
         </div>
     </div>
 
-    <!-- Confirm Modal -->
     <div id="confirmModal" class="modal-overlay">
         <div class="modal-content max-w-sm text-center">
             <h3 class="text-lg md:text-xl font-bold mb-3 md:mb-4 text-gray-800">확인</h3>
@@ -550,7 +545,6 @@
             '힐드로사이': 'text-red-600'
         };
 
-        // 캘린더 표시 순서 정의
         const COURSE_PRIORITY = { '레이크우드': 1, '스카이밸리': 2, '힐드로사이': 3, '벨루토': 4 };
 
         const COURSE_ABBR = {
@@ -566,18 +560,15 @@
             '2026-01-01': '신정', '2026-02-16': '설날', '2026-02-17': '설날', '2026-02-18': '설날', '2026-03-01': '삼일절', '2026-05-01': '근로자의 날', '2026-05-05': '어린이날', '2026-05-24': '부처님 오신 날', '2026-06-06': '현충일', '2026-08-15': '광복절', '2026-09-24': '추석', '2026-09-25': '추석', '2026-09-26': '추석', '2026-10-03': '개천절', '2026-10-09': '한글날', '2026-12-25': '크리스마스'
         };
         
-        // [수정] 취소중 상태는 쿼터 계산에서 제외 (복구)
         const VALID_STATUSES = ['예약완료', '예약중'];
         const IS_VALID_FOR_COUNTING = (b) => b.MP != 0 && VALID_STATUSES.includes(b.Status);
         
-        // [수정] 날짜 기반으로 주말/공휴일 판단 (데이터의 WE 컬럼 의존성 제거)
         const isWeekendBooking = (booking) => {
             if (!booking || !booking.Date) return false;
             const dateStr = String(booking.Date).replace(/\./g, '-').substring(0, 10);
             const date = new Date(dateStr);
             if (isNaN(date.getTime())) return false;
             const day = date.getDay();
-            // 0:일, 6:토 또는 공휴일 목록에 있으면 주말 처리
             return day === 0 || day === 6 || holidays[dateStr];
         };
 
@@ -736,9 +727,8 @@
             document.getElementById('anonymousTabBtn').classList.toggle('hidden', !isManager);
             document.getElementById('prepaidTabBtn').classList.toggle('hidden', !isManager);
             document.getElementById('lookupTabBtn').classList.toggle('hidden', !isManager);
-            document.getElementById('todayTabBtn').classList.toggle('hidden', !isManager); // 금일예약 탭 관리자 전용
+            document.getElementById('todayTabBtn').classList.toggle('hidden', !isManager);
             
-            // 관리자 전용 버튼 표시 설정
             const deleteBtn = document.getElementById('deleteSelectedBtn');
             const cancelBtn = document.getElementById('cancelSelectedBtn');
             const adminControls = document.getElementById('adminOnlyControls');
@@ -769,7 +759,7 @@
             if(isManager) {
                 renderAnonymousView();
                 renderPrepaidView();
-                renderTodayView(); // [신규] 금일 예약 렌더링
+                renderTodayView();
             }
         }
 
@@ -838,7 +828,6 @@
 
             const checkedCourses = Array.from(document.querySelectorAll('input[name="calCourseFilter"]:checked')).map(cb => cb.value);
             
-            // [수정] 캘린더에서 취소중은 안보이거나 카운트 안되게 할지? 기존 로직 유지 (VALID_STATUSES만 보임)
             let filteredBookings = bookings.filter(b => isInSelectedPeriod(b.Date) && VALID_STATUSES.includes(b.Status));
 
             if (!checkedCourses.includes('전체')) {
@@ -874,7 +863,6 @@
                 const q = userQuotas[currentUser.name] || {};
 
                 let warnings = [];
-                // [수정] 주말/주중 판별을 날짜 기반 함수(isWeekendBooking)로 변경하여 정확도 향상
                 const lakewoodWd = monthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && !isWeekendBooking(b)).length;
                 const lakewoodWe = monthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && isWeekendBooking(b)).length;
                 if (lakewoodWd >= 9) warnings.push('※ 레이크 주중 마감');
@@ -926,7 +914,7 @@
                     const dayOfWeek = new Date(selectedYear, m, d).getDay();
                     let color = 'text-gray-700';
                     if (dayOfWeek === 0 || holidays[dateStr]) color = 'text-red-600';
-                    else if (dayOfWeek === 6) color = 'text-blue-600';
+                    else if (dayOfWeek === 6) color = 'text blue-600';
 
                     dayCell.innerHTML = `<div class="text-sm md:text-lg font-bold ${color} mb-0 md:mb-1">${d}</div>${bookingHtml}`;
                     dayCell.onclick = () => openBookingModal(null, dateStr);
@@ -997,7 +985,6 @@
             });
         }
 
-        // [신규] 금일 예약 렌더링 함수 (UI 개선)
         function renderTodayView() {
             const getFormattedDate = (d) => d.toISOString().split('T')[0];
             const today = new Date();
@@ -1008,16 +995,11 @@
             const yesterdayStr = getFormattedDate(yesterday);
             const tomorrowStr = getFormattedDate(tomorrow);
 
-            // [신규] 컬럼 정의 (표시 이름 및 내부 키)
-            // 기본 hidden 값: Status, 부킹일자, WE, 전달여부는 체크 해제
             const defaultHiddenColumns = ['status', 'bookingDate', 'we', 'deliveryStatus'];
             
-            // localStorage에서 상태 불러오기 (없으면 디폴트)
             let savedState = JSON.parse(localStorage.getItem('golfBooking_todayColumnState') || 'null');
             if (!savedState) {
                 savedState = {};
-                // 디폴트로 숨길 항목 설정 (true = 숨김, false = 표시 로 해도 되고, 체크여부로 해도 됨)
-                // 여기선 'checked' 여부를 저장한다고 가정. 숨길 항목은 checked=false
             }
 
             const columns = [
@@ -1035,15 +1017,13 @@
                 { name: '전달여부', key: 'deliveryStatus', isTight: true, width: '40px' }
             ];
 
-            // 체크박스 생성 로직 (최초 1회만 생성, 상태 반영)
             const controlsContainer = document.getElementById('todayColumnControls');
-            controlsContainer.innerHTML = ''; // 리셋 후 다시 생성 (상태 반영 위해)
+            controlsContainer.innerHTML = ''; 
 
             columns.forEach((col, index) => {
                 const label = document.createElement('label');
                 label.className = 'checkbox-label bg-white border border-gray-200';
                 
-                // 상태 결정: 저장된 값이 있으면 사용, 없으면 디폴트 리스트 확인
                 let isChecked = true;
                 if (savedState[col.key] !== undefined) {
                     isChecked = savedState[col.key];
@@ -1055,22 +1035,16 @@
                 controlsContainer.appendChild(label);
             });
 
-            // 이벤트 리스너: 컬럼 토글 및 상태 저장
-            // 기존 리스너 중복 방지를 위해 container에 직접 리스너 연결 방식 유지하되, 새로 생성했으므로 다시 연결 필요 없음(위임).
-            // 하지만 innerHTML로 밀어넣었으므로 연결 로직을 밖으로 빼거나 여기서 재연결.
-            // 간단하게 여기서 onchange 처리
             controlsContainer.onchange = (e) => {
                 if (e.target.classList.contains('col-toggle')) {
                     const index = e.target.getAttribute('data-col-index');
                     const key = e.target.getAttribute('data-col-key');
                     const isVisible = e.target.checked;
                     
-                    // 상태 저장
                     const currentState = JSON.parse(localStorage.getItem('golfBooking_todayColumnState') || '{}');
                     currentState[key] = isVisible;
                     localStorage.setItem('golfBooking_todayColumnState', JSON.stringify(currentState));
 
-                    // 컬럼 제어
                     const cells = document.querySelectorAll(`#todayView table tr > *:nth-child(${parseInt(index) + 1})`);
                     cells.forEach(cell => {
                         cell.style.display = isVisible ? '' : 'none';
@@ -1086,7 +1060,6 @@
 
             sections.forEach(section => {
                 const container = document.getElementById(section.id);
-                // BookingDate (N열) 기준 필터링
                 const filtered = bookings.filter(b => {
                     if(!b.BookingDate) return false;
                     const bDate = String(b.BookingDate).replace(/\./g, '-').substring(0, 10);
@@ -1108,7 +1081,6 @@
                     html += `<tr><td colspan="${columns.length}" class="p-4 text-center text-gray-500">예약 내역이 없습니다.</td></tr>`;
                 } else {
                     filtered.forEach(b => {
-                        // 골프장 명칭 처리 (모바일 약어)
                         const courseName = b['Golf Course'];
                         const abbr = COURSE_ABBR[courseName] || courseName;
                         const displayCourse = `<span class="md:hidden">${abbr}</span><span class="hidden md:inline">${courseName}</span>`;
@@ -1122,7 +1094,7 @@
                             <td>${b.Phone || ''}</td>
                             <td class="truncate px-1 wrap-text" title="${b.Comment||''}">${b.Comment || ''}</td>
                             <td class="tight-col">${b.WE || ''}</td>
-                            <td class="p-0"><input type="time" class="table-input inline-edit" data-id="${b.id}" data-field="Time" value="${b.Time || ''}"></td>
+                            <td class="p-0"><input type="text" placeholder="HH:MM" maxlength="5" oninput="formatTimeInput(event)" class="table-input inline-edit" data-id="${b.id}" data-field="Time" value="${b.Time || ''}"></td>
                             <td class="p-0 tight-col"><input type="text" class="table-input inline-edit" data-id="${b.id}" data-field="Status" value="${b.Status || ''}"></td>
                             <td>${b.BookingDate ? String(b.BookingDate).replace(/\./g, '-').substring(5) : ''}</td>
                             <td class="p-0"><input type="text" class="table-input inline-edit" data-id="${b.id}" data-field="DeliveryStatus" value="${b.DeliveryStatus || ''}"></td>
@@ -1133,7 +1105,6 @@
                 container.innerHTML = html;
             });
             
-            // 인라인 수정 이벤트 리스너 재등록
             document.querySelectorAll('.inline-edit').forEach(input => {
                 input.addEventListener('change', async (e) => {
                     const id = e.target.getAttribute('data-id');
@@ -1148,7 +1119,6 @@
                 });
             });
 
-            // 체크박스 초기 상태 반영 (숨김 처리)
             const toggles = document.querySelectorAll('.col-toggle');
             toggles.forEach(toggle => {
                 if (!toggle.checked) {
@@ -1474,9 +1444,7 @@
                 });
             });
 
-            // [추가] 엑셀 다운로드 기능
             document.getElementById('downloadExcelBtn')?.addEventListener('click', () => {
-                // 수정: 전체 bookings 대신 현재 기간(isInSelectedPeriod)에 해당하는 데이터만 필터링
                 const filteredBookings = bookings.filter(b => isInSelectedPeriod(b.Date));
 
                 if (!filteredBookings || filteredBookings.length === 0) {
@@ -1484,13 +1452,11 @@
                     return;
                 }
                 
-                // [수정] 관리자 비고란(Comment) 제외하고 다운로드
                 const dataToExport = filteredBookings.map(b => {
-                    const { Comment, ...rest } = b; // Comment 필드 분리
-                    return rest; // Comment가 제외된 객체 반환
+                    const { Comment, ...rest } = b; 
+                    return rest; 
                 });
                 
-                // BOM 추가하여 한글 깨짐 방지
                 const csv = Papa.unparse(dataToExport);
                 const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
                 const url = URL.createObjectURL(blob);
@@ -1499,7 +1465,6 @@
                 
                 const today = new Date();
                 const dateStr = today.getFullYear() + String(today.getMonth()+1).padStart(2,'0') + String(today.getDate()).padStart(2,'0');
-                // 파일명에 기간 정보 추가
                 link.setAttribute("download", `golf_bookings_${selectedYear}_${selectedHalf === '1' ? '1H' : '2H'}_${dateStr}.csv`);
                 link.style.visibility = 'hidden';
                 document.body.appendChild(link);
@@ -1507,25 +1472,21 @@
                 document.body.removeChild(link);
             });
 
-            // [추가] 엑셀 업로드 모달 열기
             document.getElementById('uploadExcelBtn')?.addEventListener('click', () => {
                 document.getElementById('uploadModal').style.display = 'flex';
             });
 
-            // [추가] 엑셀 업로드 모달 닫기
             document.getElementById('closeUploadModalBtn')?.addEventListener('click', () => {
                 document.getElementById('uploadModal').style.display = 'none';
                 document.getElementById('uploadForm').reset();
             });
 
-            // [추가] 엑셀 업로드 처리
             document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const fileInput = document.getElementById('excelFile');
                 const file = fileInput.files[0];
                 if (!file) return;
 
-                // PapaParse로 CSV 파싱
                 Papa.parse(file, {
                     header: true,
                     skipEmptyLines: true,
@@ -1537,11 +1498,8 @@
                         }
 
                         showConfirm(`${uploadedData.length}건의 데이터를 업로드하시겠습니까?`, async () => {
-                            // 모달 닫기
                             document.getElementById('uploadModal').style.display = 'none';
-                            // 백엔드 전송
                             await postData('addMultiple', { user: currentUser.name, bookings: uploadedData });
-                            // 폼 초기화
                             document.getElementById('uploadForm').reset();
                         });
                     },
@@ -1570,7 +1528,6 @@
                 document.getElementById('bookingStatus').value = booking.Status || '예약중';
                 document.getElementById('notes').value = booking.Comment || '';
                 
-                // 신규 필드 로드
                 document.getElementById('userPhone').value = booking.Phone || '';
                 document.getElementById('bookingDay').value = booking.Day || '';
                 document.getElementById('bookingRecordDate').value = booking.BookingDate ? String(booking.BookingDate).replace(/\./g, '-') : '';
@@ -1598,15 +1555,12 @@
             const s = document.getElementById('golfCourse');
             const targetDate = String(date).replace(/\./g, '-').substring(0, 10);
 
-            // [수정] 해당 날짜에 *누구라도* 유효한 예약을 한 골프장은 목록에서 제외 (중복 방지)
             const bookedCourses = bookings.filter(b => {
-                // 수정 시 자기 자신의 예약은 제외하고 체크
                 if (excludeBookingId && String(b.id) === String(excludeBookingId)) return false;
                 
                 const bDate = String(b.Date).replace(/\./g, '-').substring(0, 10);
                 const isActive = !['취소완료', '우천취소', '취소중'].includes(b.Status);
                 
-                // 기존: b.Name === currentUser.name 조건이 있었으나 제거하여 '모든 사람'의 예약을 체크
                 return bDate === targetDate && isActive;
             }).map(b => b['Golf Course']);
 
@@ -1648,12 +1602,11 @@
             }
         }
 
-        // [신규] 월별 쿼터 제한 체크 함수
         function checkQuota(bookingData) {
             const course = bookingData['Golf Course'];
             const dateStr = bookingData['Date'];
             const targetDate = new Date(dateStr);
-            const targetMonth = targetDate.getMonth(); // 0-11
+            const targetMonth = targetDate.getMonth(); 
             const targetYear = targetDate.getFullYear();
             
             const dayOfWeek = targetDate.getDay();
@@ -1721,7 +1674,7 @@
             if (currentUsage >= limit) {
                 return `[${course}] ${targetMonth + 1}월 예약 한도(${limit}회)를 초과했습니다.`;
             }
-            return null; // 통과
+            return null; 
         }
         
         document.getElementById('bookingForm').addEventListener('submit', async (e) => {
@@ -1740,7 +1693,6 @@
                 'Name': inputName, 'Date': dateVal,
                 'Team': document.getElementById('numberOfTeams').value, 'Time': document.getElementById('bookingTime').value,
                 'Status': document.getElementById('bookingStatus').value, 'Comment': document.getElementById('notes').value,
-                // 신규 필드 추가
                 'Phone': document.getElementById('userPhone').value,
                 'Day': document.getElementById('bookingDay').value,
                 'BookingDate': document.getElementById('bookingRecordDate').value,
@@ -1748,7 +1700,6 @@
             };
             
             if (!bookingData.id) {
-                // 1. 중복 예약 체크
                 const isDuplicate = bookings.some(b => {
                     const bDate = String(b.Date).replace(/\./g, '-').substring(0, 10);
                     const isActive = !['취소완료', '우천취소', '취소중'].includes(b.Status);
@@ -1760,7 +1711,6 @@
                     return;
                 }
 
-                // 2. 쿼터 제한 체크
                 if (currentUser.name === inputName) { 
                       const quotaError = checkQuota(bookingData);
                       if (quotaError) {
@@ -1777,6 +1727,16 @@
         
         function formatNumberWithCommas(value) { return String(value).replace(/[^0-9]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
         function removeCommas(value) { return String(value).replace(/,/g, ''); }
+
+        // [추가] 24시간 형식 자동 포맷팅 함수 (숫자 입력시 자동으로 HH:MM 형태로 변환)
+        function formatTimeInput(event) {
+            let input = event.target;
+            let val = input.value.replace(/[^0-9]/g, ''); // 숫자 이외의 문자 제거
+            if (val.length > 2) {
+                val = val.substring(0, 2) + ':' + val.substring(2, 4);
+            }
+            input.value = val;
+        }
     </script>
 </body>
 </html>
