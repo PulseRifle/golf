@@ -376,53 +376,54 @@
                 <!-- 2열 그리드 구조 유지 -->
                 <div class="grid grid-cols-2 gap-3 md:gap-6">
                     <div class="col-span-2">
-                        <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">신청인</label>
-                        <input type="text" id="userName" required class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-gray-50">
+                        <label class="block text-sm font-extrabold text-gray-700 mb-1">신청인</label>
+                        <input type="text" id="userName" required class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 text-gray-600">
                     </div>
                      <!-- 수식 산출란 숨김 처리 (hidden) -->
                      <div class="col-span-2 hidden">
-                        <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">전화번호</label>
-                        <input type="text" id="userPhone" class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white">
+                        <label class="block text-sm font-extrabold text-gray-700 mb-1">전화번호</label>
+                        <input type="text" id="userPhone" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
                     </div>
                     <div>
-                        <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">예약날짜 (연도4자리)</label>
-                        <input type="date" id="bookingDate" required max="9999-12-31" class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <!-- 라벨 수정됨 -->
+                        <label class="block text-sm font-extrabold text-gray-700 mb-1">예약일자</label>
+                        <input type="date" id="bookingDate" required max="9999-12-31" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-medium">
                     </div>
                     <!-- 수식 산출란 숨김 처리 (hidden) -->
                     <div class="hidden">
-                         <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">요일</label>
-                         <input type="text" id="bookingDay" class="block w-full border-gray-300 rounded-lg shadow-sm bg-gray-50">
+                         <label class="block text-sm font-extrabold text-gray-700 mb-1">요일</label>
+                         <input type="text" id="bookingDay" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base bg-gray-50 text-gray-600">
                     </div>
                     <div>
-                        <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">골프장</label>
-                        <select id="golfCourse" required class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white"></select>
+                        <label class="block text-sm font-extrabold text-gray-700 mb-1">골프장</label>
+                        <select id="golfCourse" required class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-medium"></select>
                     </div>
                     <div>
-                        <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">팀 수</label>
-                        <input type="number" id="numberOfTeams" min="1" required class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <label class="block text-sm font-extrabold text-gray-700 mb-1">팀 수</label>
+                        <input type="number" id="numberOfTeams" min="1" required class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-medium">
                     </div>
                     <!-- 수식 산출란 숨김 처리 (hidden) -->
                     <div class="hidden">
-                        <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">티오프 시간</label>
-                        <input type="text" id="bookingTime" placeholder="HH:MM" maxlength="5" oninput="formatTimeInput(event)" class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white">
+                        <label class="block text-sm font-extrabold text-gray-700 mb-1">티오프 시간</label>
+                        <input type="text" id="bookingTime" placeholder="HH:MM" maxlength="5" oninput="formatTimeInput(event)" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
                     </div>
                     <div>
-                        <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">상태</label>
-                        <input type="text" id="bookingStatus" class="block w-full border-gray-300 rounded-lg shadow-sm bg-gray-50">
+                        <label class="block text-sm font-extrabold text-gray-700 mb-1">상태</label>
+                        <input type="text" id="bookingStatus" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base bg-gray-50 text-gray-600 font-medium" readonly>
                     </div>
                     <!-- 수식 산출란 숨김 처리 (hidden) -->
                     <div class="hidden">
-                        <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">부킹일자</label>
-                        <input type="date" id="bookingRecordDate" class="block w-full border-gray-300 rounded-lg shadow-sm bg-white">
+                        <label class="block text-sm font-extrabold text-gray-700 mb-1">부킹일자</label>
+                        <input type="date" id="bookingRecordDate" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base bg-white">
                     </div>
                      <!-- 수식 산출란 숨김 처리 (hidden) -->
                      <div class="hidden">
-                        <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">전달여부</label>
-                        <input type="text" id="deliveryStatus" class="block w-full border-gray-300 rounded-lg shadow-sm bg-white">
+                        <label class="block text-sm font-extrabold text-gray-700 mb-1">전달여부</label>
+                        <input type="text" id="deliveryStatus" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base bg-white">
                     </div>
                     <div class="col-span-2">
-                        <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">비고</label>
-                        <input type="text" id="notes" class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <label class="block text-sm font-extrabold text-gray-700 mb-1">비고</label>
+                        <input type="text" id="notes" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-medium">
                     </div>
                 </div>
                 <div class="flex justify-end space-x-2 md:space-x-4 pt-4 md:pt-8 border-t">
@@ -1648,7 +1649,17 @@
                 return bDate === targetDate && isActive;
             }).map(b => b['Golf Course']);
 
-            const availableCourses = MODAL_GOLF_COURSES.filter(c => !bookedCourses.includes(c));
+            let allowedCourses = MODAL_GOLF_COURSES;
+            
+            // [수정됨] 일반사용자는 중부 예약 불가 (예약 신청 골프장 목록에서 '중부' 제외)
+            if (currentUser) {
+                const role = getUserRole(currentUser.name);
+                if (role === 'NORMAL_USER') {
+                    allowedCourses = allowedCourses.filter(c => c !== '중부');
+                }
+            }
+
+            const availableCourses = allowedCourses.filter(c => !bookedCourses.includes(c));
 
             if (availableCourses.length === 0) {
                 s.innerHTML = '<option value="">예약 가능한 골프장이 없습니다</option>';
@@ -1754,6 +1765,7 @@
                      return b['Golf Course'] === '힐드로사이';
                 }).length;
             }
+            // [참고] '중부' 골프장은 위 조건들에 포함되지 않으므로(limit 검사 로직 안탐) 기본적으로 무제한 처리됩니다.
 
             if (currentUsage >= limit) {
                 return `[${course}] ${targetMonth + 1}월 예약 한도(${limit}회)를 초과했습니다.`;
@@ -1772,7 +1784,7 @@
                 return;
             }
 
-            // [수정됨] 구글시트 수식 보존을 위해 산출 필드(Phone, Day, Time, BookingDate, DeliveryStatus)를 전송 항목에서 완전히 제외
+            // 구글시트 수식 보존을 위해 산출 필드(Phone, Day, Time, BookingDate, DeliveryStatus)를 전송 항목에서 완전히 제외
             const bookingData = {
                 'id': document.getElementById('bookingId').value, 
                 'Golf Course': document.getElementById('golfCourse').value,
