@@ -101,7 +101,7 @@
             accent-color: #2563eb;
         }
 
-        /* [추가] 가로 스크롤바 숨기기 (줄바꿈 방지 컨테이너용) */
+        /* 가로 스크롤바 숨기기 (줄바꿈 방지 컨테이너용) */
         .scrollbar-hide::-webkit-scrollbar {
             display: none;
         }
@@ -124,7 +124,7 @@
             animation: loadingSlide 1.5s infinite ease-in-out;
         }
 
-        /* [모바일 최적화 스타일] */
+        /* 모바일 최적화 스타일 */
         @media (max-width: 640px) {
             body { padding: 0.5rem !important; font-size: 13px !important; }
             .calendar-container { grid-template-columns: 1fr; gap: 12px; }
@@ -205,7 +205,7 @@
             </div>
 
             <div id="calendarView" class="tab-content">
-                <!-- [수정됨] 캘린더 필터 영역: 줄바꿈 방지 및 글자 축소 적용 -->
+                <!-- 캘린더 필터 영역: 중부 추가됨 및 id 부여 -->
                 <div class="bg-gray-50 p-1.5 md:p-4 rounded-xl border border-gray-200 mb-3 md:mb-4 flex flex-row justify-between items-center gap-1 md:gap-4 overflow-x-auto whitespace-nowrap scrollbar-hide">
                     <div class="flex flex-nowrap gap-0.5 md:gap-2 items-center flex-shrink-0">
                         <span class="font-bold text-gray-700 mr-0.5 md:mr-2 text-[10px] sm:text-[11px] md:text-base">골프장:</span>
@@ -213,6 +213,7 @@
                         <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calCourseFilter" value="스카이밸리" checked class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm md:hidden">스카이</span><span class="hidden md:inline md:text-sm">스카이밸리</span></label>
                         <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calCourseFilter" value="힐드로사이" checked class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm md:hidden">힐드로</span><span class="hidden md:inline md:text-sm">힐드로사이</span></label>
                         <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calCourseFilter" value="벨루토" checked class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">벨루토</span></label>
+                        <label id="calJungbuFilterLabel" class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calCourseFilter" value="중부" checked class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">중부</span></label>
                     </div>
                     <div class="flex items-center gap-1 md:gap-2 flex-shrink-0 ml-auto">
                         <div id="calendarNameFilterWrapper" class="hidden flex items-center gap-0.5 md:gap-2">
@@ -238,7 +239,16 @@
                         <label class="checkbox-label"><input type="checkbox" name="statusFilter" value="예약중" class="checkbox-input">예약중</label>
                         <label class="checkbox-label"><input type="checkbox" name="statusFilter" value="취소" class="checkbox-input">취소</label>
                     </div>
-                     <div class="flex flex-wrap gap-2 items-center justify-end w-full lg:w-auto">
+
+                    <!-- [추가됨] 시에나관리자 전용 골프장 필터 -->
+                    <div id="sienaCourseFilterWrapper" class="hidden flex flex-wrap gap-1 md:gap-4 items-center mt-2 lg:mt-0 lg:ml-4 lg:pl-4 lg:border-l border-gray-300">
+                        <span class="font-bold text-gray-700 mr-1 md:mr-2 text-xs md:text-base">골프장(시에나):</span>
+                        <label class="checkbox-label"><input type="checkbox" name="sienaStatusFilter" value="전체" checked class="checkbox-input">전체</label>
+                        <label class="checkbox-label"><input type="checkbox" name="sienaStatusFilter" value="벨루토" class="checkbox-input">벨루토</label>
+                        <label class="checkbox-label"><input type="checkbox" name="sienaStatusFilter" value="중부" class="checkbox-input">중부</label>
+                    </div>
+
+                     <div class="flex flex-wrap gap-2 items-center justify-end w-full lg:w-auto ml-auto">
                         <div id="statusCourseFilterWrapper" class="hidden flex items-center gap-1 md:gap-2">
                             <label class="font-bold text-gray-700 text-xs md:text-base">골프장:</label>
                             <select id="statusCourseSelect" class="border border-gray-300 rounded-lg p-1 md:p-2 text-xs md:text-sm min-w-[80px] md:min-w-[120px]"></select>
@@ -363,12 +373,14 @@
             <h2 id="modalTitle" class="text-2xl md:text-3xl font-extrabold mb-4 md:mb-8 text-gray-800 border-b pb-2 md:pb-4">예약 신청</h2>
             <form id="bookingForm" class="space-y-3 md:space-y-6">
                 <input type="hidden" id="bookingId">
+                <!-- 2열 그리드 구조 유지 -->
                 <div class="grid grid-cols-2 gap-3 md:gap-6">
                     <div class="col-span-2">
                         <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">신청인</label>
                         <input type="text" id="userName" required class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-gray-50">
                     </div>
-                     <div class="col-span-2">
+                     <!-- 수식 산출란 숨김 처리 (hidden) -->
+                     <div class="col-span-2 hidden">
                         <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">전화번호</label>
                         <input type="text" id="userPhone" class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white">
                     </div>
@@ -376,7 +388,8 @@
                         <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">예약날짜 (연도4자리)</label>
                         <input type="date" id="bookingDate" required max="9999-12-31" class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                    <div>
+                    <!-- 수식 산출란 숨김 처리 (hidden) -->
+                    <div class="hidden">
                          <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">요일</label>
                          <input type="text" id="bookingDay" class="block w-full border-gray-300 rounded-lg shadow-sm bg-gray-50">
                     </div>
@@ -388,7 +401,8 @@
                         <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">팀 수</label>
                         <input type="number" id="numberOfTeams" min="1" required class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                    <div>
+                    <!-- 수식 산출란 숨김 처리 (hidden) -->
+                    <div class="hidden">
                         <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">티오프 시간</label>
                         <input type="text" id="bookingTime" placeholder="HH:MM" maxlength="5" oninput="formatTimeInput(event)" class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white">
                     </div>
@@ -396,11 +410,13 @@
                         <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">상태</label>
                         <input type="text" id="bookingStatus" class="block w-full border-gray-300 rounded-lg shadow-sm bg-gray-50">
                     </div>
-                    <div>
+                    <!-- 수식 산출란 숨김 처리 (hidden) -->
+                    <div class="hidden">
                         <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">부킹일자</label>
                         <input type="date" id="bookingRecordDate" class="block w-full border-gray-300 rounded-lg shadow-sm bg-white">
                     </div>
-                     <div>
+                     <!-- 수식 산출란 숨김 처리 (hidden) -->
+                     <div class="hidden">
                         <label class="block text-xs md:text-sm font-bold text-gray-600 mb-1">전달여부</label>
                         <input type="text" id="deliveryStatus" class="block w-full border-gray-300 rounded-lg shadow-sm bg-white">
                     </div>
@@ -535,23 +551,26 @@
         // ##### 설정 (Configuration) #####
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-xf0NKlY0LHjCA-cPL3iq243XzgoIJ87vtvhlEfxj1zRnei7tXZFGwN9f9cQ4nhMu/exec';
         
-        const CALENDAR_GOLF_COURSES = ['레이크우드', '스카이밸리', '벨루토', '힐드로사이'];
-        const MODAL_GOLF_COURSES = ['레이크우드', '스카이밸리', '벨루토', '힐드로사이'];
+        // [수정됨] 중부 골프장 추가
+        const CALENDAR_GOLF_COURSES = ['레이크우드', '스카이밸리', '벨루토', '힐드로사이', '중부'];
+        const MODAL_GOLF_COURSES = ['레이크우드', '스카이밸리', '벨루토', '힐드로사이', '중부'];
 
         const GOLF_COURSE_COLORS = {
             '레이크우드': 'text-black',
             '스카이밸리': 'text-blue-600',
             '벨루토': 'text-green-600',
-            '힐드로사이': 'text-red-600'
+            '힐드로사이': 'text-red-600',
+            '중부': 'text-purple-600'
         };
 
-        const COURSE_PRIORITY = { '레이크우드': 1, '스카이밸리': 2, '힐드로사이': 3, '벨루토': 4 };
+        const COURSE_PRIORITY = { '레이크우드': 1, '스카이밸리': 2, '힐드로사이': 3, '벨루토': 4, '중부': 5 };
 
         const COURSE_ABBR = {
             '레이크우드': '레이크',
             '스카이밸리': '스카이',
             '벨루토': '벨루토',
-            '힐드로사이': '힐드로'
+            '힐드로사이': '힐드로',
+            '중부': '중부'
         };
 
         const holidays = {
@@ -571,6 +590,18 @@
             const day = date.getDay();
             return day === 0 || day === 6 || holidays[dateStr];
         };
+
+        // [추가됨] 권한 관리를 위한 사용자 그룹 및 판별 함수
+        const ADMIN_USER = '신석중';
+        const SIENA_ADMIN_USER = '채훈';
+        const JUNGBU_USERS = ['사장실', '회장실'];
+
+        function getUserRole(name) {
+            if (name === ADMIN_USER) return 'ADMIN';
+            if (name === SIENA_ADMIN_USER) return 'SIENA_ADMIN';
+            if (JUNGBU_USERS.includes(name)) return 'JUNGBU_USER';
+            return 'NORMAL_USER';
+        }
 
         let currentUser = null;
         let bookings = [];
@@ -627,6 +658,7 @@
 
             setupCheckboxLogic('calCourseFilter', renderCalendar);
             setupCheckboxLogic('statusFilter', renderStatus);
+            setupCheckboxLogic('sienaStatusFilter', renderStatus); // 시에나관리자용 체크박스 이벤트 등록
 
             document.getElementById('calMyBookingFilter').addEventListener('change', (e) => {
                 calendarMyBookingFilter = e.target.checked;
@@ -723,7 +755,9 @@
         }
 
         function renderApp() {
-            const isManager = currentUser && currentUser.name === '신석중';
+            const role = getUserRole(currentUser.name);
+            const isManager = (role === 'ADMIN');
+            
             document.getElementById('anonymousTabBtn').classList.toggle('hidden', !isManager);
             document.getElementById('prepaidTabBtn').classList.toggle('hidden', !isManager);
             document.getElementById('lookupTabBtn').classList.toggle('hidden', !isManager);
@@ -747,6 +781,27 @@
             document.getElementById('statusNameFilterWrapper').classList.toggle('hidden', !isManager);
             document.getElementById('statusCourseFilterWrapper').classList.toggle('hidden', !isManager);
             document.getElementById('adminEntertainmentFilter').classList.toggle('hidden', !isManager);
+
+            // 시에나 관리자 전용 예약 현황 골프장 필터 표시 여부
+            const sienaFilter = document.getElementById('sienaCourseFilterWrapper');
+            if (sienaFilter) sienaFilter.classList.toggle('hidden', role !== 'SIENA_ADMIN');
+
+            // 1) 캘린더 '중부' 체크박스 노출 로직 (일반 사용자 중 중부 예약건이 없는 경우 숨김)
+            const calJungbuLabel = document.getElementById('calJungbuFilterLabel');
+            if (['ADMIN', 'SIENA_ADMIN', 'JUNGBU_USER'].includes(role)) {
+                calJungbuLabel.classList.remove('hidden');
+            } else {
+                // 일반사용자: 본인의 중부 예약건이 있는지 확인
+                const hasJungbu = bookings.some(b => b.Name === currentUser.name && b['Golf Course'] === '중부');
+                if (hasJungbu) {
+                    calJungbuLabel.classList.remove('hidden');
+                } else {
+                    calJungbuLabel.classList.add('hidden');
+                    // 안보일 때는 자동으로 필터 체크박스를 해제
+                    const jungbuCheckbox = document.querySelector('input[name="calCourseFilter"][value="중부"]');
+                    if (jungbuCheckbox) jungbuCheckbox.checked = false;
+                }
+            }
 
             if (isManager) {
                 populateNameOptions();
@@ -824,17 +879,32 @@
             
             const startMonth = selectedHalf === '1' ? 0 : 6;
             const endMonth = selectedHalf === '1' ? 5 : 11;
-            const isManager = currentUser && currentUser.name === '신석중';
-
+            
             const checkedCourses = Array.from(document.querySelectorAll('input[name="calCourseFilter"]:checked')).map(cb => cb.value);
             
             let filteredBookings = bookings.filter(b => isInSelectedPeriod(b.Date) && VALID_STATUSES.includes(b.Status));
+
+            // 역할별 데이터 권한 필터링
+            const role = getUserRole(currentUser.name);
+            
+            if (role === 'ADMIN') {
+                // 관리자는 모든 데이터 접근 가능
+            } else if (role === 'SIENA_ADMIN') {
+                // 시에나관리자: 벨루토, 중부 예약건만
+                filteredBookings = filteredBookings.filter(b => ['벨루토', '중부'].includes(b['Golf Course']));
+            } else if (role === 'JUNGBU_USER') {
+                // 중부사용자: 본인 예약건 + 중부 예약건 전체
+                filteredBookings = filteredBookings.filter(b => b.Name === currentUser.name || b['Golf Course'] === '중부');
+            } else {
+                // 일반사용자: 본인 예약건만
+                filteredBookings = filteredBookings.filter(b => b.Name === currentUser.name);
+            }
 
             if (!checkedCourses.includes('전체')) {
                 filteredBookings = filteredBookings.filter(b => checkedCourses.includes(b['Golf Course']));
             }
             
-            if (isManager && calendarNameFilter !== '전체') {
+            if (role === 'ADMIN' && calendarNameFilter !== '전체') {
                 filteredBookings = filteredBookings.filter(b => b.Name === calendarNameFilter);
             }
 
@@ -914,7 +984,7 @@
                     const dayOfWeek = new Date(selectedYear, m, d).getDay();
                     let color = 'text-gray-700';
                     if (dayOfWeek === 0 || holidays[dateStr]) color = 'text-red-600';
-                    else if (dayOfWeek === 6) color = 'text blue-600';
+                    else if (dayOfWeek === 6) color = 'text-blue-600';
 
                     dayCell.innerHTML = `<div class="text-sm md:text-lg font-bold ${color} mb-0 md:mb-1">${d}</div>${bookingHtml}`;
                     dayCell.onclick = () => openBookingModal(null, dateStr);
@@ -928,19 +998,31 @@
         function renderStatus() {
             const statusTableBody = document.getElementById('statusTableBody');
             statusTableBody.innerHTML = '';
-            const isManager = currentUser.name === '신석중';
             
             let filtered = bookings.filter(b => isInSelectedPeriod(b.Date));
 
-            if (!isManager) {
-                filtered = filtered.filter(b => b.Name === currentUser.name);
-            } else {
+            // 역할별 예약 현황 권한 필터링
+            const role = getUserRole(currentUser.name);
+
+            if (role === 'ADMIN') {
                 if (statusNameFilter !== '전체') {
                     filtered = filtered.filter(b => b.Name === statusNameFilter);
                 }
                 if (statusCourseFilter !== '전체') {
                     filtered = filtered.filter(b => b['Golf Course'] === statusCourseFilter);
                 }
+            } else if (role === 'SIENA_ADMIN') {
+                // 2) 시에나 관리자: 체크박스로 선택된 골프장(벨루토/중부)만 표시
+                const sienaChecked = Array.from(document.querySelectorAll('input[name="sienaStatusFilter"]:checked')).map(cb => cb.value);
+                if (sienaChecked.includes('전체')) {
+                    filtered = filtered.filter(b => ['벨루토', '중부'].includes(b['Golf Course']));
+                } else {
+                    filtered = filtered.filter(b => sienaChecked.includes(b['Golf Course']));
+                }
+            } else if (role === 'JUNGBU_USER') {
+                filtered = filtered.filter(b => b.Name === currentUser.name || b['Golf Course'] === '중부');
+            } else {
+                filtered = filtered.filter(b => b.Name === currentUser.name);
             }
 
             const checkedStatuses = Array.from(document.querySelectorAll('input[name="statusFilter"]:checked')).map(cb => cb.value);
@@ -1132,16 +1214,18 @@
         function renderEntertainmentView() {
             const entertainmentTableBody = document.getElementById('entertainmentTableBody');
             entertainmentTableBody.innerHTML = '';
-            const isManager = currentUser.name === '신석중';
             
             let filtered = bookings.filter(b => 
                 isInSelectedPeriod(b.Date) && b.MP != 0 &&
                 (b.Status === '예약완료' || b.Status === '우천취소' || b.Status === '예약중' || !b.Status)
             );
 
-            if (isManager) {
+            const role = getUserRole(currentUser.name);
+
+            if (role === 'ADMIN') {
                 if (entertainmentSelectedName !== '전체') filtered = filtered.filter(b => b.Name === entertainmentSelectedName);
             } else {
+                // 관리자 외 사용자는 본인의 접대비 내역만 볼 수 있도록 (데이터 프라이버시 유지)
                 filtered = filtered.filter(b => b.Name === currentUser.name);
             }
 
@@ -1156,7 +1240,7 @@
             });
 
             document.getElementById('totalEntertainmentCost').textContent = `₩${total.toLocaleString()}`;
-            loadEntertainmentInputs(isManager ? entertainmentSelectedName : currentUser.name);
+            loadEntertainmentInputs(role === 'ADMIN' ? entertainmentSelectedName : currentUser.name);
         }
 
         function renderAnonymousView() {
@@ -1418,7 +1502,7 @@
                     return;
                 }
 
-                showConfirm(`선택한 ${checkedBoxes.length}건의 예약을 정말 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`, async () => {
+                showConfirm(`선택한 ${checkedBoxes.length}건의 예약을 정말 삭제하시겠습니까?\n이 작업은 되돌릴 수 추 없습니다.`, async () => {
                     showLoading(true, "선택한 예약을 삭제 중입니다...");
 
                     try {
@@ -1688,15 +1772,15 @@
                 return;
             }
 
+            // [수정됨] 구글시트 수식 보존을 위해 산출 필드(Phone, Day, Time, BookingDate, DeliveryStatus)를 전송 항목에서 완전히 제외
             const bookingData = {
-                'id': document.getElementById('bookingId').value, 'Golf Course': document.getElementById('golfCourse').value,
-                'Name': inputName, 'Date': dateVal,
-                'Team': document.getElementById('numberOfTeams').value, 'Time': document.getElementById('bookingTime').value,
-                'Status': document.getElementById('bookingStatus').value, 'Comment': document.getElementById('notes').value,
-                'Phone': document.getElementById('userPhone').value,
-                'Day': document.getElementById('bookingDay').value,
-                'BookingDate': document.getElementById('bookingRecordDate').value,
-                'DeliveryStatus': document.getElementById('deliveryStatus').value
+                'id': document.getElementById('bookingId').value, 
+                'Golf Course': document.getElementById('golfCourse').value,
+                'Name': inputName, 
+                'Date': dateVal,
+                'Team': document.getElementById('numberOfTeams').value, 
+                'Status': document.getElementById('bookingStatus').value, 
+                'Comment': document.getElementById('notes').value
             };
             
             if (!bookingData.id) {
@@ -1728,7 +1812,7 @@
         function formatNumberWithCommas(value) { return String(value).replace(/[^0-9]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
         function removeCommas(value) { return String(value).replace(/,/g, ''); }
 
-        // [추가] 24시간 형식 자동 포맷팅 함수 (숫자 입력시 자동으로 HH:MM 형태로 변환)
+        // 24시간 형식 자동 포맷팅 함수 (숫자 입력시 자동으로 HH:MM 형태로 변환)
         function formatTimeInput(event) {
             let input = event.target;
             let val = input.value.replace(/[^0-9]/g, ''); // 숫자 이외의 문자 제거
