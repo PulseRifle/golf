@@ -787,21 +787,15 @@
             const sienaFilter = document.getElementById('sienaCourseFilterWrapper');
             if (sienaFilter) sienaFilter.classList.toggle('hidden', role !== 'SIENA_ADMIN');
 
-            // 1) 캘린더 '중부' 체크박스 노출 로직 (일반 사용자 중 중부 예약건이 없는 경우 숨김)
+            // 1) 캘린더 '중부' 체크박스 노출 로직
             const calJungbuLabel = document.getElementById('calJungbuFilterLabel');
             if (['ADMIN', 'SIENA_ADMIN', 'JUNGBU_USER'].includes(role)) {
                 calJungbuLabel.classList.remove('hidden');
             } else {
-                // 일반사용자: 본인의 중부 예약건이 있는지 확인
-                const hasJungbu = bookings.some(b => b.Name === currentUser.name && b['Golf Course'] === '중부');
-                if (hasJungbu) {
-                    calJungbuLabel.classList.remove('hidden');
-                } else {
-                    calJungbuLabel.classList.add('hidden');
-                    // 안보일 때는 자동으로 필터 체크박스를 해제
-                    const jungbuCheckbox = document.querySelector('input[name="calCourseFilter"][value="중부"]');
-                    if (jungbuCheckbox) jungbuCheckbox.checked = false;
-                }
+                // 일반사용자: 캘린더에서 중부 체크박스 무조건 숨김
+                calJungbuLabel.classList.add('hidden');
+                const jungbuCheckbox = document.querySelector('input[name="calCourseFilter"][value="중부"]');
+                if (jungbuCheckbox) jungbuCheckbox.checked = false;
             }
 
             if (isManager) {
@@ -894,11 +888,10 @@
                 // 시에나관리자: 벨루토, 중부 예약건만
                 filteredBookings = filteredBookings.filter(b => ['벨루토', '중부'].includes(b['Golf Course']));
             } else if (role === 'JUNGBU_USER') {
-                // 중부사용자: 본인 예약건 + 중부 예약건 전체
-                filteredBookings = filteredBookings.filter(b => b.Name === currentUser.name || b['Golf Course'] === '중부');
+                // 중부사용자: 타 이용자 예약건을 포함하여 모든 데이터 접근 가능 (필터링 제외)
             } else {
-                // 일반사용자: 본인 예약건만
-                filteredBookings = filteredBookings.filter(b => b.Name === currentUser.name);
+                // 일반사용자: 타 이용자 예약건을 포함하여 모두 표시 (단, '중부' 예약건은 제외)
+                filteredBookings = filteredBookings.filter(b => b['Golf Course'] !== '중부');
             }
 
             if (!checkedCourses.includes('전체')) {
