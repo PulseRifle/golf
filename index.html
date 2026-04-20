@@ -187,7 +187,8 @@
 
             <div class="flex flex-wrap items-center gap-2 md:gap-4 mb-4 md:mb-8 p-3 md:p-6 bg-blue-50 rounded-xl md:rounded-2xl border border-blue-200 shadow-inner">
                 <div class="flex items-center gap-2 md:gap-3 w-full md:w-auto">
-                    <label class="text-sm md:text-lg font-bold text-blue-900 whitespace-nowrap">기간:</label>
+                    <label class="text-sm md:text-lg font-bold text-blue-900 whitespace-nowrap">기간(연도):</label>
+                    <!-- [수정됨] 연도 단위 선택으로 변경 -->
                     <select id="globalPeriodSelector" class="border-2 border-blue-300 rounded-lg bg-white text-gray-800 font-bold focus:ring-2 focus:ring-blue-500 outline-none w-full md:min-w-[280px] cursor-pointer shadow-sm text-sm"></select>
                 </div>
             </div>
@@ -205,8 +206,8 @@
             </div>
 
             <div id="calendarView" class="tab-content">
-                <!-- 캘린더 필터 영역: 중부 추가됨 및 id 부여 -->
-                <div class="bg-gray-50 p-1.5 md:p-4 rounded-xl border border-gray-200 mb-3 md:mb-4 flex flex-row justify-between items-center gap-1 md:gap-4 overflow-x-auto whitespace-nowrap scrollbar-hide">
+                <!-- 캘린더 필터 영역 (골프장) -->
+                <div class="bg-gray-50 p-1.5 md:p-4 rounded-xl border border-gray-200 mb-2 md:mb-3 flex flex-row justify-between items-center gap-1 md:gap-4 overflow-x-auto whitespace-nowrap scrollbar-hide">
                     <div class="flex flex-nowrap gap-0.5 md:gap-2 items-center flex-shrink-0">
                         <span class="font-bold text-gray-700 mr-0.5 md:mr-2 text-[10px] sm:text-[11px] md:text-base">골프장:</span>
                         <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calCourseFilter" value="레이크우드" checked class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm md:hidden">레이크</span><span class="hidden md:inline md:text-sm">레이크우드</span></label>
@@ -226,6 +227,27 @@
                         </label>
                     </div>
                 </div>
+                
+                <!-- [추가됨] 캘린더 필터 영역 (월 단위) -->
+                <div class="bg-gray-50 p-1.5 md:p-4 rounded-xl border border-gray-200 mb-3 md:mb-4 flex flex-row justify-start items-center gap-1 md:gap-4 overflow-x-auto whitespace-nowrap scrollbar-hide">
+                    <div class="flex flex-nowrap gap-0.5 md:gap-2 items-center flex-shrink-0">
+                        <span class="font-bold text-gray-700 mr-0.5 md:mr-2 text-[10px] sm:text-[11px] md:text-base">월(Month):</span>
+                        <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calMonthFilter" value="전체" checked class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">전체</span></label>
+                        <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calMonthFilter" value="0" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">1월</span></label>
+                        <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calMonthFilter" value="1" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">2월</span></label>
+                        <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calMonthFilter" value="2" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">3월</span></label>
+                        <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calMonthFilter" value="3" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">4월</span></label>
+                        <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calMonthFilter" value="4" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">5월</span></label>
+                        <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calMonthFilter" value="5" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">6월</span></label>
+                        <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calMonthFilter" value="6" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">7월</span></label>
+                        <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calMonthFilter" value="7" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">8월</span></label>
+                        <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calMonthFilter" value="8" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">9월</span></label>
+                        <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calMonthFilter" value="9" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">10월</span></label>
+                        <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calMonthFilter" value="10" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">11월</span></label>
+                        <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calMonthFilter" value="11" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">12월</span></label>
+                    </div>
+                </div>
+
                 <div id="calendar" class="calendar-container"></div>
             </div>
 
@@ -240,7 +262,6 @@
                         <label class="checkbox-label"><input type="checkbox" name="statusFilter" value="취소" class="checkbox-input">취소</label>
                     </div>
 
-                    <!-- [추가됨] 시에나관리자 전용 골프장 필터 -->
                     <div id="sienaCourseFilterWrapper" class="hidden flex flex-wrap gap-1 md:gap-4 items-center mt-2 lg:mt-0 lg:ml-4 lg:pl-4 lg:border-l border-gray-300">
                         <span class="font-bold text-gray-700 mr-1 md:mr-2 text-xs md:text-base">골프장(시에나):</span>
                         <label class="checkbox-label"><input type="checkbox" name="sienaStatusFilter" value="전체" checked class="checkbox-input">전체</label>
@@ -267,7 +288,6 @@
                             <button id="uploadExcelBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-3 md:py-2 md:px-5 rounded-lg text-xs md:text-base shadow-sm whitespace-nowrap">엑셀 업로드</button>
                         </div>
                         <button id="cancelSelectedBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1 px-3 md:py-2 md:px-5 rounded-lg text-xs md:text-base shadow-sm hidden whitespace-nowrap">선택 취소</button>
-                        <!-- 관리자용 삭제 버튼 -->
                         <button id="deleteSelectedBtn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 md:py-2 md:px-5 rounded-lg text-xs md:text-base shadow-sm hidden whitespace-nowrap">삭제</button>
                     </div>
                 </div>
@@ -373,23 +393,19 @@
             <h2 id="modalTitle" class="text-2xl md:text-3xl font-extrabold mb-4 md:mb-8 text-gray-800 border-b pb-2 md:pb-4">예약 신청</h2>
             <form id="bookingForm" class="space-y-3 md:space-y-6">
                 <input type="hidden" id="bookingId">
-                <!-- 2열 그리드 구조 유지 -->
                 <div class="grid grid-cols-2 gap-3 md:gap-6">
                     <div class="col-span-2">
                         <label class="block text-sm font-extrabold text-gray-700 mb-1">신청인</label>
                         <input type="text" id="userName" required class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 text-gray-600">
                     </div>
-                     <!-- 수식 산출란 숨김 처리 (hidden) -->
                      <div class="col-span-2 hidden">
                         <label class="block text-sm font-extrabold text-gray-700 mb-1">전화번호</label>
                         <input type="text" id="userPhone" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
                     </div>
                     <div>
-                        <!-- 라벨 수정됨 -->
                         <label class="block text-sm font-extrabold text-gray-700 mb-1">예약일자</label>
                         <input type="date" id="bookingDate" required max="9999-12-31" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-medium">
                     </div>
-                    <!-- 수식 산출란 숨김 처리 (hidden) -->
                     <div class="hidden">
                          <label class="block text-sm font-extrabold text-gray-700 mb-1">요일</label>
                          <input type="text" id="bookingDay" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base bg-gray-50 text-gray-600">
@@ -402,7 +418,6 @@
                         <label class="block text-sm font-extrabold text-gray-700 mb-1">팀 수</label>
                         <input type="number" id="numberOfTeams" min="1" required class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-medium">
                     </div>
-                    <!-- 수식 산출란 숨김 처리 (hidden) -->
                     <div class="hidden">
                         <label class="block text-sm font-extrabold text-gray-700 mb-1">티오프 시간</label>
                         <input type="text" id="bookingTime" placeholder="HH:MM" maxlength="5" oninput="formatTimeInput(event)" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
@@ -411,12 +426,10 @@
                         <label class="block text-sm font-extrabold text-gray-700 mb-1">상태</label>
                         <input type="text" id="bookingStatus" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base bg-gray-50 text-gray-600 font-medium" readonly>
                     </div>
-                    <!-- 수식 산출란 숨김 처리 (hidden) -->
                     <div class="hidden">
                         <label class="block text-sm font-extrabold text-gray-700 mb-1">부킹일자</label>
                         <input type="date" id="bookingRecordDate" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base bg-white">
                     </div>
-                     <!-- 수식 산출란 숨김 처리 (hidden) -->
                      <div class="hidden">
                         <label class="block text-sm font-extrabold text-gray-700 mb-1">전달여부</label>
                         <input type="text" id="deliveryStatus" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base bg-white">
@@ -479,7 +492,7 @@
                     <h3 class="text-base md:text-lg font-bold">🎯 골프장 예약방법</h3>
                     <ul class="list-disc list-inside text-xs md:text-sm space-y-1 mt-1 md:mt-2">
                         <li><strong>무기명/선불제회원권</strong>: 골프 예약 시스템을 통한 예약</li>
-                        <li><strong>오픈 순서</strong> : 임원 → 국내영업팀 9개팀 → 국내영업 외 팀 (오픈 주기: 반기초마다)</li>
+                        <li><strong>오픈 순서</strong> : 임원 → 국내영업팀 9개팀 → 국내영업 외 팀 (오픈 주기: 연간)</li>
                         <li><strong>기타 예약</strong> : 월 횟수 미배정 또는 대중 오픈 예약일 이용 희망시 담당자(신석중 과장)에게 연락</li>
                     </ul>
                 </div>
@@ -552,7 +565,6 @@
         // ##### 설정 (Configuration) #####
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-xf0NKlY0LHjCA-cPL3iq243XzgoIJ87vtvhlEfxj1zRnei7tXZFGwN9f9cQ4nhMu/exec';
         
-        // [수정됨] 중부 골프장 추가
         const CALENDAR_GOLF_COURSES = ['레이크우드', '스카이밸리', '벨루토', '힐드로사이', '중부'];
         const MODAL_GOLF_COURSES = ['레이크우드', '스카이밸리', '벨루토', '힐드로사이', '중부'];
 
@@ -592,7 +604,6 @@
             return day === 0 || day === 6 || holidays[dateStr];
         };
 
-        // [추가됨] 권한 관리를 위한 사용자 그룹 및 판별 함수
         const ADMIN_USER = '신석중';
         const SIENA_ADMIN_USER = '채훈';
         const JUNGBU_USERS = ['사장실', '회장실'];
@@ -610,8 +621,8 @@
         let users = [];
         let allEntertainmentLogs = [];
         
+        // [수정됨] 연도 단위 설정
         let selectedYear = new Date().getFullYear();
-        let selectedHalf = new Date().getMonth() < 6 ? '1' : '2';
         
         let calendarMyBookingFilter = false;
         
@@ -632,34 +643,30 @@
             const cleanDateStr = String(dateStr).replace(/\./g, '-').substring(0, 10);
             const date = new Date(cleanDateStr);
             if (isNaN(date.getTime())) return false;
-            const year = date.getFullYear();
-            const month = date.getMonth(); 
-            if (year !== parseInt(selectedYear)) return false;
-            if (selectedHalf === '1') return month >= 0 && month <= 5;
-            return month >= 6 && month <= 11;
+            // [수정됨] 상/하반기 구분 없이 연도만 일치하면 표시
+            return date.getFullYear() === parseInt(selectedYear);
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
             const globalPeriodSelector = document.getElementById('globalPeriodSelector');
             
+            // [수정됨] 연도만 표시되도록 선택지 변경
             let periodOptions = '';
             for(let y=2024; y<=2027; y++) {
-                periodOptions += `<option value="${y}-1">${y}년 상반기 (1월~6월)</option>`;
-                periodOptions += `<option value="${y}-2">${y}년 하반기 (7월~12월)</option>`;
+                periodOptions += `<option value="${y}">${y}년 (전체)</option>`;
             }
             globalPeriodSelector.innerHTML = periodOptions;
-            globalPeriodSelector.value = `${selectedYear}-${selectedHalf}`;
+            globalPeriodSelector.value = `${selectedYear}`;
 
             globalPeriodSelector.addEventListener('change', (e) => {
-                const parts = e.target.value.split('-');
-                selectedYear = parseInt(parts[0]);
-                selectedHalf = parts[1];
+                selectedYear = parseInt(e.target.value);
                 renderApp();
             });
 
             setupCheckboxLogic('calCourseFilter', renderCalendar);
+            setupCheckboxLogic('calMonthFilter', renderCalendar); // [추가됨] 월 필터 이벤트 등록
             setupCheckboxLogic('statusFilter', renderStatus);
-            setupCheckboxLogic('sienaStatusFilter', renderStatus); // 시에나관리자용 체크박스 이벤트 등록
+            setupCheckboxLogic('sienaStatusFilter', renderStatus);
 
             document.getElementById('calMyBookingFilter').addEventListener('change', (e) => {
                 calendarMyBookingFilter = e.target.checked;
@@ -669,12 +676,12 @@
             document.getElementById('bookingDate').addEventListener('change', (e) => {
                 const val = e.target.value;
                 const bookingId = document.getElementById('bookingId').value;
-                if(val >= '2026-07-01') {
-                    showAlert("하반기 예약은 아직 오픈되지 않았습니다.");
+                if (val && !canBookForDate(val)) {
                     e.target.value = '';
-                } else {
-                    updateAvailableGolfCourses(val, bookingId);
+                    updateAvailableGolfCourses('', bookingId);
+                    return;
                 }
+                updateAvailableGolfCourses(val, bookingId);
             });
 
             showLoading(true, "시스템 데이터를 불러오는 중입니다...");
@@ -783,16 +790,13 @@
             document.getElementById('statusCourseFilterWrapper').classList.toggle('hidden', !isManager);
             document.getElementById('adminEntertainmentFilter').classList.toggle('hidden', !isManager);
 
-            // 시에나 관리자 전용 예약 현황 골프장 필터 표시 여부
             const sienaFilter = document.getElementById('sienaCourseFilterWrapper');
             if (sienaFilter) sienaFilter.classList.toggle('hidden', role !== 'SIENA_ADMIN');
 
-            // 1) 캘린더 '중부' 체크박스 노출 로직
             const calJungbuLabel = document.getElementById('calJungbuFilterLabel');
             if (['ADMIN', 'SIENA_ADMIN', 'JUNGBU_USER'].includes(role)) {
                 calJungbuLabel.classList.remove('hidden');
             } else {
-                // 일반사용자: 캘린더에서 중부 체크박스 무조건 숨김
                 calJungbuLabel.classList.add('hidden');
                 const jungbuCheckbox = document.querySelector('input[name="calCourseFilter"][value="중부"]');
                 if (jungbuCheckbox) jungbuCheckbox.checked = false;
@@ -872,25 +876,27 @@
             const calendarEl = document.getElementById('calendar');
             calendarEl.innerHTML = '';
             
-            const startMonth = selectedHalf === '1' ? 0 : 6;
-            const endMonth = selectedHalf === '1' ? 5 : 11;
+            // [수정됨] 월 필터에서 선택된 월 배열 생성
+            let renderMonths = [];
+            const checkedMonthsRaw = Array.from(document.querySelectorAll('input[name="calMonthFilter"]:checked')).map(cb => cb.value);
+            
+            if (checkedMonthsRaw.includes('전체') || checkedMonthsRaw.length === 0) {
+                renderMonths = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+            } else {
+                renderMonths = checkedMonthsRaw.map(Number).sort((a, b) => a - b);
+            }
             
             const checkedCourses = Array.from(document.querySelectorAll('input[name="calCourseFilter"]:checked')).map(cb => cb.value);
             
             let filteredBookings = bookings.filter(b => isInSelectedPeriod(b.Date) && VALID_STATUSES.includes(b.Status));
 
-            // 역할별 데이터 권한 필터링
             const role = getUserRole(currentUser.name);
             
             if (role === 'ADMIN') {
-                // 관리자는 모든 데이터 접근 가능
             } else if (role === 'SIENA_ADMIN') {
-                // 시에나관리자: 벨루토, 중부 예약건만
                 filteredBookings = filteredBookings.filter(b => ['벨루토', '중부'].includes(b['Golf Course']));
             } else if (role === 'JUNGBU_USER') {
-                // 중부사용자: 타 이용자 예약건을 포함하여 모든 데이터 접근 가능 (필터링 제외)
             } else {
-                // 일반사용자: 타 이용자 예약건을 포함하여 모두 표시 (단, '중부' 예약건은 제외)
                 filteredBookings = filteredBookings.filter(b => b['Golf Course'] !== '중부');
             }
 
@@ -913,7 +919,8 @@
                 bookingMap.get(normDate).push(b);
             });
 
-            for (let m = startMonth; m <= endMonth; m++) {
+            // [수정됨] 체크된 월만 순회하도록 로직 변경
+            for (let m of renderMonths) {
                 const firstDay = new Date(selectedYear, m, 1);
                 const lastDay = new Date(selectedYear, m + 1, 0);
                 
@@ -995,7 +1002,6 @@
             
             let filtered = bookings.filter(b => isInSelectedPeriod(b.Date));
 
-            // 역할별 예약 현황 권한 필터링
             const role = getUserRole(currentUser.name);
 
             if (role === 'ADMIN') {
@@ -1006,7 +1012,6 @@
                     filtered = filtered.filter(b => b['Golf Course'] === statusCourseFilter);
                 }
             } else if (role === 'SIENA_ADMIN') {
-                // 2) 시에나 관리자: 체크박스로 선택된 골프장(벨루토/중부)만 표시
                 const sienaChecked = Array.from(document.querySelectorAll('input[name="sienaStatusFilter"]:checked')).map(cb => cb.value);
                 if (sienaChecked.includes('전체')) {
                     filtered = filtered.filter(b => ['벨루토', '중부'].includes(b['Golf Course']));
@@ -1219,7 +1224,6 @@
             if (role === 'ADMIN') {
                 if (entertainmentSelectedName !== '전체') filtered = filtered.filter(b => b.Name === entertainmentSelectedName);
             } else {
-                // 관리자 외 사용자는 본인의 접대비 내역만 볼 수 있도록 (데이터 프라이버시 유지)
                 filtered = filtered.filter(b => b.Name === currentUser.name);
             }
 
@@ -1247,14 +1251,14 @@
                 'Velluto_Weekday': '벨루토 주중', 'Velluto_Weekend': '벨루토 주말' 
             };
             
-            const startM = selectedHalf === '1' ? 1 : 7;
-            const endM = selectedHalf === '1' ? 6 : 12;
+            const startM = 1;
+            const endM = 12;
 
             const userNames = [...new Set(bookings.filter(b => isInSelectedPeriod(b.Date)).map(b => b.Name))].sort();
             
             let html = `<table class="grid-view-table w-full border-collapse"><thead><tr class="bg-gray-50">
                 <th rowspan="2" class="p-2 md:p-3 border font-bold text-xs md:text-base">성명</th>`;
-            cats.forEach(c => html += `<th colspan="6" class="p-1 md:p-2 border text-xs md:text-sm font-bold bg-blue-50 text-blue-800">${catNames[c]}</th>`);
+            cats.forEach(c => html += `<th colspan="12" class="p-1 md:p-2 border text-xs md:text-sm font-bold bg-blue-50 text-blue-800">${catNames[c]}</th>`);
             html += `</tr><tr>`;
             cats.forEach(() => { for(let i=startM; i<=endM; i++) html += `<th class="p-1 md:p-2 border text-[10px] md:text-xs text-gray-500">${i}월</th>`; });
             html += `</tr></thead><tbody>`;
@@ -1288,14 +1292,14 @@
             container.innerHTML = '';
             
             const courses = ['스카이밸리', '힐드로사이'];
-            const startM = selectedHalf === '1' ? 1 : 7;
-            const endM = selectedHalf === '1' ? 6 : 12;
+            const startM = 1;
+            const endM = 12;
 
             const userNames = [...new Set(bookings.filter(b => isInSelectedPeriod(b.Date)).map(b => b.Name))].sort();
             
             let html = `<table class="grid-view-table w-full border-collapse"><thead><tr class="bg-gray-50">
                 <th rowspan="2" class="p-2 md:p-3 border font-bold text-xs md:text-base">성명</th>`;
-            courses.forEach(c => html += `<th colspan="6" class="p-1 md:p-2 border text-xs md:text-sm font-bold bg-indigo-50 text-indigo-800">${c}</th>`);
+            courses.forEach(c => html += `<th colspan="12" class="p-1 md:p-2 border text-xs md:text-sm font-bold bg-indigo-50 text-indigo-800">${c}</th>`);
             html += `</tr><tr>`;
             courses.forEach(() => { for(let i=startM; i<=endM; i++) html += `<th class="p-1 md:p-2 border text-[10px] md:text-xs text-gray-500">${i}월</th>`; });
             html += `</tr></thead><tbody>`;
@@ -1373,25 +1377,7 @@
                 const found = users.find(user => user.name === u && String(user.phone) === p);
                 
                 if(found) {
-                    const now = new Date();
-                    const openDateVIP = new Date('2026-01-13T00:00:00');
-                    const openDateGeneral = new Date('2026-01-19T00:00:00');
-                    
-                    if (found.name !== '신석중') {
-                        const isVIP = String(p).toLowerCase().startsWith('iw');
-                        if (isVIP) {
-                            if (now < openDateVIP) {
-                                showAlert("오픈 예정입니다. (2026년 1월 13일 00시 오픈)");
-                                return;
-                            }
-                        } else {
-                            if (now < openDateGeneral) {
-                                showAlert("오픈 예정입니다. (2026년 1월 19일 00시 오픈)");
-                                return;
-                            }
-                        }
-                    }
-                    
+                    // 로그인은 상시 개방 (하반기 오픈 시간은 예약 신청 시 체크)
                     currentUser = found;
                     sessionStorage.setItem('golf_currentUser', JSON.stringify(found));
                     showMainApp(); 
@@ -1408,8 +1394,8 @@
 
                 const periodBookings = bookings.filter(b => b.Name === name && isInSelectedPeriod(b.Date) && IS_VALID_FOR_COUNTING(b));
 
-                let html = `<div class="p-4 md:p-6 bg-white border border-gray-200 rounded-xl md:rounded-2xl shadow-sm"><h3 class="font-black text-xl md:text-2xl mb-4 md:mb-6 text-gray-800 border-b pb-2 md:pb-4">${name}님 ${selectedYear}년 ${selectedHalf==='1'?'상반기':'하반기'} 이용 현황</h3>`;
-                html += `<table class="w-full text-sm md:text-base border-collapse"><thead><tr class="bg-gray-100 text-gray-700"><th class="p-2 md:p-3 border">항목</th><th class="p-2 md:p-3 border">한도(6개월)</th><th class="p-2 md:p-3 border">사용</th><th class="p-2 md:p-3 border">잔여</th></tr></thead><tbody>`;
+                let html = `<div class="p-4 md:p-6 bg-white border border-gray-200 rounded-xl md:rounded-2xl shadow-sm"><h3 class="font-black text-xl md:text-2xl mb-4 md:mb-6 text-gray-800 border-b pb-2 md:pb-4">${name}님 ${selectedYear}년 이용 현황</h3>`;
+                html += `<table class="w-full text-sm md:text-base border-collapse"><thead><tr class="bg-gray-100 text-gray-700"><th class="p-2 md:p-3 border">항목</th><th class="p-2 md:p-3 border">연간 한도</th><th class="p-2 md:p-3 border">사용</th><th class="p-2 md:p-3 border">잔여</th></tr></thead><tbody>`;
                 
                 const items = [
                     {k: '레이크 주중', val: q.Lakewood_Weekday, used: periodBookings.filter(b => b['Golf Course']==='레이크우드' && !isWeekendBooking(b)).length},
@@ -1421,7 +1407,7 @@
                 ];
 
                 items.forEach(i => {
-                    const totalLimit = (i.val || 0) * 6;
+                    const totalLimit = (i.val || 0) * 12; // [수정됨] 연간 개방이므로 12개월분 적용
                     const remaining = totalLimit - i.used;
                     html += `<tr class="border-b hover:bg-gray-50 text-center"><td class="p-2 md:p-3 font-bold text-gray-700 text-left">${i.k}</td><td class="p-2 md:p-3 text-gray-600">${totalLimit}</td><td class="p-2 md:p-3 text-blue-600 font-bold">${i.used}</td><td class="p-2 md:p-3 font-black text-base md:text-lg ${remaining < 0 ? 'text-red-500' : 'text-green-600'}">${remaining}</td></tr>`;
                 });
@@ -1543,7 +1529,7 @@
                 
                 const today = new Date();
                 const dateStr = today.getFullYear() + String(today.getMonth()+1).padStart(2,'0') + String(today.getDate()).padStart(2,'0');
-                link.setAttribute("download", `golf_bookings_${selectedYear}_${selectedHalf === '1' ? '1H' : '2H'}_${dateStr}.csv`);
+                link.setAttribute("download", `golf_bookings_${selectedYear}_${dateStr}.csv`);
                 link.style.visibility = 'hidden';
                 document.body.appendChild(link);
                 link.click();
@@ -1588,7 +1574,40 @@
             });
         }
 
+        function canBookForDate(dateStr) {
+            if (!dateStr || !currentUser) return true;
+            const targetMonth = new Date(dateStr).getMonth();
+            
+            // 1월~6월(상반기)는 누구나 상시 예약 가능
+            if (targetMonth < 6) return true;
+            
+            // 관리자 예외
+            if (['신석중', '채훈'].includes(currentUser.name)) return true;
+
+            const now = new Date();
+            const openDateVIP = new Date('2026-04-21T09:00:00+09:00');
+            const openDateGeneral = new Date('2026-04-23T09:00:00+09:00');
+            const isVIP = String(currentUser.phone).toLowerCase().startsWith('iw');
+
+            if (isVIP) {
+                if (now < openDateVIP) {
+                    showAlert("하반기(7~12월) 예약은 2026년 4월 21일 오전 9시부터 가능합니다.");
+                    return false;
+                }
+            } else {
+                if (now < openDateGeneral) {
+                    showAlert("하반기(7~12월) 예약은 2026년 4월 23일 오전 9시부터 가능합니다.");
+                    return false;
+                }
+            }
+            return true;
+        }
+
         function openBookingModal(booking = null, dateStr = null) {
+            if (dateStr && !booking && !canBookForDate(dateStr)) {
+                return; // 하반기 예약 제한 시 팝업 띄우지 않음
+            }
+
             const modal = document.getElementById('bookingModal');
             const title = document.getElementById('modalTitle');
             const form = document.getElementById('bookingForm');
@@ -1644,7 +1663,6 @@
 
             let allowedCourses = MODAL_GOLF_COURSES;
             
-            // [수정됨] 일반사용자는 중부 예약 불가 (예약 신청 골프장 목록에서 '중부' 제외)
             if (currentUser) {
                 const role = getUserRole(currentUser.name);
                 if (role === 'NORMAL_USER') {
@@ -1758,7 +1776,6 @@
                      return b['Golf Course'] === '힐드로사이';
                 }).length;
             }
-            // [참고] '중부' 골프장은 위 조건들에 포함되지 않으므로(limit 검사 로직 안탐) 기본적으로 무제한 처리됩니다.
 
             if (currentUsage >= limit) {
                 return `[${course}] ${targetMonth + 1}월 예약 한도(${limit}회)를 초과했습니다.`;
@@ -1772,8 +1789,7 @@
             const dateVal = document.getElementById('bookingDate').value;
             const inputName = document.getElementById('userName').value;
 
-            if(dateVal >= '2026-07-01') {
-                showAlert("하반기 예약은 아직 오픈되지 않았습니다.");
+            if (dateVal && !canBookForDate(dateVal)) {
                 return;
             }
 
@@ -1817,10 +1833,9 @@
         function formatNumberWithCommas(value) { return String(value).replace(/[^0-9]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
         function removeCommas(value) { return String(value).replace(/,/g, ''); }
 
-        // 24시간 형식 자동 포맷팅 함수 (숫자 입력시 자동으로 HH:MM 형태로 변환)
         function formatTimeInput(event) {
             let input = event.target;
-            let val = input.value.replace(/[^0-9]/g, ''); // 숫자 이외의 문자 제거
+            let val = input.value.replace(/[^0-9]/g, ''); 
             if (val.length > 2) {
                 val = val.substring(0, 2) + ':' + val.substring(2, 4);
             }
