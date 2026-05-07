@@ -188,7 +188,6 @@
             <div class="flex flex-wrap items-center gap-2 md:gap-4 mb-4 md:mb-8 p-3 md:p-6 bg-blue-50 rounded-xl md:rounded-2xl border border-blue-200 shadow-inner">
                 <div class="flex items-center gap-2 md:gap-3 w-full md:w-auto">
                     <label class="text-sm md:text-lg font-bold text-blue-900 whitespace-nowrap">기간(연도):</label>
-                    <!-- [수정됨] 연도 단위 선택으로 변경 -->
                     <select id="globalPeriodSelector" class="border-2 border-blue-300 rounded-lg bg-white text-gray-800 font-bold focus:ring-2 focus:ring-blue-500 outline-none w-full md:min-w-[280px] cursor-pointer shadow-sm text-sm"></select>
                 </div>
             </div>
@@ -228,7 +227,7 @@
                     </div>
                 </div>
                 
-                <!-- [추가됨] 캘린더 필터 영역 (월 단위) -->
+                <!-- 캘린더 필터 영역 (월 단위) -->
                 <div class="bg-gray-50 p-1.5 md:p-4 rounded-xl border border-gray-200 mb-3 md:mb-4 flex flex-row justify-start items-center gap-1 md:gap-4 overflow-x-auto whitespace-nowrap scrollbar-hide">
                     <div class="flex flex-nowrap gap-0.5 md:gap-2 items-center flex-shrink-0">
                         <span class="font-bold text-gray-700 mr-0.5 md:mr-2 text-[10px] sm:text-[11px] md:text-base">월(Month):</span>
@@ -621,7 +620,6 @@
         let users = [];
         let allEntertainmentLogs = [];
         
-        // [수정됨] 연도 단위 설정
         let selectedYear = new Date().getFullYear();
         
         let calendarMyBookingFilter = false;
@@ -643,14 +641,12 @@
             const cleanDateStr = String(dateStr).replace(/\./g, '-').substring(0, 10);
             const date = new Date(cleanDateStr);
             if (isNaN(date.getTime())) return false;
-            // [수정됨] 상/하반기 구분 없이 연도만 일치하면 표시
             return date.getFullYear() === parseInt(selectedYear);
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
             const globalPeriodSelector = document.getElementById('globalPeriodSelector');
             
-            // [수정됨] 연도만 표시되도록 선택지 변경
             let periodOptions = '';
             for(let y=2024; y<=2027; y++) {
                 periodOptions += `<option value="${y}">${y}년 (전체)</option>`;
@@ -664,7 +660,7 @@
             });
 
             setupCheckboxLogic('calCourseFilter', renderCalendar);
-            setupCheckboxLogic('calMonthFilter', renderCalendar); // [추가됨] 월 필터 이벤트 등록
+            setupCheckboxLogic('calMonthFilter', renderCalendar); 
             setupCheckboxLogic('statusFilter', renderStatus);
             setupCheckboxLogic('sienaStatusFilter', renderStatus);
 
@@ -876,7 +872,6 @@
             const calendarEl = document.getElementById('calendar');
             calendarEl.innerHTML = '';
             
-            // [수정됨] 월 필터에서 선택된 월 배열 생성
             let renderMonths = [];
             const checkedMonthsRaw = Array.from(document.querySelectorAll('input[name="calMonthFilter"]:checked')).map(cb => cb.value);
             
@@ -919,7 +914,6 @@
                 bookingMap.get(normDate).push(b);
             });
 
-            // [수정됨] 체크된 월만 순회하도록 로직 변경
             for (let m of renderMonths) {
                 const firstDay = new Date(selectedYear, m, 1);
                 const lastDay = new Date(selectedYear, m + 1, 0);
@@ -1377,7 +1371,6 @@
                 const found = users.find(user => user.name === u && String(user.phone) === p);
                 
                 if(found) {
-                    // 로그인은 상시 개방 (하반기 오픈 시간은 예약 신청 시 체크)
                     currentUser = found;
                     sessionStorage.setItem('golf_currentUser', JSON.stringify(found));
                     showMainApp(); 
@@ -1407,7 +1400,7 @@
                 ];
 
                 items.forEach(i => {
-                    const totalLimit = (i.val || 0) * 12; // [수정됨] 연간 개방이므로 12개월분 적용
+                    const totalLimit = (i.val || 0) * 12;
                     const remaining = totalLimit - i.used;
                     html += `<tr class="border-b hover:bg-gray-50 text-center"><td class="p-2 md:p-3 font-bold text-gray-700 text-left">${i.k}</td><td class="p-2 md:p-3 text-gray-600">${totalLimit}</td><td class="p-2 md:p-3 text-blue-600 font-bold">${i.used}</td><td class="p-2 md:p-3 font-black text-base md:text-lg ${remaining < 0 ? 'text-red-500' : 'text-green-600'}">${remaining}</td></tr>`;
                 });
@@ -1508,6 +1501,7 @@
                 });
             });
 
+            // ================== 버그 수정 영역 ==================
             document.getElementById('downloadExcelBtn')?.addEventListener('click', () => {
                 const filteredBookings = bookings.filter(b => isInSelectedPeriod(b.Date));
 
@@ -1518,6 +1512,16 @@
                 
                 const dataToExport = filteredBookings.map(b => {
                     const { Comment, ...rest } = b; 
+                    
+                    // [수정] 엑셀에서 날짜 자동 변환 시 포맷이 뭉개지거나 '1일'로 변조되는 현상 방지
+                    // Date 컬럼을 항상 'YYYY-MM-DD' 형식의 명확한 10자리 텍스트로 고정합니다.
+                    if (rest.Date) {
+                        rest.Date = String(rest.Date).replace(/\./g, '-').substring(0, 10);
+                    }
+                    if (rest.BookingDate) {
+                        rest.BookingDate = String(rest.BookingDate).replace(/\./g, '-').substring(0, 10);
+                    }
+
                     return rest; 
                 });
                 
@@ -1535,6 +1539,7 @@
                 link.click();
                 document.body.removeChild(link);
             });
+            // ====================================================
 
             document.getElementById('uploadExcelBtn')?.addEventListener('click', () => {
                 document.getElementById('uploadModal').style.display = 'flex';
@@ -1578,10 +1583,8 @@
             if (!dateStr || !currentUser) return true;
             const targetMonth = new Date(dateStr).getMonth();
             
-            // 1월~6월(상반기)는 누구나 상시 예약 가능
             if (targetMonth < 6) return true;
             
-            // 관리자 예외
             if (['신석중', '채훈'].includes(currentUser.name)) return true;
 
             const now = new Date();
@@ -1605,7 +1608,7 @@
 
         function openBookingModal(booking = null, dateStr = null) {
             if (dateStr && !booking && !canBookForDate(dateStr)) {
-                return; // 하반기 예약 제한 시 팝업 띄우지 않음
+                return;
             }
 
             const modal = document.getElementById('bookingModal');
@@ -1793,7 +1796,6 @@
                 return;
             }
 
-            // 구글시트 수식 보존을 위해 산출 필드(Phone, Day, Time, BookingDate, DeliveryStatus)를 전송 항목에서 완전히 제외
             const bookingData = {
                 'id': document.getElementById('bookingId').value, 
                 'Golf Course': document.getElementById('golfCourse').value,
