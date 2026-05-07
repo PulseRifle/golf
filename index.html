@@ -19,13 +19,46 @@
             gap: 24px; 
         }
         
-        .day-cell { min-height: 80px; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; cursor: pointer; border: 1px solid #e5e7eb; }
-        .day-cell:hover { background-color: #f0f9ff; border-color: #3b82f6; }
-        .booking-info { font-size: 14px; line-height: 1.4; margin-top: 2px; width: 100%; text-align: center; font-weight: 700; }
+        .day-cell { 
+            min-height: 80px; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; 
+            cursor: pointer; border: 1px solid #e5e7eb; transition: all 0.2s ease-in-out; 
+        }
+        .day-cell:hover { background-color: #f0f9ff; border-color: #3b82f6; transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .booking-info { font-size: 14px; line-height: 1.4; margin-top: 2px; width: 100%; text-align: center; font-weight: 700; transition: opacity 0.2s; }
         
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background-color: white; padding: 40px; border-radius: 20px; width: 95%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        /* 부드러운 모달(팝업) 애니메이션 CSS 추가 */
+        @keyframes fadeInScale {
+            0% { opacity: 0; transform: scale(0.95); }
+            100% { opacity: 1; transform: scale(1); }
+        }
         
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .modal-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background-color: rgba(0, 0, 0, 0.5); display: none; justify-content: center; align-items: center; z-index: 1000;
+            backdrop-filter: blur(2px); /* 배경을 살짝 흐리게 */
+            transition: opacity 0.3s ease;
+        }
+        
+        .modal-content { 
+            background-color: white; padding: 40px; border-radius: 20px; width: 95%; max-width: 600px; max-height: 90vh; 
+            overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            animation: fadeInScale 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; /* 팝업 생성 시 부드러운 스케일 효과 */
+        }
+        
+        /* 탭 콘텐츠 부드러운 전환 효과 */
+        @keyframes fadeInTab {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .tab-content:not(.hidden) {
+            animation: fadeInTab 0.4s ease-out forwards;
+        }
+
         th, td { padding: 12px 10px; font-size: 15px; white-space: nowrap; }
         .col-comment { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         
@@ -36,79 +69,38 @@
         #lookupResults table th, #lookupResults table td { border: 1px solid #cbd5e1; padding: 12px; text-align: center; font-size: 16px; white-space: nowrap; }
         #lookupResults table th { background-color: #f8fafc; font-weight: bold; }
         
-        input, select { font-size: 16px !important; padding: 10px !important; }
+        input, select { font-size: 16px !important; padding: 10px !important; transition: border-color 0.2s, box-shadow 0.2s; }
 
         /* 금일 예약 테이블 스타일 (자동 너비) */
-        .compact-table {
-            table-layout: auto; 
-            width: auto; 
-            min-width: 100%; 
-        }
+        .compact-table { table-layout: auto; width: auto; min-width: 100%; }
         .compact-table th, .compact-table td {
-            font-size: 11px !important;
-            padding: 4px 6px !important; 
-            border: 1px solid #e2e8f0;
-            text-align: center;
-            white-space: nowrap; 
+            font-size: 11px !important; padding: 4px 6px !important; border: 1px solid #e2e8f0; text-align: center; white-space: nowrap; 
         }
-        .compact-table th {
-            background-color: #f8fafc;
-            font-weight: 700;
-            color: #475569;
-        }
+        .compact-table th { background-color: #f8fafc; font-weight: 700; color: #475569; }
         
         /* 비고란 전용 스타일: 줄바꿈 허용 및 최소 너비 */
         .compact-table td.wrap-text {
-            white-space: normal !important;
-            min-width: 150px;
-            max-width: 300px;
-            text-align: left;
-            word-break: break-word;
+            white-space: normal !important; min-width: 150px; max-width: 300px; text-align: left; word-break: break-word;
         }
 
         /* 테이블 인풋 스타일 최적화 (Time 등) */
         .table-input {
-            font-size: 11px !important;
-            padding: 0px 2px !important;
-            height: 22px !important;
-            width: 100%;
-            min-width: 60px; 
-            background-color: transparent;
-            border: 1px solid transparent;
-            text-align: center;
+            font-size: 11px !important; padding: 0px 2px !important; height: 22px !important; width: 100%; min-width: 60px; 
+            background-color: transparent; border: 1px solid transparent; text-align: center; transition: all 0.2s;
         }
-        .table-input:focus {
-            background-color: #eff6ff;
-            border-color: #3b82f6;
-        }
+        .table-input:focus { background-color: #eff6ff; border-color: #3b82f6; border-radius: 4px; }
 
         /* 체크박스 커스텀 스타일 */
         .checkbox-label {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            padding: 0.5rem 0.75rem;
-            border-radius: 0.5rem;
-            transition: background-color 0.2s;
+            display: flex; align-items: center; cursor: pointer; padding: 0.5rem 0.75rem; border-radius: 0.5rem; transition: background-color 0.2s ease;
         }
-        .checkbox-label:hover {
-            background-color: #eff6ff;
-        }
-        .checkbox-input {
-            width: 1.2rem;
-            height: 1.2rem;
-            margin-right: 0.5rem;
-            accent-color: #2563eb;
-        }
+        .checkbox-label:hover { background-color: #eff6ff; }
+        .checkbox-input { width: 1.2rem; height: 1.2rem; margin-right: 0.5rem; accent-color: #2563eb; cursor: pointer; transition: transform 0.1s; }
+        .checkbox-input:active { transform: scale(0.9); }
 
         /* 가로 스크롤바 숨기기 (줄바꿈 방지 컨테이너용) */
-        .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-        }
-        .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
         @keyframes loadingSlide {
             0% { left: -40%; width: 30%; }
@@ -116,13 +108,12 @@
             100% { left: 100%; width: 30%; }
         }
         .progress-bar-inner {
-            position: absolute;
-            top: 0;
-            height: 100%;
-            background-color: #2563eb; 
-            border-radius: 9999px;
-            animation: loadingSlide 1.5s infinite ease-in-out;
+            position: absolute; top: 0; height: 100%; background-color: #2563eb; border-radius: 9999px; animation: loadingSlide 1.5s infinite ease-in-out;
         }
+
+        /* 버튼 호버 부드럽게 */
+        button { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        button:active { transform: scale(0.97); }
 
         /* 모바일 최적화 스타일 */
         @media (max-width: 640px) {
@@ -147,10 +138,10 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 p-4 md:p-6">
+<body class="bg-gray-100 p-4 md:p-6 text-gray-800 transition-colors duration-300">
 
-    <div id="loginScreen" class="flex flex-col items-center justify-center min-h-screen">
-        <div class="bg-white rounded-3xl shadow-xl p-6 md:p-10 w-full max-w-md border border-gray-200">
+    <div id="loginScreen" class="flex flex-col items-center justify-center min-h-screen transition-opacity duration-500">
+        <div class="bg-white rounded-3xl shadow-xl p-6 md:p-10 w-full max-w-md border border-gray-200 transform transition-transform hover:shadow-2xl">
             <h2 class="text-2xl md:text-4xl font-extrabold text-center text-gray-800 mb-6 md:mb-8">로그인</h2>
             <form id="loginForm" class="space-y-4 md:space-y-6">
                 <div>
@@ -165,20 +156,20 @@
                     <input id="rememberMe" type="checkbox" class="h-5 w-5 md:h-6 md:w-6 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer">
                     <label for="rememberMe" class="ml-2 md:ml-3 block text-base md:text-lg text-gray-900 cursor-pointer">아이디 저장</label>
                 </div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg md:text-xl py-3 md:py-4 px-6 rounded-xl shadow-lg transition hover:scale-[1.02]">로그인 하기</button>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg md:text-xl py-3 md:py-4 px-6 rounded-xl shadow-lg transition hover:shadow-xl">로그인 하기</button>
             </form>
         </div>
     </div>
 
-    <div id="mainApp" class="hidden">
+    <div id="mainApp" class="hidden opacity-0 transition-opacity duration-500">
         <div class="bg-white rounded-2xl md:rounded-3xl shadow-xl p-3 md:p-10 max-w-[1400px] mx-auto border border-gray-200">
             <header class="flex flex-col md:flex-row justify-between items-center mb-4 md:mb-8 gap-3 md:gap-6 border-b pb-3 md:pb-6">
                 <div class="text-center md:text-left">
                     <h1 class="text-xl md:text-4xl font-black text-gray-900 tracking-tight">골프 예약 시스템</h1>
-                    <a href="#" id="noticeLink" class="text-xs md:text-lg text-blue-600 hover:text-blue-800 font-semibold inline-block">이용 및 취소 안내 보기</a>
+                    <a href="#" id="noticeLink" class="text-xs md:text-lg text-blue-600 hover:text-blue-800 font-semibold inline-block transition-colors">이용 및 취소 안내 보기</a>
                 </div>
                 <div class="flex items-center gap-2 md:gap-4">
-                    <button id="openModalBtn" class="bg-blue-600 hover:bg-blue-700 text-white text-sm md:text-lg font-bold py-2 px-4 md:py-3 md:px-8 rounded-full shadow-md transition-all flex items-center gap-1 md:gap-2 whitespace-nowrap">
+                    <button id="openModalBtn" class="bg-blue-600 hover:bg-blue-700 text-white text-sm md:text-lg font-bold py-2 px-4 md:py-3 md:px-8 rounded-full shadow-md hover:shadow-lg transition-all flex items-center gap-1 md:gap-2 whitespace-nowrap">
                         <span class="text-lg md:text-2xl">+</span> 예약 신청
                     </button>
                     <button id="logoutBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm md:text-lg font-bold py-2 px-3 md:py-3 md:px-6 rounded-full transition-colors whitespace-nowrap">로그아웃</button>
@@ -188,25 +179,23 @@
             <div class="flex flex-wrap items-center gap-2 md:gap-4 mb-4 md:mb-8 p-3 md:p-6 bg-blue-50 rounded-xl md:rounded-2xl border border-blue-200 shadow-inner">
                 <div class="flex items-center gap-2 md:gap-3 w-full md:w-auto">
                     <label class="text-sm md:text-lg font-bold text-blue-900 whitespace-nowrap">기간(연도):</label>
-                    <!-- [수정됨] 연도 단위 선택으로 변경 -->
-                    <select id="globalPeriodSelector" class="border-2 border-blue-300 rounded-lg bg-white text-gray-800 font-bold focus:ring-2 focus:ring-blue-500 outline-none w-full md:min-w-[280px] cursor-pointer shadow-sm text-sm"></select>
+                    <select id="globalPeriodSelector" class="border-2 border-blue-300 rounded-lg bg-white text-gray-800 font-bold focus:ring-2 focus:ring-blue-500 outline-none w-full md:min-w-[280px] cursor-pointer shadow-sm text-sm transition-shadow"></select>
                 </div>
             </div>
 
             <div class="mb-4 md:mb-6 overflow-x-auto">
                 <nav class="flex space-x-2 md:space-x-4 pb-1" aria-label="Tabs">
-                    <button id="calendarTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-blue-600 text-white whitespace-nowrap">캘린더</button>
-                    <button id="statusTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 whitespace-nowrap">예약 현황</button>
-                    <button id="todayTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 hidden whitespace-nowrap">금일 예약</button>
-                    <button id="entertainmentTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 whitespace-nowrap">접대비 차감</button>
-                    <button id="lookupTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 hidden whitespace-nowrap">조회</button>
-                    <button id="anonymousTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 hidden whitespace-nowrap">무기명</button>
-                    <button id="prepaidTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 hidden whitespace-nowrap">선불제</button>
+                    <button id="calendarTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-blue-600 text-white whitespace-nowrap hover:shadow-md">캘린더</button>
+                    <button id="statusTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 whitespace-nowrap hover:shadow-md">예약 현황</button>
+                    <button id="todayTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 hidden whitespace-nowrap hover:shadow-md">금일 예약</button>
+                    <button id="entertainmentTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 whitespace-nowrap hover:shadow-md">접대비 차감</button>
+                    <button id="lookupTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 hidden whitespace-nowrap hover:shadow-md">조회</button>
+                    <button id="anonymousTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 hidden whitespace-nowrap hover:shadow-md">무기명</button>
+                    <button id="prepaidTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 hidden whitespace-nowrap hover:shadow-md">선불제</button>
                 </nav>
             </div>
 
             <div id="calendarView" class="tab-content">
-                <!-- 캘린더 필터 영역 (골프장) -->
                 <div class="bg-gray-50 p-1.5 md:p-4 rounded-xl border border-gray-200 mb-2 md:mb-3 flex flex-row justify-between items-center gap-1 md:gap-4 overflow-x-auto whitespace-nowrap scrollbar-hide">
                     <div class="flex flex-nowrap gap-0.5 md:gap-2 items-center flex-shrink-0">
                         <span class="font-bold text-gray-700 mr-0.5 md:mr-2 text-[10px] sm:text-[11px] md:text-base">골프장:</span>
@@ -219,16 +208,15 @@
                     <div class="flex items-center gap-1 md:gap-2 flex-shrink-0 ml-auto">
                         <div id="calendarNameFilterWrapper" class="hidden flex items-center gap-0.5 md:gap-2">
                              <label class="font-bold text-gray-700 text-[10px] sm:text-[11px] md:text-base">이름:</label>
-                             <select id="calendarNameSelect" class="border border-gray-300 rounded-lg p-0.5 md:p-2 text-[10px] sm:text-xs md:text-sm w-[55px] sm:w-[70px] md:min-w-[120px] h-[22px] md:h-auto leading-none bg-white"></select>
+                             <select id="calendarNameSelect" class="border border-gray-300 rounded-lg p-0.5 md:p-2 text-[10px] sm:text-xs md:text-sm w-[55px] sm:w-[70px] md:min-w-[120px] h-[22px] md:h-auto leading-none bg-white transition-shadow"></select>
                         </div>
                         <label class="flex items-center cursor-pointer font-bold text-blue-800 bg-blue-100 px-1.5 py-1 md:px-4 md:py-2 rounded-lg hover:bg-blue-200 transition text-[10px] sm:text-[11px] md:text-base flex-shrink-0">
-                            <input type="checkbox" id="calMyBookingFilter" class="w-3 h-3 md:w-5 md:h-5 mr-1 md:mr-2 accent-blue-600">
+                            <input type="checkbox" id="calMyBookingFilter" class="w-3 h-3 md:w-5 md:h-5 mr-1 md:mr-2 accent-blue-600 transition-transform">
                             내 예약만
                         </label>
                     </div>
                 </div>
                 
-                <!-- [추가됨] 캘린더 필터 영역 (월 단위) -->
                 <div class="bg-gray-50 p-1.5 md:p-4 rounded-xl border border-gray-200 mb-3 md:mb-4 flex flex-row justify-start items-center gap-1 md:gap-4 overflow-x-auto whitespace-nowrap scrollbar-hide">
                     <div class="flex flex-nowrap gap-0.5 md:gap-2 items-center flex-shrink-0">
                         <span class="font-bold text-gray-700 mr-0.5 md:mr-2 text-[10px] sm:text-[11px] md:text-base">월(Month):</span>
@@ -252,7 +240,6 @@
             </div>
 
             <div id="statusView" class="tab-content hidden">
-                 <!-- 상태 및 관리자 필터 영역 -->
                  <div class="bg-gray-50 p-2 md:p-4 rounded-xl border border-gray-200 mb-3 md:mb-6 flex flex-col lg:flex-row gap-2 md:gap-4 items-start lg:items-center justify-between">
                     <div class="flex flex-wrap gap-1 md:gap-4 items-center">
                         <span class="font-bold text-gray-700 mr-1 md:mr-2 text-xs md:text-base">상태:</span>
@@ -272,11 +259,11 @@
                      <div class="flex flex-wrap gap-2 items-center justify-end w-full lg:w-auto ml-auto">
                         <div id="statusCourseFilterWrapper" class="hidden flex items-center gap-1 md:gap-2">
                             <label class="font-bold text-gray-700 text-xs md:text-base">골프장:</label>
-                            <select id="statusCourseSelect" class="border border-gray-300 rounded-lg p-1 md:p-2 text-xs md:text-sm min-w-[80px] md:min-w-[120px]"></select>
+                            <select id="statusCourseSelect" class="border border-gray-300 rounded-lg p-1 md:p-2 text-xs md:text-sm min-w-[80px] md:min-w-[120px] transition-shadow"></select>
                         </div>
                         <div id="statusNameFilterWrapper" class="hidden flex items-center gap-1 md:gap-2">
                              <label class="font-bold text-gray-700 text-xs md:text-base">이름:</label>
-                             <select id="statusNameSelect" class="border border-gray-300 rounded-lg p-1 md:p-2 text-xs md:text-sm min-w-[80px] md:min-w-[120px]"></select>
+                             <select id="statusNameSelect" class="border border-gray-300 rounded-lg p-1 md:p-2 text-xs md:text-sm min-w-[80px] md:min-w-[120px] transition-shadow"></select>
                          </div>
                       </div>
                  </div>
@@ -284,11 +271,11 @@
                  <div class="flex justify-end items-center mb-3 md:mb-6 gap-2 md:gap-4">
                     <div class="flex gap-2 md:gap-3">
                         <div id="adminOnlyControls" class="flex gap-2 md:gap-3 hidden">
-                            <button id="downloadExcelBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 md:py-2 md:px-5 rounded-lg text-xs md:text-base shadow-sm whitespace-nowrap">엑셀 다운</button>
-                            <button id="uploadExcelBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-3 md:py-2 md:px-5 rounded-lg text-xs md:text-base shadow-sm whitespace-nowrap">엑셀 업로드</button>
+                            <button id="downloadExcelBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 md:py-2 md:px-5 rounded-lg text-xs md:text-base shadow-sm whitespace-nowrap hover:shadow-md">엑셀 다운</button>
+                            <button id="uploadExcelBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-3 md:py-2 md:px-5 rounded-lg text-xs md:text-base shadow-sm whitespace-nowrap hover:shadow-md">엑셀 업로드</button>
                         </div>
-                        <button id="cancelSelectedBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1 px-3 md:py-2 md:px-5 rounded-lg text-xs md:text-base shadow-sm hidden whitespace-nowrap">선택 취소</button>
-                        <button id="deleteSelectedBtn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 md:py-2 md:px-5 rounded-lg text-xs md:text-base shadow-sm hidden whitespace-nowrap">삭제</button>
+                        <button id="cancelSelectedBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1 px-3 md:py-2 md:px-5 rounded-lg text-xs md:text-base shadow-sm hidden whitespace-nowrap hover:shadow-md">선택 취소</button>
+                        <button id="deleteSelectedBtn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 md:py-2 md:px-5 rounded-lg text-xs md:text-base shadow-sm hidden whitespace-nowrap hover:shadow-md">삭제</button>
                     </div>
                 </div>
                 
@@ -296,14 +283,14 @@
                     <table class="min-w-full bg-white">
                         <thead id="statusTableHead" class="bg-gray-100 text-gray-800 uppercase text-xs md:text-sm font-extrabold border-b border-gray-300">
                             <tr>
-                                <th class="py-2 px-2 md:py-4 md:px-4 text-left"><input type="checkbox" id="selectAllStatus" class="w-4 h-4 md:w-5 md:h-5 accent-blue-600"></th>
-                                <th class="py-2 px-2 md:py-4 md:px-4 text-left cursor-pointer" data-sort="Golf Course">골프장 <span class="sort-indicator"></span></th>
-                                <th class="py-2 px-2 md:py-4 md:px-4 text-left cursor-pointer" data-sort="Name">성명 <span class="sort-indicator"></span></th>
-                                <th class="py-2 px-2 md:py-4 md:px-4 text-left cursor-pointer" data-sort="Date">날짜 <span class="sort-indicator"></span></th>
-                                <th class="py-2 px-2 md:py-4 md:px-4 text-center cursor-pointer" data-sort="Team">팀 <span class="sort-indicator"></span></th>
-                                <th class="py-2 px-2 md:py-4 md:px-4 text-left cursor-pointer" data-sort="Time">시간 <span class="sort-indicator"></span></th>
-                                <th class="py-2 px-2 md:py-4 md:px-4 text-left cursor-pointer" data-sort="Status">상태 <span class="sort-indicator"></span></th>
-                                <th class="py-2 px-2 md:py-4 md:px-4 text-left cursor-pointer">비고</th>
+                                <th class="py-2 px-2 md:py-4 md:px-4 text-left"><input type="checkbox" id="selectAllStatus" class="w-4 h-4 md:w-5 md:h-5 accent-blue-600 transition-transform"></th>
+                                <th class="py-2 px-2 md:py-4 md:px-4 text-left cursor-pointer hover:text-blue-600 transition-colors" data-sort="Golf Course">골프장 <span class="sort-indicator"></span></th>
+                                <th class="py-2 px-2 md:py-4 md:px-4 text-left cursor-pointer hover:text-blue-600 transition-colors" data-sort="Name">성명 <span class="sort-indicator"></span></th>
+                                <th class="py-2 px-2 md:py-4 md:px-4 text-left cursor-pointer hover:text-blue-600 transition-colors" data-sort="Date">날짜 <span class="sort-indicator"></span></th>
+                                <th class="py-2 px-2 md:py-4 md:px-4 text-center cursor-pointer hover:text-blue-600 transition-colors" data-sort="Team">팀 <span class="sort-indicator"></span></th>
+                                <th class="py-2 px-2 md:py-4 md:px-4 text-left cursor-pointer hover:text-blue-600 transition-colors" data-sort="Time">시간 <span class="sort-indicator"></span></th>
+                                <th class="py-2 px-2 md:py-4 md:px-4 text-left cursor-pointer hover:text-blue-600 transition-colors" data-sort="Status">상태 <span class="sort-indicator"></span></th>
+                                <th class="py-2 px-2 md:py-4 md:px-4 text-left cursor-pointer hover:text-blue-600 transition-colors">비고</th>
                             </tr>
                         </thead>
                         <tbody id="statusTableBody" class="text-gray-700 text-xs md:text-base"></tbody>
@@ -327,22 +314,22 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 items-end">
                         <div>
                             <h3 class="text-sm md:text-base font-bold text-gray-600 mb-1 md:mb-2">접대비 합계</h3>
-                            <p id="totalEntertainmentCost" class="text-2xl md:text-3xl font-black text-blue-800">₩0</p>
+                            <p id="totalEntertainmentCost" class="text-2xl md:text-3xl font-black text-blue-800 transition-all">₩0</p>
                         </div>
                         <div>
                             <h3 class="text-sm md:text-base font-bold text-gray-600 mb-1 md:mb-2">잔여 차감액</h3>
-                            <p id="remainingEntertainmentCost" class="text-2xl md:text-3xl font-black text-green-700">₩0</p>
+                            <p id="remainingEntertainmentCost" class="text-2xl md:text-3xl font-black text-green-700 transition-all">₩0</p>
                         </div>
                         <div class="space-y-2 md:space-y-3">
-                            <input type="text" id="commonEntertainment" class="block w-full border-gray-300 rounded-lg shadow-sm text-sm" placeholder="공통접대비 입력">
-                            <input type="text" id="personalEntertainment" class="block w-full border-gray-300 rounded-lg shadow-sm text-sm" placeholder="개인접대비 입력">
+                            <input type="text" id="commonEntertainment" class="block w-full border-gray-300 rounded-lg shadow-sm text-sm transition-shadow focus:ring-indigo-500" placeholder="공통접대비 입력">
+                            <input type="text" id="personalEntertainment" class="block w-full border-gray-300 rounded-lg shadow-sm text-sm transition-shadow focus:ring-indigo-500" placeholder="개인접대비 입력">
                         </div>
                         <button id="saveEntertainmentBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 md:py-3 md:px-6 rounded-xl shadow-lg transition-transform hover:scale-105 whitespace-nowrap text-sm md:text-base">설정 저장</button>
                     </div>
                 </div>
                 <div id="adminEntertainmentFilter" class="mb-3 md:mb-6 hidden items-center gap-2 md:gap-3">
                     <label class="text-sm md:text-lg font-bold text-gray-800">대상자(이름):</label>
-                    <select id="entertainmentNameFilter" class="border-gray-300 rounded-lg shadow-sm bg-white min-w-[120px] md:min-w-[150px] text-sm"></select>
+                    <select id="entertainmentNameFilter" class="border-gray-300 rounded-lg shadow-sm bg-white min-w-[120px] md:min-w-[150px] text-sm transition-shadow"></select>
                 </div>
                 <div class="overflow-x-auto rounded-xl border border-gray-300 shadow-sm">
                     <table class="min-w-full bg-white">
@@ -366,13 +353,13 @@
                 <div class="bg-gray-50 p-4 md:p-8 rounded-xl md:rounded-2xl border border-gray-200 mb-4 md:mb-8 flex flex-wrap gap-4 md:gap-6 items-center shadow-sm">
                     <div class="flex items-center gap-2 md:gap-3">
                         <label class="text-sm md:text-lg font-bold text-gray-700">성명:</label>
-                        <input type="text" id="lookupName" class="border-gray-300 rounded-lg shadow-sm w-32 md:w-40 text-sm">
+                        <input type="text" id="lookupName" class="border-gray-300 rounded-lg shadow-sm w-32 md:w-40 text-sm transition-shadow focus:ring-blue-500">
                     </div>
                     <div class="flex items-center gap-2 md:gap-3">
                         <label class="text-sm md:text-lg font-bold text-gray-700">조회일자:</label>
-                        <input type="date" id="lookupDate" class="border-gray-300 rounded-lg shadow-sm text-sm">
+                        <input type="date" id="lookupDate" class="border-gray-300 rounded-lg shadow-sm text-sm transition-shadow focus:ring-blue-500">
                     </div>
-                    <button id="lookupBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 md:py-3 md:px-8 rounded-xl shadow-md text-sm md:text-lg whitespace-nowrap">데이터 조회</button>
+                    <button id="lookupBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 md:py-3 md:px-8 rounded-xl shadow-md text-sm md:text-lg whitespace-nowrap hover:shadow-lg">데이터 조회</button>
                 </div>
                 <div id="lookupResults" class="space-y-4 md:space-y-8"></div>
             </div>
@@ -396,7 +383,7 @@
                 <div class="grid grid-cols-2 gap-3 md:gap-6">
                     <div class="col-span-2">
                         <label class="block text-sm font-extrabold text-gray-700 mb-1">신청인</label>
-                        <input type="text" id="userName" required class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 text-gray-600">
+                        <input type="text" id="userName" required class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 text-gray-600 transition-shadow">
                     </div>
                      <div class="col-span-2 hidden">
                         <label class="block text-sm font-extrabold text-gray-700 mb-1">전화번호</label>
@@ -404,7 +391,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-extrabold text-gray-700 mb-1">예약일자</label>
-                        <input type="date" id="bookingDate" required max="9999-12-31" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-medium">
+                        <input type="date" id="bookingDate" required max="9999-12-31" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-medium transition-shadow">
                     </div>
                     <div class="hidden">
                          <label class="block text-sm font-extrabold text-gray-700 mb-1">요일</label>
@@ -412,11 +399,11 @@
                     </div>
                     <div>
                         <label class="block text-sm font-extrabold text-gray-700 mb-1">골프장</label>
-                        <select id="golfCourse" required class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-medium"></select>
+                        <select id="golfCourse" required class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-medium transition-shadow"></select>
                     </div>
                     <div>
                         <label class="block text-sm font-extrabold text-gray-700 mb-1">팀 수</label>
-                        <input type="number" id="numberOfTeams" min="1" required class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-medium">
+                        <input type="number" id="numberOfTeams" min="1" required class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-medium transition-shadow">
                     </div>
                     <div class="hidden">
                         <label class="block text-sm font-extrabold text-gray-700 mb-1">티오프 시간</label>
@@ -436,7 +423,7 @@
                     </div>
                     <div class="col-span-2">
                         <label class="block text-sm font-extrabold text-gray-700 mb-1">비고</label>
-                        <input type="text" id="notes" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-medium">
+                        <input type="text" id="notes" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-medium transition-shadow">
                     </div>
                 </div>
                 <div class="flex justify-end space-x-2 md:space-x-4 pt-4 md:pt-8 border-t">
@@ -449,7 +436,7 @@
     
     <div id="noticeModal" class="modal-overlay">
         <div class="modal-content relative max-w-3xl max-h-[80vh] overflow-y-auto">
-            <button id="closeNoticeBtn" class="absolute top-4 right-4 text-2xl text-gray-500 hover:text-gray-800">&times;</button>
+            <button id="closeNoticeBtn" class="absolute top-4 right-4 text-2xl text-gray-500 hover:text-gray-800 transition-colors">&times;</button>
             <h2 class="text-xl md:text-2xl font-bold mb-2 text-center text-gray-800">골프예약시스템 안내</h2>
             <p class="text-xs md:text-sm text-center text-gray-500 mb-4 md:mb-6">[2026.01월, 인사총무팀]</p>
             <div class="prose max-w-none text-gray-700 space-y-3 md:space-y-4 text-sm md:text-base">
@@ -523,7 +510,7 @@
         <div class="modal-content max-w-sm text-center">
             <h3 class="text-lg md:text-xl font-bold mb-3 md:mb-4 text-gray-800">알림</h3>
             <p id="alertMessage" class="text-gray-600 mb-4 md:mb-6 whitespace-pre-wrap font-medium text-sm md:text-base"></p>
-            <button id="closeAlertBtn" class="bg-blue-600 text-white px-6 py-2 md:px-8 rounded-lg font-bold hover:bg-blue-700 transition text-sm md:text-base">확인</button>
+            <button id="closeAlertBtn" class="bg-blue-600 text-white px-6 py-2 md:px-8 rounded-lg font-bold hover:bg-blue-700 transition-colors text-sm md:text-base hover:shadow-md">확인</button>
         </div>
     </div>
 
@@ -532,8 +519,8 @@
             <h3 class="text-lg md:text-xl font-bold mb-3 md:mb-4 text-gray-800">확인</h3>
             <p id="confirmMessage" class="text-gray-600 mb-4 md:mb-6 whitespace-pre-wrap font-medium text-sm md:text-base"></p>
             <div class="flex justify-center gap-3 md:gap-4">
-                <button id="confirmCancelBtn" class="border border-gray-300 text-gray-600 px-4 py-2 md:px-6 rounded-lg font-bold hover:bg-gray-50 transition text-sm md:text-base">취소</button>
-                <button id="confirmOkBtn" class="bg-blue-600 text-white px-4 py-2 md:px-6 rounded-lg font-bold hover:bg-blue-700 transition text-sm md:text-base">확인</button>
+                <button id="confirmCancelBtn" class="border border-gray-300 text-gray-600 px-4 py-2 md:px-6 rounded-lg font-bold hover:bg-gray-50 transition-colors text-sm md:text-base">취소</button>
+                <button id="confirmOkBtn" class="bg-blue-600 text-white px-4 py-2 md:px-6 rounded-lg font-bold hover:bg-blue-700 transition-colors text-sm md:text-base hover:shadow-md">확인</button>
             </div>
         </div>
     </div>
@@ -542,17 +529,17 @@
          <div class="modal-content">
             <h2 class="text-2xl md:text-3xl font-bold mb-4 md:mb-8">데이터 업로드 (.csv)</h2>
             <form id="uploadForm" class="space-y-4 md:space-y-6">
-                <input type="file" id="excelFile" accept=".csv" required class="block w-full text-sm md:text-base text-gray-500 file:mr-3 md:file:mr-6 file:py-2 md:file:py-3 file:px-4 md:file:px-6 file:rounded-full file:border-0 file:text-sm md:file:text-base file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                <input type="file" id="excelFile" accept=".csv" required class="block w-full text-sm md:text-base text-gray-500 file:mr-3 md:file:mr-6 file:py-2 md:file:py-3 file:px-4 md:file:px-6 file:rounded-full file:border-0 file:text-sm md:file:text-base file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors">
                 <div class="flex justify-end space-x-2 md:space-x-4 pt-4 md:pt-6 border-t">
-                    <button type="button" id="closeUploadModalBtn" class="px-4 py-2 md:px-8 md:py-3 border-2 rounded-xl font-bold text-sm md:text-lg hover:bg-gray-50 whitespace-nowrap">취소</button>
-                    <button type="submit" class="px-4 py-2 md:px-8 md:py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 text-sm md:text-lg shadow-md whitespace-nowrap">업로드</button>
+                    <button type="button" id="closeUploadModalBtn" class="px-4 py-2 md:px-8 md:py-3 border-2 rounded-xl font-bold text-sm md:text-lg hover:bg-gray-50 whitespace-nowrap transition-colors">취소</button>
+                    <button type="submit" class="px-4 py-2 md:px-8 md:py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 text-sm md:text-lg shadow-md whitespace-nowrap transition-colors hover:shadow-lg">업로드</button>
                 </div>
             </form>
         </div>
     </div>
 
     <div id="loadingOverlay" class="modal-overlay" style="display: none;">
-        <div class="bg-white p-6 md:p-10 rounded-3xl shadow-2xl w-full max-w-md text-center border border-gray-100">
+        <div class="bg-white p-6 md:p-10 rounded-3xl shadow-2xl w-full max-w-md text-center border border-gray-100 transform transition-transform scale-100">
             <h3 id="loadingText" class="text-xl md:text-2xl font-black text-gray-800 mb-4 md:mb-8 tracking-tight">처리 중입니다...</h3>
             <div class="w-full bg-gray-100 rounded-full h-4 md:h-6 overflow-hidden relative shadow-inner">
                 <div class="progress-bar-inner"></div>
@@ -621,7 +608,6 @@
         let users = [];
         let allEntertainmentLogs = [];
         
-        // [수정됨] 연도 단위 설정
         let selectedYear = new Date().getFullYear();
         
         let calendarMyBookingFilter = false;
@@ -643,14 +629,17 @@
             const cleanDateStr = String(dateStr).replace(/\./g, '-').substring(0, 10);
             const date = new Date(cleanDateStr);
             if (isNaN(date.getTime())) return false;
-            // [수정됨] 상/하반기 구분 없이 연도만 일치하면 표시
             return date.getFullYear() === parseInt(selectedYear);
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
+            // [애니메이션 처리] 페이지 로드 시 로그인 창 부드럽게 나타남
+            setTimeout(() => {
+                document.getElementById('loginScreen').classList.remove('opacity-0');
+            }, 100);
+
             const globalPeriodSelector = document.getElementById('globalPeriodSelector');
             
-            // [수정됨] 연도만 표시되도록 선택지 변경
             let periodOptions = '';
             for(let y=2024; y<=2027; y++) {
                 periodOptions += `<option value="${y}">${y}년 (전체)</option>`;
@@ -664,7 +653,7 @@
             });
 
             setupCheckboxLogic('calCourseFilter', renderCalendar);
-            setupCheckboxLogic('calMonthFilter', renderCalendar); // [추가됨] 월 필터 이벤트 등록
+            setupCheckboxLogic('calMonthFilter', renderCalendar); 
             setupCheckboxLogic('statusFilter', renderStatus);
             setupCheckboxLogic('sienaStatusFilter', renderStatus);
 
@@ -699,15 +688,28 @@
         });
 
         // ########## Functions ##########
+        
+        // [애니메이션 처리를 위한 모달 열기/닫기 헬퍼 함수]
+        function openModalWithAnim(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.style.display = 'flex';
+            setTimeout(() => { modal.style.opacity = '1'; }, 10);
+        }
+
+        function closeModalWithAnim(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.style.opacity = '0';
+            setTimeout(() => { modal.style.display = 'none'; }, 300); // CSS transition 시간과 맞춤
+        }
 
         function showAlert(message) {
             document.getElementById('alertMessage').textContent = message;
-            document.getElementById('alertModal').style.display = 'flex';
+            openModalWithAnim('alertModal');
         }
 
         function showConfirm(msg, callback) {
             document.getElementById('confirmMessage').textContent = msg;
-            document.getElementById('confirmModal').style.display = 'flex';
+            openModalWithAnim('confirmModal');
             confirmCallback = callback;
         }
 
@@ -752,14 +754,24 @@
         }
 
         function showLoginScreen() {
-            document.getElementById('loginScreen').classList.remove('hidden');
-            document.getElementById('mainApp').classList.add('hidden');
+            const login = document.getElementById('loginScreen');
+            const main = document.getElementById('mainApp');
+            main.classList.add('hidden');
+            main.classList.remove('opacity-100');
+            login.classList.remove('hidden');
+            setTimeout(() => { login.classList.remove('opacity-0'); login.classList.add('opacity-100'); }, 50);
         }
         
         function showMainApp() {
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
-            renderApp();
+            const login = document.getElementById('loginScreen');
+            const main = document.getElementById('mainApp');
+            login.classList.add('opacity-0');
+            setTimeout(() => {
+                login.classList.add('hidden');
+                main.classList.remove('hidden');
+                setTimeout(() => { main.classList.remove('opacity-0'); main.classList.add('opacity-100'); }, 50);
+                renderApp();
+            }, 300);
         }
 
         function renderApp() {
@@ -857,9 +869,9 @@
             const text = document.getElementById('loadingText');
             if (isLoading) {
                 text.textContent = message;
-                overlay.style.display = 'flex';
+                openModalWithAnim('loadingOverlay');
             } else {
-                overlay.style.display = 'none';
+                closeModalWithAnim('loadingOverlay');
             }
         }
 
@@ -876,7 +888,6 @@
             const calendarEl = document.getElementById('calendar');
             calendarEl.innerHTML = '';
             
-            // [수정됨] 월 필터에서 선택된 월 배열 생성
             let renderMonths = [];
             const checkedMonthsRaw = Array.from(document.querySelectorAll('input[name="calMonthFilter"]:checked')).map(cb => cb.value);
             
@@ -919,7 +930,6 @@
                 bookingMap.get(normDate).push(b);
             });
 
-            // [수정됨] 체크된 월만 순회하도록 로직 변경
             for (let m of renderMonths) {
                 const firstDay = new Date(selectedYear, m, 1);
                 const lastDay = new Date(selectedYear, m + 1, 0);
@@ -969,7 +979,7 @@
                 for (let d = 1; d <= lastDay.getDate(); d++) {
                     const dateStr = `${selectedYear}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                     const dayCell = document.createElement('div');
-                    dayCell.className = 'day-cell rounded-lg md:rounded-xl p-1 transition-transform active:scale-95';
+                    dayCell.className = 'day-cell rounded-lg md:rounded-xl p-1';
                     
                     let bookingHtml = '';
                     if (bookingMap.has(dateStr)) {
@@ -1348,27 +1358,27 @@
             
             document.getElementById('noticeLink').addEventListener('click', (e) => {
                 e.preventDefault();
-                document.getElementById('noticeModal').style.display = 'flex';
+                openModalWithAnim('noticeModal');
             });
             
             document.getElementById('closeNoticeBtn').addEventListener('click', () => {
-                document.getElementById('noticeModal').style.display = 'none';
+                closeModalWithAnim('noticeModal');
             });
 
             document.getElementById('closeAlertBtn').addEventListener('click', () => {
-                document.getElementById('alertModal').style.display = 'none';
+                closeModalWithAnim('alertModal');
             });
 
             document.getElementById('confirmOkBtn').onclick = () => {
-                document.getElementById('confirmModal').style.display = 'none';
+                closeModalWithAnim('confirmModal');
                 if(confirmCallback) confirmCallback();
             };
             document.getElementById('confirmCancelBtn').onclick = () => {
-                document.getElementById('confirmModal').style.display = 'none';
+                closeModalWithAnim('confirmModal');
             };
             
             document.getElementById('openModalBtn').onclick = () => openBookingModal();
-            document.getElementById('closeModalBtn').onclick = () => document.getElementById('bookingModal').style.display='none';
+            document.getElementById('closeModalBtn').onclick = () => closeModalWithAnim('bookingModal');
             
             document.getElementById('loginForm').onsubmit = (e) => {
                 e.preventDefault();
@@ -1377,7 +1387,6 @@
                 const found = users.find(user => user.name === u && String(user.phone) === p);
                 
                 if(found) {
-                    // 로그인은 상시 개방 (하반기 오픈 시간은 예약 신청 시 체크)
                     currentUser = found;
                     sessionStorage.setItem('golf_currentUser', JSON.stringify(found));
                     showMainApp(); 
@@ -1407,7 +1416,7 @@
                 ];
 
                 items.forEach(i => {
-                    const totalLimit = (i.val || 0) * 12; // [수정됨] 연간 개방이므로 12개월분 적용
+                    const totalLimit = (i.val || 0) * 12; 
                     const remaining = totalLimit - i.used;
                     html += `<tr class="border-b hover:bg-gray-50 text-center"><td class="p-2 md:p-3 font-bold text-gray-700 text-left">${i.k}</td><td class="p-2 md:p-3 text-gray-600">${totalLimit}</td><td class="p-2 md:p-3 text-blue-600 font-bold">${i.used}</td><td class="p-2 md:p-3 font-black text-base md:text-lg ${remaining < 0 ? 'text-red-500' : 'text-green-600'}">${remaining}</td></tr>`;
                 });
@@ -1482,7 +1491,7 @@
                     return;
                 }
 
-                showConfirm(`선택한 ${checkedBoxes.length}건의 예약을 정말 삭제하시겠습니까?\n이 작업은 되돌릴 수 추 없습니다.`, async () => {
+                showConfirm(`선택한 ${checkedBoxes.length}건의 예약을 정말 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`, async () => {
                     showLoading(true, "선택한 예약을 삭제 중입니다...");
 
                     try {
@@ -1537,11 +1546,11 @@
             });
 
             document.getElementById('uploadExcelBtn')?.addEventListener('click', () => {
-                document.getElementById('uploadModal').style.display = 'flex';
+                openModalWithAnim('uploadModal');
             });
 
             document.getElementById('closeUploadModalBtn')?.addEventListener('click', () => {
-                document.getElementById('uploadModal').style.display = 'none';
+                closeModalWithAnim('uploadModal');
                 document.getElementById('uploadForm').reset();
             });
 
@@ -1562,7 +1571,7 @@
                         }
 
                         showConfirm(`${uploadedData.length}건의 데이터를 업로드하시겠습니까?`, async () => {
-                            document.getElementById('uploadModal').style.display = 'none';
+                            closeModalWithAnim('uploadModal');
                             await postData('addMultiple', { user: currentUser.name, bookings: uploadedData });
                             document.getElementById('uploadForm').reset();
                         });
@@ -1578,10 +1587,7 @@
             if (!dateStr || !currentUser) return true;
             const targetMonth = new Date(dateStr).getMonth();
             
-            // 1월~6월(상반기)는 누구나 상시 예약 가능
             if (targetMonth < 6) return true;
-            
-            // 관리자 예외
             if (['신석중', '채훈'].includes(currentUser.name)) return true;
 
             const now = new Date();
@@ -1605,10 +1611,9 @@
 
         function openBookingModal(booking = null, dateStr = null) {
             if (dateStr && !booking && !canBookForDate(dateStr)) {
-                return; // 하반기 예약 제한 시 팝업 띄우지 않음
+                return; 
             }
 
-            const modal = document.getElementById('bookingModal');
             const title = document.getElementById('modalTitle');
             const form = document.getElementById('bookingForm');
             
@@ -1645,7 +1650,7 @@
                     updateAvailableGolfCourses(dateStr);
                 }
             }
-            modal.style.display = 'flex';
+            openModalWithAnim('bookingModal');
         }
 
         function updateAvailableGolfCourses(date, excludeBookingId = null) {
@@ -1695,7 +1700,7 @@
                 
                 if (!silent) {
                     showAlert(result.message);
-                    document.getElementById('bookingModal').style.display = 'none';
+                    closeModalWithAnim('bookingModal');
                     await fetchInitialData();
                     renderApp();
                 }
@@ -1793,7 +1798,6 @@
                 return;
             }
 
-            // 구글시트 수식 보존을 위해 산출 필드(Phone, Day, Time, BookingDate, DeliveryStatus)를 전송 항목에서 완전히 제외
             const bookingData = {
                 'id': document.getElementById('bookingId').value, 
                 'Golf Course': document.getElementById('golfCourse').value,
