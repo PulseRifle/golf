@@ -567,6 +567,15 @@
         </div>
     </div>
 
+    <div id="editChooserModal" class="modal-overlay">
+        <div class="modal-content max-w-sm">
+            <h3 class="text-lg md:text-xl font-bold mb-1 text-navy-900">예약 수정 선택</h3>
+            <p class="text-gray-500 text-xs md:text-sm mb-4">이 날짜에 해당 골프장 예약이 여러 건입니다. 수정할 예약을 선택하세요.</p>
+            <div id="editChooserList" class="flex flex-col gap-2 max-h-[50vh] overflow-y-auto"></div>
+            <button id="closeEditChooserBtn" class="mt-4 w-full bg-gray-100 text-gray-600 px-6 py-2 rounded-lg font-bold hover:bg-gray-200 transition-colors text-sm md:text-base border border-gray-200">닫기</button>
+        </div>
+    </div>
+
     <!-- [추가됨] 사이트 이전 안내 모달 -->
     <div id="migrationModal" class="modal-overlay">
         <div class="modal-content max-w-md text-center border-t-4 border-red-500">
@@ -1095,23 +1104,38 @@
                     const dayCell = document.createElement('div');
                     dayCell.className = 'day-cell rounded-lg md:rounded-xl p-1';
                     
-                    let bookingHtml = '';
+                    const dayOfWeek = new Date(selectedYear, m, d).getDay();
+                    let color = 'text-gray-700';
+                    if (dayOfWeek === 0 || holidays[dateStr]) color = 'text-red-600';
+                    else if (dayOfWeek === 6) color = 'text-navy-700';
+
+                    const dayNumEl = document.createElement('div');
+                    dayNumEl.className = `text-sm md:text-lg font-bold ${color} mb-0 md:mb-1`;
+                    dayNumEl.textContent = d;
+                    dayCell.appendChild(dayNumEl);
+
                     if (bookingMap.has(dateStr)) {
                         const dayBookings = bookingMap.get(dateStr);
                         const uniqueCourses = [...new Set(dayBookings.map(b => b['Golf Course']))];
                         uniqueCourses.sort((a, b) => (COURSE_PRIORITY[a] || 99) - (COURSE_PRIORITY[b] || 99));
 
                         uniqueCourses.forEach(course => {
-                            bookingHtml += `<div class="booking-info ${GOLF_COURSE_COLORS[course] || ''} truncate">${COURSE_ABBR[course] || course}</div>`;
+                            const courseEl = document.createElement('div');
+                            courseEl.className = `booking-info ${GOLF_COURSE_COLORS[course] || ''} truncate`;
+                            courseEl.textContent = COURSE_ABBR[course] || course;
+                            if (role === 'ADMIN') {
+                                const courseBookings = dayBookings.filter(b => b['Golf Course'] === course);
+                                courseEl.classList.add('cursor-pointer', 'hover:underline');
+                                courseEl.title = '클릭하여 예약 수정';
+                                courseEl.addEventListener('click', (e) => {
+                                    e.stopPropagation();
+                                    handleCalendarEdit(courseBookings);
+                                });
+                            }
+                            dayCell.appendChild(courseEl);
                         });
                     }
-                    
-                    const dayOfWeek = new Date(selectedYear, m, d).getDay();
-                    let color = 'text-gray-700';
-                    if (dayOfWeek === 0 || holidays[dateStr]) color = 'text-red-600';
-                    else if (dayOfWeek === 6) color = 'text-navy-700';
 
-                    dayCell.innerHTML = `<div class="text-sm md:text-lg font-bold ${color} mb-0 md:mb-1">${d}</div>${bookingHtml}`;
                     dayCell.onclick = () => openBookingModal(null, dateStr);
                     dayGrid.appendChild(dayCell);
                 }
@@ -1522,6 +1546,7 @@
             
             document.getElementById('openModalBtn').onclick = () => openBookingModal();
             document.getElementById('closeModalBtn').onclick = () => closeModalWithAnim('bookingModal');
+            document.getElementById('closeEditChooserBtn').addEventListener('click', () => closeModalWithAnim('editChooserModal'));
             
             document.getElementById('loginForm').onsubmit = (e) => {
                 e.preventDefault();
@@ -1783,6 +1808,32 @@
                 }
             }
             return true;
+        }
+
+        function handleCalendarEdit(list) {
+            if (!list || list.length === 0) return;
+            if (list.length === 1) { openBookingModal(list[0]); return; }
+            openEditChooser(list);
+        }
+
+        function openEditChooser(list) {
+            const box = document.getElementById('editChooserList');
+            box.innerHTML = '';
+            list.forEach(b => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'text-left border border-gray-200 rounded-lg px-3 py-2 hover:bg-[#f3eee3] hover:border-gold-400 transition-colors';
+                const dateTxt = String(b.Date).replace(/\./g, '-').substring(0, 10);
+                const sub = `${dateTxt}${b.Time ? ' ' + b.Time : ''} · ${b.Team || ''}팀 · ${b.Status || ''}`;
+                btn.innerHTML = `<div class="font-bold text-navy-900 text-sm md:text-base">${b['Golf Course']} · ${b.Name || ''}</div>`
+                    + `<div class="text-xs md:text-sm text-gray-500 mt-0.5">${sub}</div>`;
+                btn.addEventListener('click', () => {
+                    closeModalWithAnim('editChooserModal');
+                    setTimeout(() => openBookingModal(b), 220);
+                });
+                box.appendChild(btn);
+            });
+            openModalWithAnim('editChooserModal');
         }
 
         function openBookingModal(booking = null, dateStr = null) {
