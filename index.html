@@ -718,13 +718,15 @@
                 renderApp();
             });
 
-            setupCheckboxLogic('calCourseFilter', renderCalendar);
-            setupCheckboxLogic('calMonthFilter', renderCalendar); 
+            setupCheckboxLogic('calCourseFilter', renderCalendar, 'golf_calCourseFilter');
+            setupCheckboxLogic('calMonthFilter', renderCalendar, 'golf_calMonthFilter'); 
             setupCheckboxLogic('statusFilter', renderStatus, 'golf_statusFilter');
             setupCheckboxLogic('statusMonthFilter', renderStatus, 'golf_statusMonthFilter');
             setupCheckboxLogic('sienaStatusFilter', renderStatus);
 
-            // 예약현황 탭 상태/월 필터 임시 저장값 복원
+            // 캘린더/예약현황 탭 필터 임시 저장값 복원 (다음 접속 시 동일 필터 유지)
+            restoreCheckboxState('calCourseFilter', 'golf_calCourseFilter');
+            restoreCheckboxState('calMonthFilter', 'golf_calMonthFilter');
             restoreCheckboxState('statusFilter', 'golf_statusFilter');
             restoreCheckboxState('statusMonthFilter', 'golf_statusMonthFilter');
 
