@@ -1,3 +1,335 @@
+### Code.gs
+
+/**
+ * Google Apps Script for Golf Reservation System
+ * This script handles data operations between the web app and Google Sheets.
+ * It manages sheets: Data (bookings), Quota (user limits), Log (activity tracking), 
+ * Password (user credentials), and EntertainmentLog (expense tracking).
+ */
+
+const SHEET_NAME_DATA = "Data";
+const SHEET_NAME_QUOTA = "Quota";
+const SHEET_NAME_LOG = "Log";
+const SHEET_NAME_PASSWORD = "Password";
+const SHEET_NAME_ENTERTAINMENT = "EntertainmentLog"; // 접대비 로그 시트
+
+/**
+ * HTTP GET 요청을 처리합니다.
+ */
+function doGet(e) {
+  const lock = LockService.getScriptLock();
+  lock.tryLock(10000);
+  
+  try {
+    if (e.parameter.action === 'read') {
+      const bookings = getBookings();
+      const quotas = getQuotas();
+      const users = getUsers();
+      const entertainmentData = getEntertainmentData(); // 접대비 데이터 로드
+      
+      const responseData = { 
+        status: 'success',
+        bookings: bookings, 
+        quotas: quotas,
+        users: users,
+        entertainmentData: entertainmentData 
+      };
+      
+      return ContentService.createTextOutput(JSON.stringify(responseData))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: error.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * HTTP POST 요청을 처리합니다.
+ */
+function doPost(e) {
+  const lock = LockService.getScriptLock();
+  lock.tryLock(10000); // 동시성 제어
+
+  let response = {};
+  try {
+    const request = JSON.parse(e.postData.contents);
+    
+    switch (request.action) {
+      case 'add':
+        addBooking(request.booking, request.user);
+        response = { status: 'success', message: '예약이 추가되었습니다.' };
+        break;
+      case 'update':
+        updateBooking(request.booking, request.user, request.logMessage);
+        response = { status: 'success', message: '예약이 수정되었습니다.' };
+        break;
+      case 'delete':
+        deleteBooking(request.booking, request.user);
+        response = { status: 'success', message: '예약이 삭제되었습니다.' };
+        break;
+      case 'addMultiple':
+        addMultipleBookings(request.bookings, request.user);
+        response = { status: 'success', message: '데이터가 성공적으로 업로드되었습니다.' };
+        break;
+      case 'cancel':
+        cancelBookings(request.ids, request.user);
+        response = { status: 'success', message: '선택한 예약이 취소 처리되었습니다.' };
+        break;
+      case 'saveEntertainment':
+        saveEntertainment(request); 
+        response = { status: 'success', message: '접대비가 저장되었습니다.' };
+        break;
+      default:
+        throw new Error("알 수 없는 요청입니다.");
+    }
+  } catch (error) {
+    response = { status: 'error', message: error.message };
+  } finally {
+    lock.releaseLock();
+  }
+  
+  return ContentService.createTextOutput(JSON.stringify(response)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function getSheet(sheetName) {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName(sheetName);
+    if (!sheet) {
+      sheet = ss.insertSheet(sheetName);
+    }
+    return sheet;
+}
+
+function logAction(user, action, bookingDate, golfCourse, team) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let logSheet = getSheet(SHEET_NAME_LOG);
+  if (logSheet.getLastRow() === 0) {
+    logSheet.appendRow(["Timestamp", "User", "Action", "Target Date", "Target Golf Course", "Target Team"]);
+  }
+  const timestamp = Utilities.formatDate(new Date(), ss.getSpreadsheetTimeZone(), "yyyy-MM-dd HH:mm:ss");
+  logSheet.appendRow([timestamp, user, action, bookingDate || '', golfCourse || '', team || '']);
+}
+
+function getUsers() {
+    const sheet = getSheet(SHEET_NAME_PASSWORD);
+    if (!sheet) return [];
+    const values = sheet.getDataRange().getValues();
+    if (values.length < 2) return [];
+    const headers = values[0];
+    const idIndex = headers.indexOf('id');
+    const passwordIndex = headers.indexOf('password');
+
+    if (idIndex === -1 || passwordIndex === -1) return [];
+
+    return values.slice(1).map(row => ({
+        name: row[idIndex],
+        phone: String(row[passwordIndex]) 
+    }));
+}
+
+function getQuotas() {
+    const quotaSheet = getSheet(SHEET_NAME_QUOTA);
+    if (!quotaSheet) return [];
+    const values = quotaSheet.getDataRange().getValues();
+    if (values.length < 2) return [];
+    const headers = values[0];
+    return values.slice(1).map(row => {
+        let obj = {};
+        headers.forEach((header, i) => { obj[header] = row[i]; });
+        return obj;
+    });
+}
+
+function getBookings() {
+  const sheet = getSheet(SHEET_NAME_DATA);
+  if (!sheet) return [];
+  const range = sheet.getDataRange();
+  const values = range.getValues();
+  if (values.length < 2) return [];
+  const spreadsheetTimeZone = SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone();
+  const headers = values[0];
+  return values.slice(1).map(row => {
+    let obj = {};
+    headers.forEach((header, i) => {
+      let cellValue = row[i];
+      // [수정] BookingDate 컬럼도 날짜 포맷팅 대상에 포함
+      if ((header === 'Date' || header === 'Time' || header === 'BookingDate') && cellValue) {
+        try {
+          const dateObj = new Date(cellValue);
+          if (!isNaN(dateObj.getTime())) {
+            if (header === 'Date' || header === 'BookingDate') obj[header] = Utilities.formatDate(dateObj, spreadsheetTimeZone, "yyyy-MM-dd");
+            else if (header === 'Time') obj[header] = Utilities.formatDate(dateObj, spreadsheetTimeZone, "HH:mm");
+          } else { obj[header] = cellValue; }
+        } catch (e) { obj[header] = cellValue; }
+      } else { obj[header] = cellValue; }
+    });
+    return obj;
+  });
+}
+
+function getEntertainmentData() {
+  const sheet = getSheet(SHEET_NAME_ENTERTAINMENT);
+  if (!sheet || sheet.getLastRow() < 2) {
+    return [];
+  }
+
+  try {
+    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    const dataRows = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+
+    return dataRows.map(row => {
+      let obj = {};
+      headers.forEach((header, i) => {
+        let cellValue = row[i];
+        if (header === 'Timestamp' && cellValue) {
+          try {
+            const dateObj = new Date(cellValue);
+            if (!isNaN(dateObj.getTime())) {
+              obj[header] = dateObj.toISOString();
+            } else {
+              obj[header] = cellValue;
+            }
+          } catch(e) {
+            obj[header] = cellValue;
+          }
+        } else {
+          obj[header] = cellValue;
+        }
+      });
+      return obj;
+    });
+  } catch (e) {
+    Logger.log("getEntertainmentData Error: " + e.message);
+    return [];
+  }
+}
+
+function addBooking(booking, user) {
+  const sheet = getSheet(SHEET_NAME_DATA);
+  const newId = Utilities.getUuid();
+  const lastCol = sheet.getLastColumn();
+  const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  
+  const newRow = headers.map(header => {
+    if (header === 'id') return newId;
+    return booking[header] || "";
+  });
+  sheet.appendRow(newRow);
+  logAction(user, "추가", booking['Date'], booking['Golf Course'], booking['Team']);
+}
+
+function addMultipleBookings(bookings, user) {
+  const sheet = getSheet(SHEET_NAME_DATA);
+  const lastCol = sheet.getLastColumn();
+  const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  
+  if (sheet.getLastRow() > 1) {
+    sheet.getRange(2, 1, sheet.getLastRow() - 1, lastCol).clearContent();
+  }
+  
+  const newRows = bookings.map(booking => {
+    const newId = Utilities.getUuid();
+    logAction(user || "Admin", "엑셀 업로드(추가)", booking.Date, booking['Golf Course'], booking.Team);
+    return headers.map(header => {
+      if (header === 'id') return newId;
+      return booking[header] || "";
+    });
+  });
+  
+  if(newRows.length > 0) {
+    sheet.getRange(2, 1, newRows.length, headers.length).setValues(newRows);
+  }
+}
+
+function updateBooking(booking, user, logMessage) {
+  const sheet = getSheet(SHEET_NAME_DATA);
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const idColumnIndex = headers.indexOf('id');
+  
+  if (idColumnIndex === -1) throw new Error("ID 열을 찾을 수 없습니다.");
+  
+  const rowIndex = data.findIndex(row => String(row[idColumnIndex]) === String(booking.id));
+  
+  if (rowIndex === -1) throw new Error("수정할 예약을 찾을 수 없습니다.");
+  
+  const newRow = headers.map(header => booking[header] || "");
+  sheet.getRange(rowIndex + 1, 1, 1, headers.length).setValues([newRow]);
+  logAction(user, logMessage || "수정", booking['Date'], booking['Golf Course'], booking['Team']);
+}
+
+function cancelBookings(ids, user) {
+  const sheet = getSheet(SHEET_NAME_DATA);
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const idColumnIndex = headers.indexOf('id');
+  const statusColumnIndex = headers.indexOf('Status');
+  const dateColumnIndex = headers.indexOf('Date');
+  const courseColumnIndex = headers.indexOf('Golf Course');
+  const teamColumnIndex = headers.indexOf('Team');
+  
+  if (idColumnIndex === -1 || statusColumnIndex === -1) throw new Error("ID 또는 Status 열을 찾을 수 없습니다.");
+  
+  const spreadsheetTimeZone = SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone();
+  
+  ids.forEach(id => {
+      const rowIndex = data.findIndex(row => String(row[idColumnIndex]) === String(id));
+      if (rowIndex > -1) {
+          const rowData = data[rowIndex];
+          sheet.getRange(rowIndex + 1, statusColumnIndex + 1).setValue("취소중");
+          
+          let bookingDate = "";
+          try {
+            bookingDate = Utilities.formatDate(new Date(rowData[dateColumnIndex]), spreadsheetTimeZone, "yyyy-MM-dd");
+          } catch(e) { bookingDate = rowData[dateColumnIndex]; }
+          
+          const golfCourse = rowData[courseColumnIndex];
+          const team = rowData[teamColumnIndex];
+          logAction(user, "취소", bookingDate, golfCourse, team);
+      }
+  });
+}
+
+function deleteBooking(booking, user) {
+  const sheet = getSheet(SHEET_NAME_DATA);
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const idColumnIndex = headers.indexOf('id');
+  
+  if (idColumnIndex === -1) throw new Error("ID 열을 찾을 수 없습니다.");
+  
+  const rowIndex = data.findIndex(row => String(row[idColumnIndex]) === String(booking.id));
+  
+  if (rowIndex === -1) throw new Error("삭제할 예약을 찾을 수 없습니다.");
+  
+  sheet.deleteRow(rowIndex + 1);
+  
+  logAction(user, "삭제", booking['Date'], booking['Golf Course'], booking['Team']);
+}
+
+function saveEntertainment(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = getSheet(SHEET_NAME_ENTERTAINMENT); 
+  
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(["ID", "Name", "공통접대비", "개인접대비", "Timestamp"]);
+  }
+
+  const newId = Utilities.getUuid();
+  const name = data.name;
+  const commonCost = data.commonEntertainment;
+  const personalCost = data.personalEntertainment;
+  const timestamp = new Date(); 
+
+  sheet.appendRow([newId, name, commonCost, personalCost, timestamp]);
+}
+
+### index.html
+
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -223,8 +555,8 @@
             </div>
 
             <div id="calendarView" class="tab-content">
-                <div class="bg-gray-50 p-1.5 md:p-4 rounded-xl border border-gray-200 mb-2 md:mb-3 flex flex-row justify-between items-center gap-1 md:gap-4 overflow-x-auto whitespace-nowrap scrollbar-hide">
-                    <div class="flex flex-nowrap gap-0.5 md:gap-2 items-center flex-shrink-0">
+                <div class="bg-gray-50 p-1.5 md:p-4 rounded-xl border border-gray-200 mb-2 md:mb-3 flex flex-wrap justify-between items-center gap-1 md:gap-4">
+                    <div class="flex flex-wrap gap-0.5 md:gap-2 items-center flex-shrink-0">
                         <span class="font-bold text-gray-700 mr-0.5 md:mr-2 text-[10px] sm:text-[11px] md:text-base">골프장:</span>
                         <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calCourseFilter" value="레이크우드" checked class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm md:hidden">레이크</span><span class="hidden md:inline md:text-sm">레이크우드</span></label>
                         <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calCourseFilter" value="스카이밸리" checked class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm md:hidden">스카이</span><span class="hidden md:inline md:text-sm">스카이밸리</span></label>
@@ -248,8 +580,8 @@
                     </div>
                 </div>
                 
-                <div class="bg-gray-50 p-1.5 md:p-4 rounded-xl border border-gray-200 mb-3 md:mb-4 flex flex-row justify-start items-center gap-1 md:gap-4 overflow-x-auto whitespace-nowrap scrollbar-hide">
-                    <div class="flex flex-nowrap gap-0.5 md:gap-2 items-center flex-shrink-0">
+                <div class="bg-gray-50 p-1.5 md:p-4 rounded-xl border border-gray-200 mb-3 md:mb-4 flex flex-wrap justify-start items-center gap-1 md:gap-4">
+                    <div class="flex flex-wrap gap-0.5 md:gap-2 items-center flex-shrink-0">
                         <span class="font-bold text-gray-700 mr-0.5 md:mr-2 text-[10px] sm:text-[11px] md:text-base">월(Month):</span>
                         <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calMonthFilter" value="전체" checked class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">전체</span></label>
                         <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calMonthFilter" value="0" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">1월</span></label>
@@ -271,10 +603,11 @@
             </div>
 
             <div id="statusView" class="tab-content hidden">
-                 <div class="bg-gray-50 p-1.5 md:p-4 rounded-xl border border-gray-200 mb-2 md:mb-3 flex flex-row justify-start items-center gap-1 md:gap-3 overflow-x-auto whitespace-nowrap scrollbar-hide">
+                 <div class="bg-gray-50 p-1.5 md:p-4 rounded-xl border border-gray-200 mb-2 md:mb-3 flex flex-wrap justify-start items-center gap-1 md:gap-3">
                     <span class="font-bold text-gray-700 mr-0.5 md:mr-2 text-[10px] sm:text-[11px] md:text-base flex-shrink-0">상태:</span>
                     <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="statusFilter" value="전체" checked class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">전체</span></label>
-                    <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="statusFilter" value="예약완료" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">완료</span></label>
+                    <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="statusFilter" value="예약완료" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">예약완료</span></label>
+                    <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="statusFilter" value="완료" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">완료</span></label>
                     <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="statusFilter" value="예약중" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">예약중</span></label>
                     <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="statusFilter" value="취소" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">취소</span></label>
                     <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" id="statusNonMemberFilter" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1" style="accent-color:#b08d4f"><span class="text-[10px] sm:text-[11px] md:text-sm font-bold text-gold-500">비회원가</span></label>
@@ -296,8 +629,8 @@
                     </div>
                  </div>
 
-                 <div class="bg-gray-50 p-1.5 md:p-4 rounded-xl border border-gray-200 mb-3 md:mb-4 flex flex-row justify-start items-center gap-1 md:gap-4 overflow-x-auto whitespace-nowrap scrollbar-hide">
-                    <div class="flex flex-nowrap gap-0.5 md:gap-2 items-center flex-shrink-0">
+                 <div class="bg-gray-50 p-1.5 md:p-4 rounded-xl border border-gray-200 mb-3 md:mb-4 flex flex-wrap justify-start items-center gap-1 md:gap-4">
+                    <div class="flex flex-wrap gap-0.5 md:gap-2 items-center flex-shrink-0">
                         <span class="font-bold text-gray-700 mr-0.5 md:mr-2 text-[10px] sm:text-[11px] md:text-base">월(Month):</span>
                         <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="statusMonthFilter" value="전체" checked class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">전체</span></label>
                         <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="statusMonthFilter" value="0" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">1월</span></label>
@@ -320,6 +653,8 @@
                         <span class="text-navy-800">주말: <span id="weekendCount">0</span>건</span>
                         <span class="text-gray-300">|</span>
                         <span class="text-gray-600">주중: <span id="weekdayCount">0</span>건</span>
+                        <span class="text-gray-300">|</span>
+                        <span class="text-gold-500">비회원가: <span id="nonMemberCount">0</span>건</span>
                     </div>
                     <div class="flex gap-2 md:gap-3 ml-auto">
                         <div id="adminOnlyControls" class="flex gap-2 md:gap-3 hidden">
@@ -1043,7 +1378,7 @@
             }
 
             if (document.getElementById('calNonMemberFilter')?.checked) {
-                filteredBookings = filteredBookings.filter(b => ['레이크우드', '벨루토'].includes(b['Golf Course']) && Number(b.MP) !== 1 && !['취소중', '취소완료'].includes(b.Status));
+                filteredBookings = filteredBookings.filter(b => b['회원구분'] === '비회원가' && !['취소중', '취소완료'].includes(b.Status));
             }
 
             const bookingMap = new Map();
@@ -1052,6 +1387,9 @@
                 if (!bookingMap.has(normDate)) bookingMap.set(normDate, []);
                 bookingMap.get(normDate).push(b);
             });
+
+            const _today = new Date();
+            const todayStrGlobal = `${_today.getFullYear()}-${String(_today.getMonth() + 1).padStart(2, '0')}-${String(_today.getDate()).padStart(2, '0')}`;
 
             for (let m of renderMonths) {
                 const firstDay = new Date(selectedYear, m, 1);
@@ -1108,6 +1446,11 @@
                     let color = 'text-gray-700';
                     if (dayOfWeek === 0 || holidays[dateStr]) color = 'text-red-600';
                     else if (dayOfWeek === 6) color = 'text-navy-700';
+
+                    if (dateStr === todayStrGlobal) {
+                        dayCell.classList.add('bg-yellow-50', 'border-2', 'border-gold-400', 'shadow-md');
+                        color = 'text-gold-500 font-black';
+                    }
 
                     const dayNumEl = document.createElement('div');
                     dayNumEl.className = `text-sm md:text-lg font-bold ${color} mb-0 md:mb-1`;
@@ -1192,15 +1535,20 @@
             }
 
             if (document.getElementById('statusNonMemberFilter')?.checked) {
-                filtered = filtered.filter(b => ['레이크우드', '벨루토'].includes(b['Golf Course']) && Number(b.MP) !== 1 && !['취소중', '취소완료'].includes(b.Status));
+                filtered = filtered.filter(b => b['회원구분'] === '비회원가' && !['취소중', '취소완료'].includes(b.Status));
             }
 
-            // 관리자 표시용: WE 컬럼 "주 말" 기준 주말/주중 집계 (현재 표시된 데이터 기준)
-            const weekendCnt = filtered.filter(b => String(b.WE || '').replace(/\s/g, '') === '주말').length;
+            // 관리자 표시용: WE 컬럼 "주 말" 기준 주말/주중 집계 (회원가 기준)
+            const membersFiltered = filtered.filter(b => b['회원구분'] !== '비회원가');
+            const weekendCnt = membersFiltered.filter(b => String(b.WE || '').replace(/\s/g, '') === '주말').length;
+            const nonMemberCnt = filtered.length - membersFiltered.length;
+            
             const _wkEl = document.getElementById('weekendCount');
             const _wdEl = document.getElementById('weekdayCount');
+            const _nmEl = document.getElementById('nonMemberCount');
             if (_wkEl) _wkEl.textContent = weekendCnt;
-            if (_wdEl) _wdEl.textContent = filtered.length - weekendCnt;
+            if (_wdEl) _wdEl.textContent = membersFiltered.length - weekendCnt;
+            if (_nmEl) _nmEl.textContent = nonMemberCnt;
 
             if (filtered.length === 0) {
                 statusTableBody.innerHTML = `<tr><td colspan="8" class="text-center py-6 md:py-10 text-gray-500 font-bold text-sm md:text-base">조건에 맞는 예약 내역이 없습니다.</td></tr>`;
@@ -1223,6 +1571,38 @@
                     rowClass = "border-b hover:bg-red-50 bg-red-50 text-red-900 cursor-pointer transition-colors";
                 }
 
+                // 문자현황(M열) 기반 경고 색상 적용
+                let statusBgClass = "bg-white";
+                let statusBorderClass = "border-gray-300";
+                let statusTextClass = "";
+                const smsStatus = b['문자현황'] || '';
+                
+                if (status === '예약완료') {
+                    const todayForCalc = new Date();
+                    todayForCalc.setHours(0,0,0,0);
+                    const bDateForCalc = new Date(_dObj);
+                    bDateForCalc.setHours(0,0,0,0);
+                    const diffTime = bDateForCalc - todayForCalc;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    if (diffDays <= 2 && diffDays >= 0) {
+                        if (smsStatus === '예약완료' || smsStatus === '7일전') {
+                            statusBgClass = "bg-red-500";
+                            statusBorderClass = "border-red-600";
+                            statusTextClass = "text-white";
+                        }
+                    } else if (diffDays <= 8 && diffDays > 2) {
+                        if (smsStatus === '예약완료') {
+                            statusBgClass = "bg-orange-400";
+                            statusBorderClass = "border-orange-500";
+                            statusTextClass = "text-white";
+                        }
+                    }
+                }
+
+                // 비회원가 라벨
+                const nonMemberBadge = b['회원구분'] === '비회원가' ? `<span class="ml-1 text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-bold">비</span>` : '';
+
                 const row = document.createElement('tr');
                 row.className = rowClass;
                 row.innerHTML = `<td class="p-2 md:p-4 text-center"><input type="checkbox" class="booking-checkbox w-4 h-4 md:w-5 md:h-5 accent-[#0c1a33]" data-id="${b.id}"></td>
@@ -1231,7 +1611,7 @@
                     <td class="p-2 md:p-4 font-bold text-gray-600 whitespace-nowrap">${displayDate}${dayLabel}</td>
                     <td class="p-2 md:p-4 text-center font-bold">${b.Team}</td>
                     <td class="p-2 md:p-4">${b.Time || '-'}</td>
-                    <td class="p-2 md:p-4"><span class="px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-bold bg-white border border-gray-300 shadow-sm whitespace-nowrap">${status || '미정'}</span></td>
+                    <td class="p-2 md:p-4"><span class="px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-bold border shadow-sm whitespace-nowrap ${statusBgClass} ${statusBorderClass} ${statusTextClass}">${status || '미정'}</span>${nonMemberBadge}</td>
                     <td class="p-2 md:p-4 text-xs md:text-sm text-gray-500 col-comment" title="${b.Comment || ''}">${b.Comment || ''}</td>`;
                 row.onclick = (e) => { if(e.target.type !== 'checkbox') openBookingModal(b); };
                 statusTableBody.appendChild(row);
