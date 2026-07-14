@@ -346,6 +346,7 @@
                                 <th class="py-2 px-2 md:py-4 md:px-4 text-center cursor-pointer hover:text-gold-500 transition-colors" data-sort="Team">팀 <span class="sort-indicator"></span></th>
                                 <th class="py-2 px-2 md:py-4 md:px-4 text-left cursor-pointer hover:text-gold-500 transition-colors" data-sort="Time">시간 <span class="sort-indicator"></span></th>
                                 <th class="py-2 px-2 md:py-4 md:px-4 text-left cursor-pointer hover:text-gold-500 transition-colors" data-sort="Status">상태 <span class="sort-indicator"></span></th>
+                                <th class="py-2 px-2 md:py-4 md:px-4 text-center cursor-pointer hover:text-gold-500 transition-colors" data-sort="DeliveryStatus">문자전달 <span class="sort-indicator"></span></th>
                                 <th class="py-2 px-2 md:py-4 md:px-4 text-left cursor-pointer hover:text-gold-500 transition-colors">비고</th>
                             </tr>
                         </thead>
@@ -430,6 +431,27 @@
         </div>
     </div>
 
+    <!-- 문자전달(DeliveryStatus / R열) 편집 모달 -->
+    <div id="deliveryStatusModal" class="modal-overlay">
+        <div class="modal-content max-w-md">
+            <h2 class="text-xl md:text-2xl font-extrabold mb-2 text-gray-800 border-b pb-3">문자전달</h2>
+            <p id="deliveryStatusInfo" class="text-sm text-gray-500 mb-4"></p>
+            <input type="hidden" id="deliveryStatusBookingId">
+            <div>
+                <label class="block text-sm font-extrabold text-gray-700 mb-1">문자전달 상태 선택</label>
+                <select id="deliveryStatusSelect" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-gold-400 focus:border-gold-400 bg-white font-medium">
+                    <option value="">(공란)</option>
+                    <option value="완료">완료</option>
+                    <option value="-">-</option>
+                </select>
+            </div>
+            <div class="flex justify-end space-x-2 md:space-x-4 pt-6 border-t mt-6">
+                <button type="button" id="closeDeliveryStatusBtn" class="px-4 py-2 md:px-6 md:py-3 rounded-xl border-2 border-gray-300 font-bold text-gray-600 hover:bg-gray-100 text-sm md:text-base transition-colors">닫기</button>
+                <button type="button" id="saveDeliveryStatusBtn" class="px-4 py-2 md:px-6 md:py-3 rounded-xl bg-navy-900 text-white font-bold hover:bg-navy-800 text-sm md:text-base shadow-md transition-colors">저장</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 문자현황(M열) 편집 모달 -->
     <div id="smsStatusModal" class="modal-overlay">
         <div class="modal-content max-w-md">
@@ -439,10 +461,12 @@
             <div>
                 <label class="block text-sm font-extrabold text-gray-700 mb-1">문자현황 선택</label>
                 <select id="smsStatusSelect" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-gold-400 focus:border-gold-400 bg-white font-medium">
-                    <option value="">(미지정)</option>
+                    <option value="">미지정</option>
                     <option value="예약완료">예약완료</option>
+                    <option value="10일전">10일전</option>
                     <option value="7일전">7일전</option>
-                    <option value="전날">전날</option>
+                    <option value="1일전">1일전</option>
+                    <option value="완료">완료</option>
                 </select>
             </div>
             <div class="flex justify-end space-x-2 md:space-x-4 pt-6 border-t mt-6">
@@ -1248,7 +1272,7 @@
             if (_nmEl) _nmEl.textContent = nonMemberCnt;
 
             if (filtered.length === 0) {
-                statusTableBody.innerHTML = `<tr><td colspan="8" class="text-center py-6 md:py-10 text-gray-500 font-bold text-sm md:text-base">조건에 맞는 예약 내역이 없습니다.</td></tr>`;
+                statusTableBody.innerHTML = `<tr><td colspan="9" class="text-center py-6 md:py-10 text-gray-500 font-bold text-sm md:text-base">조건에 맞는 예약 내역이 없습니다.</td></tr>`;
                 return;
             }
 
@@ -1300,6 +1324,18 @@
                 // 비회원가 라벨
                 const nonMemberBadge = b['회원구분'] === '비회원가' ? `<span class="ml-1 text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-bold">비</span>` : '';
 
+                // 문자전달(DeliveryStatus / R열) 표시
+                const deliveryVal = (b.DeliveryStatus || '').toString().trim();
+                let deliveryCellHtml;
+                if (deliveryVal === '완료') {
+                    deliveryCellHtml = `<span class="delivery-trigger cursor-pointer px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-bold border shadow-sm whitespace-nowrap bg-emerald-500 border-emerald-600 text-white" data-id="${b.id}" title="클릭하여 문자전달 상태 수정">완료</span>`;
+                } else if (deliveryVal === '-') {
+                    deliveryCellHtml = `<span class="delivery-trigger cursor-pointer text-gray-400 font-bold" data-id="${b.id}" title="클릭하여 문자전달 상태 수정">-</span>`;
+                } else {
+                    // 공란: 클릭 가능한 빈 영역
+                    deliveryCellHtml = `<span class="delivery-trigger cursor-pointer inline-block min-w-[40px] min-h-[20px] rounded border border-dashed border-gray-300 hover:border-gold-400 hover:bg-[#faf7ef]" data-id="${b.id}" title="클릭하여 문자전달 상태 입력">&nbsp;</span>`;
+                }
+
                 const row = document.createElement('tr');
                 row.className = rowClass;
                 row.innerHTML = `<td class="p-2 md:p-4 text-center"><input type="checkbox" class="booking-checkbox w-4 h-4 md:w-5 md:h-5 accent-[#0c1a33]" data-id="${b.id}"></td>
@@ -1309,13 +1345,20 @@
                     <td class="p-2 md:p-4 text-center font-bold">${b.Team}</td>
                     <td class="p-2 md:p-4">${b.Time || '-'}</td>
                     <td class="p-2 md:p-4"><span class="sms-status-trigger cursor-pointer px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-bold border shadow-sm whitespace-nowrap ${statusBgClass} ${statusBorderClass} ${statusTextClass}" data-id="${b.id}" title="클릭하여 문자현황 확인/수정">${status || '미정'}</span>${nonMemberBadge}</td>
+                    <td class="p-2 md:p-4 text-center">${deliveryCellHtml}</td>
                     <td class="p-2 md:p-4 text-xs md:text-sm text-gray-500 col-comment" title="${b.Comment || ''}">${b.Comment || ''}</td>`;
                 row.onclick = (e) => {
                     if (e.target.type === 'checkbox') return;
-                    // 상태 뱃지 클릭 시: 문자현황 편집 팝업 (예약 수정 팝업으로 넘어가지 않음)
+                    // 상태 뱃지 클릭 시: 문자현황 편집 팝업
                     if (e.target.closest('.sms-status-trigger')) {
                         e.stopPropagation();
                         openSmsStatusModal(b);
+                        return;
+                    }
+                    // 문자전달 셀 클릭 시: 문자전달 편집 팝업
+                    if (e.target.closest('.delivery-trigger')) {
+                        e.stopPropagation();
+                        openDeliveryStatusModal(b);
                         return;
                     }
                     openBookingModal(b);
@@ -1453,6 +1496,10 @@
                     
                     if(booking) {
                         const updatedBooking = { ...booking, [field]: value };
+                        // 티오프 시간 입력 시 상태 자동 '예약완료'
+                        if (field === 'Time' && value && value.trim()) {
+                            updatedBooking.Status = '예약완료';
+                        }
                         await postData('update', { user: currentUser.name, booking: updatedBooking, logMessage: `[금일예약] ${field} 수정` }, true);
                     }
                 });
@@ -1633,6 +1680,33 @@
             document.getElementById('openModalBtn').onclick = () => openBookingModal();
             document.getElementById('closeModalBtn').onclick = () => closeModalWithAnim('bookingModal');
             document.getElementById('closeEditChooserBtn').addEventListener('click', () => closeModalWithAnim('editChooserModal'));
+
+            // 티오프 시간 입력 시 상태 필드를 즉시 '예약완료'로 표시 (관리자용)
+            document.getElementById('bookingTime').addEventListener('input', () => {
+                const timeVal = (document.getElementById('bookingTime').value || '').trim();
+                if (timeVal) {
+                    document.getElementById('bookingStatus').value = '예약완료';
+                }
+            });
+
+            // 문자전달(DeliveryStatus / R열) 편집 모달
+            document.getElementById('closeDeliveryStatusBtn').addEventListener('click', () => closeModalWithAnim('deliveryStatusModal'));
+            document.getElementById('saveDeliveryStatusBtn').addEventListener('click', async () => {
+                const id = document.getElementById('deliveryStatusBookingId').value;
+                const newVal = document.getElementById('deliveryStatusSelect').value;
+                const booking = bookings.find(b => String(b.id) === String(id));
+                if (!booking) { showAlert('예약을 찾을 수 없습니다.'); return; }
+
+                const updatedBooking = { ...booking, 'DeliveryStatus': newVal };
+                try {
+                    await postData('update', { user: currentUser.name, booking: updatedBooking, logMessage: `문자전달 수정(${newVal || '공란'})` }, true);
+                    closeModalWithAnim('deliveryStatusModal');
+                    await fetchInitialData();
+                    renderApp();
+                } catch (err) {
+                    showAlert(`저장 실패: ${err.message}`);
+                }
+            });
 
             // 문자현황(M열) 편집 모달
             document.getElementById('closeSmsStatusBtn').addEventListener('click', () => closeModalWithAnim('smsStatusModal'));
@@ -2044,6 +2118,25 @@
             openModalWithAnim('smsStatusModal');
         }
 
+        // 문자전달(DeliveryStatus / R열) 편집 팝업 열기
+        function openDeliveryStatusModal(booking) {
+            document.getElementById('deliveryStatusBookingId').value = booking.id;
+            const cleanDate = String(booking.Date).replace(/\./g, '-').substring(0, 10);
+            document.getElementById('deliveryStatusInfo').textContent =
+                `${booking['Golf Course'] || ''} · ${booking.Name || ''} · ${cleanDate} · ${booking.Status || ''}`;
+
+            const sel = document.getElementById('deliveryStatusSelect');
+            const current = (booking.DeliveryStatus || '').toString().trim();
+            if (current && !Array.from(sel.options).some(o => o.value === current)) {
+                const opt = document.createElement('option');
+                opt.value = current;
+                opt.textContent = current;
+                sel.appendChild(opt);
+            }
+            sel.value = current;
+            openModalWithAnim('deliveryStatusModal');
+        }
+
         function updateAvailableGolfCourses(date, excludeBookingId = null) {
             const s = document.getElementById('golfCourse');
             const targetDate = String(date).replace(/\./g, '-').substring(0, 10);
@@ -2209,7 +2302,19 @@
             if (isAdminUser) {
                 bookingData['회원구분'] = document.getElementById('memberType').value;
                 bookingData['Status'] = document.getElementById('bookingStatus').value;
-                bookingData['Time'] = document.getElementById('bookingTime').value;
+
+                const timeVal = (document.getElementById('bookingTime').value || '').trim();
+                bookingData['Time'] = timeVal;
+
+                // [자동] 티오프 시간이 입력되면 상태를 '예약완료'로 변경
+                if (timeVal) {
+                    bookingData['Status'] = '예약완료';
+                }
+            }
+
+            // 회원구분 기본값: 값이 없으면 '회원가'
+            if (!bookingData['회원구분']) {
+                bookingData['회원구분'] = document.getElementById('memberType').value || '회원가';
             }
             
             if (!bookingData.id) {
