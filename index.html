@@ -430,6 +430,28 @@
         </div>
     </div>
 
+    <!-- 문자현황(M열) 편집 모달 -->
+    <div id="smsStatusModal" class="modal-overlay">
+        <div class="modal-content max-w-md">
+            <h2 class="text-xl md:text-2xl font-extrabold mb-2 text-gray-800 border-b pb-3">문자현황</h2>
+            <p id="smsStatusInfo" class="text-sm text-gray-500 mb-4"></p>
+            <input type="hidden" id="smsStatusBookingId">
+            <div>
+                <label class="block text-sm font-extrabold text-gray-700 mb-1">문자현황 선택</label>
+                <select id="smsStatusSelect" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-gold-400 focus:border-gold-400 bg-white font-medium">
+                    <option value="">(미지정)</option>
+                    <option value="예약완료">예약완료</option>
+                    <option value="7일전">7일전</option>
+                    <option value="전날">전날</option>
+                </select>
+            </div>
+            <div class="flex justify-end space-x-2 md:space-x-4 pt-6 border-t mt-6">
+                <button type="button" id="closeSmsStatusBtn" class="px-4 py-2 md:px-6 md:py-3 rounded-xl border-2 border-gray-300 font-bold text-gray-600 hover:bg-gray-100 text-sm md:text-base transition-colors">닫기</button>
+                <button type="button" id="saveSmsStatusBtn" class="px-4 py-2 md:px-6 md:py-3 rounded-xl bg-navy-900 text-white font-bold hover:bg-navy-800 text-sm md:text-base shadow-md transition-colors">저장</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 모달 등 -->
     <div id="bookingModal" class="modal-overlay">
         <div class="modal-content">
@@ -461,9 +483,16 @@
                         <label class="block text-sm font-extrabold text-gray-700 mb-1">팀 수</label>
                         <input type="number" id="numberOfTeams" min="1" required class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-gold-400 focus:border-gold-400 bg-white font-medium transition-shadow">
                     </div>
-                    <div class="hidden">
+                    <div id="bookingTimeWrapper" class="hidden">
                         <label class="block text-sm font-extrabold text-gray-700 mb-1">티오프 시간</label>
                         <input type="text" id="bookingTime" placeholder="HH:MM" maxlength="5" oninput="formatTimeInput(event)" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-gold-400 focus:border-gold-400 bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-extrabold text-gray-700 mb-1">회원구분</label>
+                        <select id="memberType" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-gold-400 focus:border-gold-400 bg-white font-medium transition-shadow">
+                            <option value="회원가">회원가</option>
+                            <option value="비회원가">비회원가</option>
+                        </select>
                     </div>
                     <div>
                         <label class="block text-sm font-extrabold text-gray-700 mb-1">상태</label>
@@ -1279,9 +1308,18 @@
                     <td class="p-2 md:p-4 font-bold text-gray-600 whitespace-nowrap">${displayDate}${dayLabel}</td>
                     <td class="p-2 md:p-4 text-center font-bold">${b.Team}</td>
                     <td class="p-2 md:p-4">${b.Time || '-'}</td>
-                    <td class="p-2 md:p-4"><span class="px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-bold border shadow-sm whitespace-nowrap ${statusBgClass} ${statusBorderClass} ${statusTextClass}">${status || '미정'}</span>${nonMemberBadge}</td>
+                    <td class="p-2 md:p-4"><span class="sms-status-trigger cursor-pointer px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-bold border shadow-sm whitespace-nowrap ${statusBgClass} ${statusBorderClass} ${statusTextClass}" data-id="${b.id}" title="클릭하여 문자현황 확인/수정">${status || '미정'}</span>${nonMemberBadge}</td>
                     <td class="p-2 md:p-4 text-xs md:text-sm text-gray-500 col-comment" title="${b.Comment || ''}">${b.Comment || ''}</td>`;
-                row.onclick = (e) => { if(e.target.type !== 'checkbox') openBookingModal(b); };
+                row.onclick = (e) => {
+                    if (e.target.type === 'checkbox') return;
+                    // 상태 뱃지 클릭 시: 문자현황 편집 팝업 (예약 수정 팝업으로 넘어가지 않음)
+                    if (e.target.closest('.sms-status-trigger')) {
+                        e.stopPropagation();
+                        openSmsStatusModal(b);
+                        return;
+                    }
+                    openBookingModal(b);
+                };
                 statusTableBody.appendChild(row);
             });
         }
@@ -1595,6 +1633,25 @@
             document.getElementById('openModalBtn').onclick = () => openBookingModal();
             document.getElementById('closeModalBtn').onclick = () => closeModalWithAnim('bookingModal');
             document.getElementById('closeEditChooserBtn').addEventListener('click', () => closeModalWithAnim('editChooserModal'));
+
+            // 문자현황(M열) 편집 모달
+            document.getElementById('closeSmsStatusBtn').addEventListener('click', () => closeModalWithAnim('smsStatusModal'));
+            document.getElementById('saveSmsStatusBtn').addEventListener('click', async () => {
+                const id = document.getElementById('smsStatusBookingId').value;
+                const newVal = document.getElementById('smsStatusSelect').value;
+                const booking = bookings.find(b => String(b.id) === String(id));
+                if (!booking) { showAlert('예약을 찾을 수 없습니다.'); return; }
+
+                const updatedBooking = { ...booking, '문자현황': newVal };
+                try {
+                    await postData('update', { user: currentUser.name, booking: updatedBooking, logMessage: `문자현황 수정(${newVal || '미지정'})` }, true);
+                    closeModalWithAnim('smsStatusModal');
+                    await fetchInitialData();
+                    renderApp();
+                } catch (err) {
+                    showAlert(`저장 실패: ${err.message}`);
+                }
+            });
             
             document.getElementById('loginForm').onsubmit = (e) => {
                 e.preventDefault();
@@ -1894,6 +1951,8 @@
             
             updateAvailableGolfCourses(dateStr || new Date().toISOString().split('T')[0]);
 
+            const isAdminUser = (getUserRole(currentUser.name) === 'ADMIN');
+
             if (booking) {
                 title.textContent = "예약 수정";
                 document.getElementById('bookingId').value = booking.id;
@@ -1904,6 +1963,7 @@
                 document.getElementById('bookingTime').value = booking.Time || '';
                 document.getElementById('bookingStatus').value = booking.Status || '예약중';
                 document.getElementById('notes').value = booking.Comment || '';
+                document.getElementById('memberType').value = booking['회원구분'] || '회원가';
                 
                 document.getElementById('userPhone').value = booking.Phone || '';
                 document.getElementById('bookingDay').value = booking.Day || '';
@@ -1919,13 +1979,69 @@
                 document.getElementById('bookingId').value = '';
                 document.getElementById('userName').value = currentUser ? currentUser.name : '';
                 document.getElementById('bookingStatus').value = '예약중';
+                document.getElementById('memberType').value = '회원가';
                 
                 if (dateStr) {
                     document.getElementById('bookingDate').value = dateStr;
                     updateAvailableGolfCourses(dateStr);
                 }
             }
+
+            // [권한별 UI] 관리자: 시간 입력/수정, 상태 수정, 회원구분 수정 허용
+            applyModalPermissions(isAdminUser, !!booking);
+
             openModalWithAnim('bookingModal');
+        }
+
+        // 예약 모달 필드의 권한별 활성화/비활성화 처리
+        function applyModalPermissions(isAdminUser, isEdit) {
+            const timeWrapper = document.getElementById('bookingTimeWrapper');
+            const statusInput = document.getElementById('bookingStatus');
+            const memberSelect = document.getElementById('memberType');
+
+            if (isAdminUser) {
+                // 티오프 시간: 관리자에게 표시 및 입력 가능
+                timeWrapper.classList.remove('hidden');
+
+                // 상태: 관리자 수정 가능
+                statusInput.readOnly = false;
+                statusInput.classList.remove('bg-gray-50', 'text-gray-600');
+                statusInput.classList.add('bg-white', 'focus:ring-2', 'focus:ring-gold-400', 'focus:border-gold-400');
+
+                // 회원구분: 관리자 수정 가능
+                memberSelect.disabled = false;
+                memberSelect.classList.remove('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+            } else {
+                // 일반 사용자: 시간 숨김, 상태 읽기전용, 회원구분 조회만 가능
+                timeWrapper.classList.add('hidden');
+
+                statusInput.readOnly = true;
+                statusInput.classList.add('bg-gray-50', 'text-gray-600');
+                statusInput.classList.remove('bg-white', 'focus:ring-2', 'focus:ring-gold-400', 'focus:border-gold-400');
+
+                memberSelect.disabled = true;
+                memberSelect.classList.add('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+            }
+        }
+
+        // 문자현황(M열) 편집 팝업 열기
+        function openSmsStatusModal(booking) {
+            document.getElementById('smsStatusBookingId').value = booking.id;
+            const cleanDate = String(booking.Date).replace(/\./g, '-').substring(0, 10);
+            document.getElementById('smsStatusInfo').textContent =
+                `${booking['Golf Course'] || ''} · ${booking.Name || ''} · ${cleanDate} · ${booking.Status || ''}`;
+
+            const sel = document.getElementById('smsStatusSelect');
+            const current = booking['문자현황'] || '';
+            // 목록에 없는 값이면 임시 옵션으로 추가하여 표시
+            if (current && !Array.from(sel.options).some(o => o.value === current)) {
+                const opt = document.createElement('option');
+                opt.value = current;
+                opt.textContent = current;
+                sel.appendChild(opt);
+            }
+            sel.value = current;
+            openModalWithAnim('smsStatusModal');
         }
 
         function updateAvailableGolfCourses(date, excludeBookingId = null) {
@@ -2073,17 +2189,38 @@
                 return;
             }
 
+            const bookingId = document.getElementById('bookingId').value;
+            const isAdminUser = (getUserRole(currentUser.name) === 'ADMIN');
+
+            // 수정 시 기존 예약의 모든 컬럼을 보존하기 위해 원본 객체를 기반으로 병합
+            const originalBooking = bookingId ? (bookings.find(b => String(b.id) === String(bookingId)) || {}) : {};
+
             const bookingData = {
-                'id': document.getElementById('bookingId').value, 
+                ...originalBooking,
+                'id': bookingId, 
                 'Golf Course': document.getElementById('golfCourse').value,
                 'Name': inputName, 
                 'Date': dateVal,
                 'Team': document.getElementById('numberOfTeams').value, 
-                'Status': document.getElementById('bookingStatus').value, 
                 'Comment': document.getElementById('notes').value
             };
+
+            // 회원구분: 관리자만 수정 반영 (일반 사용자는 원본 유지)
+            if (isAdminUser) {
+                bookingData['회원구분'] = document.getElementById('memberType').value;
+                bookingData['Status'] = document.getElementById('bookingStatus').value;
+                bookingData['Time'] = document.getElementById('bookingTime').value;
+            }
             
             if (!bookingData.id) {
+                // 신규 예약 기본값 (관리자가 지정하지 않은 경우)
+                if (bookingData['Status'] === undefined || bookingData['Status'] === '') {
+                    bookingData['Status'] = document.getElementById('bookingStatus').value || '예약중';
+                }
+                if (bookingData['회원구분'] === undefined || bookingData['회원구분'] === '') {
+                    bookingData['회원구분'] = document.getElementById('memberType').value || '회원가';
+                }
+
                 const isDuplicate = bookings.some(b => {
                     const bDate = String(b.Date).replace(/\./g, '-').substring(0, 10);
                     const isActive = !['취소완료', '우천취소', '취소중'].includes(b.Status);
