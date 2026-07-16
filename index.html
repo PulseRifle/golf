@@ -722,18 +722,23 @@
             return day === 0 || day === 6 || holidays[dateStr];
         };
 
-        const ADMIN_USER = '신석중';
-        const SIENA_ADMIN_USER = '채훈';
-        const JUNGBU_USERS = ['사장실', '회장실'];
-
-        function getUserRole(name) {
-            if (name === ADMIN_USER) return 'ADMIN';
-            if (name === SIENA_ADMIN_USER) return 'SIENA_ADMIN';
-            if (JUNGBU_USERS.includes(name)) return 'JUNGBU_USER';
-            return 'NORMAL_USER';
+        // [보안] HTML 이스케이프 헬퍼 — 모든 사용자 입력값을 화면에 넣기 전 반드시 통과시킴 (XSS 방지)
+        function esc(v) {
+            if (v === null || v === undefined) return '';
+            return String(v).replace(/[&<>"']/g, function (c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
         }
 
-        let currentUser = null;
+        // [보안] 역할(role)은 서버 로그인 응답으로만 결정됨. 클라이언트에서 이름으로 판별하지 않음.
+        //  아래 상수는 UI 표시용 폴백일 뿐, 권한의 근거가 아님(실제 권한 검사는 서버에서 수행).
+        function getUserRole(name) {
+            if (currentUser && currentUser.name === name && currentUser.role) return currentUser.role;
+            return (currentUser && currentUser.role) ? currentUser.role : 'NORMAL_USER';
+        }
+
+        let currentUser = null;      // { name, role }  — 비밀번호는 저장하지 않음
+        let sessionToken = null;     // 서버 발급 세션 토큰
         let bookings = [];
         let userQuotas = {};
         let users = [];
@@ -815,13 +820,14 @@
                 updateAvailableGolfCourses(val, bookingId);
             });
 
-            showLoading(true, "시스템 데이터를 불러오는 중입니다...");
+            // [보안] 인증 전에는 데이터를 불러오지 않음.
+            //  저장된 토큰이 있으면 initializeLoginState 내부에서 검증 후 로드함.
+            showLoading(true, "시스템을 준비하는 중입니다...");
             try {
-                await fetchInitialData();
-                initializeLoginState();
+                await initializeLoginState();
             } catch (error) {
                 console.error(error);
-                showAlert("데이터 로드 실패. 관리자에게 문의하세요.");
+                showLoginScreen();
             } finally {
                 showLoading(false);
             }
@@ -906,17 +912,30 @@
             });
         }
 
-        function initializeLoginState() {
+        async function initializeLoginState() {
+            const savedToken = sessionStorage.getItem('golf_token');
             const savedUser = sessionStorage.getItem('golf_currentUser');
-            if (savedUser) {
+            if (savedToken && savedUser) {
+                sessionToken = savedToken;
                 currentUser = JSON.parse(savedUser);
-                if (users.some(u => u.name === currentUser.name && String(u.phone) === String(currentUser.phone))) {
+                try {
+                    // 저장된 토큰이 서버에서 유효한지 실제 요청으로 확인 (유효하면 데이터도 함께 로드)
+                    await fetchInitialData();
                     showMainApp();
-                } else {
-                    sessionStorage.removeItem('golf_currentUser');
-                    showLoginScreen();
+                    return;
+                } catch (e) {
+                    // 토큰 만료/무효 → 로그인 화면
+                    clearSession();
                 }
-            } else { showLoginScreen(); }
+            }
+            showLoginScreen();
+        }
+
+        function clearSession() {
+            sessionToken = null;
+            currentUser = null;
+            sessionStorage.removeItem('golf_token');
+            sessionStorage.removeItem('golf_currentUser');
         }
 
         function showLoginScreen() {
@@ -1009,7 +1028,7 @@
             bookings.forEach(b => { if(b.Name) nameSet.add(b.Name); });
             const sortedNames = Array.from(nameSet).sort((a, b) => a.localeCompare(b));
 
-            const options = `<option value="전체">전체</option>` + sortedNames.map(name => `<option value="${name}">${name}</option>`).join('');
+            const options = `<option value="전체">전체</option>` + sortedNames.map(name => `<option value="${esc(name)}">${esc(name)}</option>`).join('');
 
             const calSelect = document.getElementById('calendarNameSelect');
             const statSelect = document.getElementById('statusNameSelect');
@@ -1051,12 +1070,28 @@
         }
 
         async function fetchInitialData() {
-            const response = await fetch(`${SCRIPT_URL}?action=read`);
+            // [보안] read를 POST로 전환하여 토큰을 URL이 아닌 본문으로 전송(로그 노출 방지).
+            //  서버는 토큰의 권한에 따라 필터링된 데이터만 반환한다.
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'read', token: sessionToken })
+            });
             const data = await response.json();
+            if (data.status !== 'success') {
+                // 토큰 만료/무효 등
+                throw new Error(data.message || '데이터를 불러올 수 없습니다.');
+            }
             bookings = data.bookings || [];
-            users = data.users || [];
+            users = data.users || [];   // 관리자에게만 이름 목록이 옴 (비밀번호 없음)
             allEntertainmentLogs = data.entertainmentData || [];
-            userQuotas = data.quotas.reduce((acc, q) => { acc[q.Name] = q; return acc; }, {});
+            userQuotas = (data.quotas || []).reduce((acc, q) => { acc[q.Name] = q; return acc; }, {});
+            // 서버가 확정한 역할/이름/VIP로 갱신 (신뢰 원천은 서버)
+            if (data.role && currentUser) {
+                currentUser.role = data.role;
+                currentUser.name = data.userName || currentUser.name;
+                currentUser.isVIP = !!data.isVIP;
+                sessionStorage.setItem('golf_currentUser', JSON.stringify(currentUser));
+            }
         }
 
         function renderCalendar() {
@@ -1328,25 +1363,25 @@
                 const deliveryVal = (b.DeliveryStatus || '').toString().trim();
                 let deliveryCellHtml;
                 if (deliveryVal === '완료') {
-                    deliveryCellHtml = `<span class="delivery-trigger cursor-pointer px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-bold border shadow-sm whitespace-nowrap bg-emerald-500 border-emerald-600 text-white" data-id="${b.id}" title="클릭하여 문자전달 상태 수정">완료</span>`;
+                    deliveryCellHtml = `<span class="delivery-trigger cursor-pointer px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-bold border shadow-sm whitespace-nowrap bg-emerald-500 border-emerald-600 text-white" data-id="${esc(b.id)}" title="클릭하여 문자전달 상태 수정">완료</span>`;
                 } else if (deliveryVal === '-') {
-                    deliveryCellHtml = `<span class="delivery-trigger cursor-pointer text-gray-400 font-bold" data-id="${b.id}" title="클릭하여 문자전달 상태 수정">-</span>`;
+                    deliveryCellHtml = `<span class="delivery-trigger cursor-pointer text-gray-400 font-bold" data-id="${esc(b.id)}" title="클릭하여 문자전달 상태 수정">-</span>`;
                 } else {
                     // 공란: 클릭 가능한 빈 영역
-                    deliveryCellHtml = `<span class="delivery-trigger cursor-pointer inline-block min-w-[40px] min-h-[20px] rounded border border-dashed border-gray-300 hover:border-gold-400 hover:bg-[#faf7ef]" data-id="${b.id}" title="클릭하여 문자전달 상태 입력">&nbsp;</span>`;
+                    deliveryCellHtml = `<span class="delivery-trigger cursor-pointer inline-block min-w-[40px] min-h-[20px] rounded border border-dashed border-gray-300 hover:border-gold-400 hover:bg-[#faf7ef]" data-id="${esc(b.id)}" title="클릭하여 문자전달 상태 입력">&nbsp;</span>`;
                 }
 
                 const row = document.createElement('tr');
                 row.className = rowClass;
-                row.innerHTML = `<td class="p-2 md:p-4 text-center"><input type="checkbox" class="booking-checkbox w-4 h-4 md:w-5 md:h-5 accent-[#0c1a33]" data-id="${b.id}"></td>
-                    <td class="p-2 md:p-4 font-bold text-gray-800">${b['Golf Course']}</td>
-                    <td class="p-2 md:p-4 font-bold">${b.Name}</td>
-                    <td class="p-2 md:p-4 font-bold text-gray-600 whitespace-nowrap">${displayDate}${dayLabel}</td>
-                    <td class="p-2 md:p-4 text-center font-bold">${b.Team}</td>
-                    <td class="p-2 md:p-4">${b.Time || '-'}</td>
-                    <td class="p-2 md:p-4"><span class="sms-status-trigger cursor-pointer px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-bold border shadow-sm whitespace-nowrap ${statusBgClass} ${statusBorderClass} ${statusTextClass}" data-id="${b.id}" title="클릭하여 문자현황 확인/수정">${status || '미정'}</span>${nonMemberBadge}</td>
+                row.innerHTML = `<td class="p-2 md:p-4 text-center"><input type="checkbox" class="booking-checkbox w-4 h-4 md:w-5 md:h-5 accent-[#0c1a33]" data-id="${esc(b.id)}"></td>
+                    <td class="p-2 md:p-4 font-bold text-gray-800">${esc(b['Golf Course'])}</td>
+                    <td class="p-2 md:p-4 font-bold">${esc(b.Name)}</td>
+                    <td class="p-2 md:p-4 font-bold text-gray-600 whitespace-nowrap">${esc(displayDate)}${dayLabel}</td>
+                    <td class="p-2 md:p-4 text-center font-bold">${esc(b.Team)}</td>
+                    <td class="p-2 md:p-4">${esc(b.Time) || '-'}</td>
+                    <td class="p-2 md:p-4"><span class="sms-status-trigger cursor-pointer px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-bold border shadow-sm whitespace-nowrap ${statusBgClass} ${statusBorderClass} ${statusTextClass}" data-id="${esc(b.id)}" title="클릭하여 문자현황 확인/수정">${esc(status) || '미정'}</span>${nonMemberBadge}</td>
                     <td class="p-2 md:p-4 text-center">${deliveryCellHtml}</td>
-                    <td class="p-2 md:p-4 text-xs md:text-sm text-gray-500 col-comment" title="${b.Comment || ''}">${b.Comment || ''}</td>`;
+                    <td class="p-2 md:p-4 text-xs md:text-sm text-gray-500 col-comment" title="${esc(b.Comment) || ''}">${esc(b.Comment) || ''}</td>`;
                 row.onclick = (e) => {
                     if (e.target.type === 'checkbox') return;
                     // 상태 뱃지 클릭 시: 문자현황 편집 팝업
@@ -1468,18 +1503,18 @@
                         const displayCourse = `<span class="md:hidden">${abbr}</span><span class="hidden md:inline">${courseName}</span>`;
 
                         html += `<tr>
-                            <td>${displayCourse}</td>
-                            <td>${b.Name}</td>
-                            <td>${String(b.Date).replace(/\./g, '-').substring(5)}</td>
-                            <td class="tight-col">${b.Day || ''}</td>
-                            <td class="tight-col">${b.Team}</td>
-                            <td>${b.Phone || ''}</td>
-                            <td class="truncate px-1 wrap-text" title="${b.Comment||''}">${b.Comment || ''}</td>
-                            <td class="tight-col">${b.WE || ''}</td>
-                            <td class="p-0"><input type="text" placeholder="HH:MM" maxlength="5" oninput="formatTimeInput(event)" class="table-input inline-edit" data-id="${b.id}" data-field="Time" value="${b.Time || ''}"></td>
-                            <td class="p-0 tight-col"><input type="text" class="table-input inline-edit" data-id="${b.id}" data-field="Status" value="${b.Status || ''}"></td>
-                            <td>${b.BookingDate ? String(b.BookingDate).replace(/\./g, '-').substring(5) : ''}</td>
-                            <td class="p-0"><input type="text" class="table-input inline-edit" data-id="${b.id}" data-field="DeliveryStatus" value="${b.DeliveryStatus || ''}"></td>
+                            <td>${esc(displayCourse)}</td>
+                            <td>${esc(b.Name)}</td>
+                            <td>${esc(String(b.Date).replace(/\./g, '-').substring(5))}</td>
+                            <td class="tight-col">${esc(b.Day) || ''}</td>
+                            <td class="tight-col">${esc(b.Team)}</td>
+                            <td>${esc(b.Phone) || ''}</td>
+                            <td class="truncate px-1 wrap-text" title="${esc(b.Comment) || ''}">${esc(b.Comment) || ''}</td>
+                            <td class="tight-col">${esc(b.WE) || ''}</td>
+                            <td class="p-0"><input type="text" placeholder="HH:MM" maxlength="5" oninput="formatTimeInput(event)" class="table-input inline-edit" data-id="${esc(b.id)}" data-field="Time" value="${esc(b.Time) || ''}"></td>
+                            <td class="p-0 tight-col"><input type="text" class="table-input inline-edit" data-id="${esc(b.id)}" data-field="Status" value="${esc(b.Status) || ''}"></td>
+                            <td>${b.BookingDate ? esc(String(b.BookingDate).replace(/\./g, '-').substring(5)) : ''}</td>
+                            <td class="p-0"><input type="text" class="table-input inline-edit" data-id="${esc(b.id)}" data-field="DeliveryStatus" value="${esc(b.DeliveryStatus) || ''}"></td>
                         </tr>`;
                     });
                 }
@@ -1538,7 +1573,7 @@
                 const displayDate = String(b.Date).replace(/\./g, '-');
                 const row = document.createElement('tr');
                 row.className = "border-b text-xs md:text-sm hover:bg-gray-50";
-                row.innerHTML = `<td class="p-2 md:p-4 font-bold">${b['Golf Course']}</td><td class="p-2 md:p-4">${b.Name}</td><td class="p-2 md:p-4">${displayDate}</td><td class="p-2 md:p-4 text-center">${b.Team}</td><td class="p-2 md:p-4">${b.Time||''}</td><td class="p-2 md:p-4">${b.Status||''}</td><td class="p-2 md:p-4 text-right font-black text-navy-800 text-sm md:text-lg">₩${(parseInt(b.EE)||0).toLocaleString()}</td>`;
+                row.innerHTML = `<td class="p-2 md:p-4 font-bold">${esc(b['Golf Course'])}</td><td class="p-2 md:p-4">${esc(b.Name)}</td><td class="p-2 md:p-4">${esc(displayDate)}</td><td class="p-2 md:p-4 text-center">${esc(b.Team)}</td><td class="p-2 md:p-4">${esc(b.Time) || ''}</td><td class="p-2 md:p-4">${esc(b.Status) || ''}</td><td class="p-2 md:p-4 text-right font-black text-navy-800 text-sm md:text-lg">₩${(parseInt(b.EE)||0).toLocaleString()}</td>`;
                 entertainmentTableBody.appendChild(row);
             });
 
@@ -1569,7 +1604,7 @@
             html += `</tr></thead><tbody>`;
 
             userNames.forEach(name => {
-                html += `<tr><td class="p-2 md:p-3 border font-bold bg-gray-50 text-xs md:text-base">${name}</td>`;
+                html += `<tr><td class="p-2 md:p-3 border font-bold bg-gray-50 text-xs md:text-base">${esc(name)}</td>`;
                 cats.forEach(cat => {
                     for(let m=startM; m<=endM; m++) {
                         const days = bookings.filter(b => b.Name === name && IS_VALID_FOR_COUNTING(b))
@@ -1610,7 +1645,7 @@
             html += `</tr></thead><tbody>`;
 
             userNames.forEach(name => {
-                html += `<tr><td class="p-2 md:p-3 border font-bold bg-gray-50 text-xs md:text-base">${name}</td>`;
+                html += `<tr><td class="p-2 md:p-3 border font-bold bg-gray-50 text-xs md:text-base">${esc(name)}</td>`;
                 courses.forEach(course => {
                     for(let m=startM; m<=endM; m++) {
                         const days = bookings.filter(b => b.Name === name && IS_VALID_FOR_COUNTING(b))
@@ -1647,7 +1682,12 @@
             });
             
             document.getElementById('logoutBtn').onclick = () => {
-                sessionStorage.removeItem('golf_currentUser');
+                const t = sessionToken;
+                clearSession();
+                // 서버 세션도 무효화 (실패해도 클라이언트는 이미 로그아웃 상태)
+                try {
+                    fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'logout', token: t }) });
+                } catch (e) {}
                 location.reload();
             };
             
@@ -1727,17 +1767,34 @@
                 }
             });
             
-            document.getElementById('loginForm').onsubmit = (e) => {
+            document.getElementById('loginForm').onsubmit = async (e) => {
                 e.preventDefault();
                 const u = document.getElementById('loginUsername').value;
                 const p = document.getElementById('loginPassword').value;
-                const found = users.find(user => user.name === u && String(user.phone) === p);
-                
-                if(found) {
-                    currentUser = found;
-                    sessionStorage.setItem('golf_currentUser', JSON.stringify(found));
-                    showMainApp(); 
-                } else showAlert("로그인 정보가 올바르지 않습니다.");
+                showLoading(true, "로그인 중입니다...");
+                try {
+                    // [보안] 인증은 전적으로 서버에서 수행. 클라이언트는 자격증명을 검증하지 않음.
+                    const response = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'login', username: u, password: p })
+                    });
+                    const result = await response.json();
+                    if (result.status === 'success' && result.token) {
+                        sessionToken = result.token;
+                        currentUser = result.user; // { name, role } — 비밀번호 미포함
+                        sessionStorage.setItem('golf_token', sessionToken);
+                        sessionStorage.setItem('golf_currentUser', JSON.stringify(currentUser));
+                        document.getElementById('loginPassword').value = '';
+                        await fetchInitialData();
+                        showMainApp();
+                    } else {
+                        showAlert(result.message || "로그인 정보가 올바르지 않습니다.");
+                    }
+                } catch (err) {
+                    showAlert("로그인 처리 중 오류가 발생했습니다.");
+                } finally {
+                    showLoading(false);
+                }
             };
 
             document.getElementById('lookupBtn').onclick = () => {
@@ -1750,7 +1807,7 @@
 
                 const periodBookings = bookings.filter(b => b.Name === name && isInSelectedPeriod(b.Date) && IS_VALID_FOR_COUNTING(b));
 
-                let html = `<div class="p-4 md:p-6 bg-white border border-gray-200 rounded-xl md:rounded-2xl shadow-sm"><h3 class="font-black text-xl md:text-2xl mb-4 md:mb-6 text-gray-800 border-b pb-2 md:pb-4">${name}님 ${selectedYear}년 이용 현황</h3>`;
+                let html = `<div class="p-4 md:p-6 bg-white border border-gray-200 rounded-xl md:rounded-2xl shadow-sm"><h3 class="font-black text-xl md:text-2xl mb-4 md:mb-6 text-gray-800 border-b pb-2 md:pb-4">${esc(name)}님 ${selectedYear}년 이용 현황</h3>`;
                 html += `<table class="w-full text-sm md:text-base border-collapse"><thead><tr class="bg-gray-100 text-gray-700"><th class="p-2 md:p-3 border">항목</th><th class="p-2 md:p-3 border">연간 한도</th><th class="p-2 md:p-3 border">사용</th><th class="p-2 md:p-3 border">잔여</th></tr></thead><tbody>`;
                 
                 const items = [
@@ -1973,7 +2030,7 @@
             const now = new Date();
             const openDateVIP = new Date('2026-04-21T09:00:00+09:00');
             const openDateGeneral = new Date('2026-04-23T09:00:00+09:00');
-            const isVIP = String(currentUser.phone).toLowerCase().startsWith('iw');
+            const isVIP = !!(currentUser && currentUser.isVIP);
 
             if (isVIP) {
                 if (now < openDateVIP) {
@@ -2003,8 +2060,8 @@
                 btn.type = 'button';
                 btn.className = 'text-left border border-gray-200 rounded-lg px-3 py-2 hover:bg-[#f3eee3] hover:border-gold-400 transition-colors';
                 const dateTxt = String(b.Date).replace(/\./g, '-').substring(0, 10);
-                const sub = `${dateTxt}${b.Time ? ' ' + b.Time : ''} · ${b.Team || ''}팀 · ${b.Status || ''}`;
-                btn.innerHTML = `<div class="font-bold text-navy-900 text-sm md:text-base">${b['Golf Course']} · ${b.Name || ''}</div>`
+                const sub = `${esc(dateTxt)}${b.Time ? ' ' + esc(b.Time) : ''} · ${esc(b.Team) || ''}팀 · ${esc(b.Status) || ''}`;
+                btn.innerHTML = `<div class="font-bold text-navy-900 text-sm md:text-base">${esc(b['Golf Course'])} · ${esc(b.Name) || ''}</div>`
                     + `<div class="text-xs md:text-sm text-gray-500 mt-0.5">${sub}</div>`;
                 btn.addEventListener('click', () => {
                     closeModalWithAnim('editChooserModal');
@@ -2178,9 +2235,18 @@
 
             if (!silent) showLoading(true, msg);
             try {
-                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action, ...data }) });
+                // [보안] 모든 쓰기 요청에 세션 토큰을 포함. 서버가 권한을 검증한다.
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action, token: sessionToken, ...data }) });
                 const result = await response.json();
-                if (result.status !== 'success') throw new Error(result.message);
+                if (result.status !== 'success') {
+                    if (result.code === 'AUTH') {
+                        clearSession();
+                        showLoginScreen();
+                        showAlert('세션이 만료되었습니다. 다시 로그인해 주세요.');
+                        throw new Error(result.message);
+                    }
+                    throw new Error(result.message);
+                }
                 
                 if (!silent) {
                     showAlert(result.message);
