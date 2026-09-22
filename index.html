@@ -399,17 +399,49 @@
             </div>
 
             <!-- 선불제 탭 -->
-            <div id="prepaidView" class="tab-content hidden space-y-4">
-                <div class="flex justify-between items-center bg-gray-50 p-3 md:p-4 rounded-xl border border-gray-200">
+            <div id="prepaidView" class="tab-content hidden space-y-4 md:space-y-6">
+                <!-- 상단 타이틀 및 차감 계산 실행 버튼 -->
+                <div class="flex flex-wrap justify-between items-center bg-gray-50 p-3 md:p-5 rounded-xl md:rounded-2xl border border-gray-200 gap-3">
                     <div>
-                        <h3 class="text-base md:text-lg font-extrabold text-navy-900">선불제 회원권 이용 및 잔액 현황</h3>
-                        <p class="text-xs md:text-sm text-gray-500">스카이밸리CC 및 힐드로사이CC 이용 현황</p>
+                        <h3 class="text-base md:text-xl font-extrabold text-navy-900">선불제 회원권 잔액 및 이용 현황</h3>
+                        <p class="text-xs md:text-sm text-gray-500 mt-0.5">스카이밸리CC 및 힐드로사이CC 잔여금액 실시간 현황</p>
                     </div>
                     <button id="openPrepaidCalcBtn" class="bg-navy-900 hover:bg-navy-800 text-white text-xs md:text-sm font-bold py-2 px-4 rounded-xl shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 whitespace-nowrap">
-                        <span>⚡</span> 잔여금액 차감 계산
+                        <span>⚡</span> 선불제 차감 계산
                     </button>
                 </div>
-                <div id="prepaidTableContainer" class="overflow-x-auto rounded-xl border border-gray-300 shadow-sm"></div>
+
+                <!-- [신규] 계산된 선불제 잔여금액 요약 카드 영역 -->
+                <div id="prepaidBalanceCards" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+
+                <!-- [신규] 계산된 선불제 잔액 현황 테이블 (골프장명 / 일자 / 잔여금액) -->
+                <div class="rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    <div class="bg-[#eef1f6] px-4 py-3 border-b border-gray-200 font-extrabold text-sm md:text-base text-navy-900 flex items-center justify-between">
+                        <span>📊 선불제 최종 잔액 요약 (골프장명 / 일자 / 잔여금액)</span>
+                        <span class="text-xs text-gray-500 font-normal">※ 500만원 이하는 빨간색으로 경고 표기됩니다.</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white text-center">
+                            <thead class="bg-gray-50 text-gray-700 text-xs md:text-sm font-bold border-b">
+                                <tr>
+                                    <th class="py-2.5 px-4 text-left">골프장명</th>
+                                    <th class="py-2.5 px-4">최종 차감일자</th>
+                                    <th class="py-2.5 px-4 text-right">계산된 잔여금액</th>
+                                    <th class="py-2.5 px-4">상태</th>
+                                </tr>
+                            </thead>
+                            <tbody id="prepaidSummaryTableBody" class="text-xs md:text-sm"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 기존 회원별 월별 이용일수 그리드 테이블 -->
+                <div class="rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    <div class="bg-gray-100 px-4 py-2.5 border-b border-gray-200 font-bold text-xs md:text-sm text-gray-700">
+                        🗓️ 선불제 월별 예약일수 현황
+                    </div>
+                    <div id="prepaidTableContainer" class="overflow-x-auto"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -471,7 +503,7 @@
         </div>
     </div>
 
-    <!-- [수정됨] 문자전달 & 문자현황 통합 편집 모달 -->
+    <!-- 문자전달 & 문자현황 통합 편집 모달 -->
     <div id="deliveryStatusModal" class="modal-overlay">
         <div class="modal-content max-w-md">
             <h2 class="text-xl md:text-2xl font-black mb-1 text-navy-900 border-b pb-3">문자전달 및 문자현황 설정</h2>
@@ -1338,7 +1370,6 @@
                     <td class="p-2 md:p-4 text-xs md:text-sm text-gray-500 col-comment" title="${esc(b.Comment) || ''}">${esc(b.Comment) || ''}</td>`;
                 row.onclick = (e) => {
                     if (e.target.type === 'checkbox') return;
-                    // 문자전달 셀(또는 버튼) 클릭 시: 문자전달 및 문자현황 통합 모달 오픈
                     if (e.target.closest('.delivery-trigger')) {
                         e.stopPropagation();
                         openDeliveryStatusModal(b);
@@ -1554,7 +1585,14 @@
             container.innerHTML = html + `</tbody></table>`;
         }
 
+        /**
+         * 선불제 탭 렌더링:
+         * 1) 스카이밸리/힐드로사이 계산된 최신 잔액 요약 카드 & 현황 테이블 (500만원 이하 빨간색 표시)
+         * 2) 월별 이용현황 그리드
+         */
         function renderPrepaidView() {
+            renderPrepaidBalancesSummary();
+
             const container = document.getElementById('prepaidTableContainer');
             container.innerHTML = '';
             
@@ -1587,6 +1625,102 @@
                 html += `</tr>`;
             });
             container.innerHTML = html + `</tbody></table>`;
+        }
+
+        /**
+         * 선불제 계산된 잔액(골프장명 / 일자 / 잔여금액) 요약 카드 및 테이블 렌더링
+         * 잔여금액 500만원 이하 시 붉은색 강조 처리
+         */
+        function renderPrepaidBalancesSummary() {
+            const cardsContainer = document.getElementById('prepaidBalanceCards');
+            const tableBody = document.getElementById('prepaidSummaryTableBody');
+            if (!cardsContainer || !tableBody) return;
+
+            const targetCourses = [
+                { name: '스카이밸리', title: '스카이밸리CC', colorTheme: 'gold', badgeBg: 'bg-gold-50 text-gold-500' },
+                { name: '힐드로사이', title: '힐드로사이CC', colorTheme: 'red', badgeBg: 'bg-red-50 text-red-600' }
+            ];
+
+            let cardsHtml = '';
+            let tableHtml = '';
+
+            targetCourses.forEach(c => {
+                // 해당 골프장의 선불제 잔여금액(W열)이 기록되어 있는 예약 추출
+                const courseBookingsWithBalance = bookings.filter(b => {
+                    if (b['Golf Course'] !== c.name) return false;
+                    const bal = b['선불제 잔여금액'];
+                    return bal !== undefined && bal !== null && String(bal).trim() !== '';
+                });
+
+                let latestDate = '-';
+                let latestBalanceNum = null;
+                let latestBooking = null;
+
+                if (courseBookingsWithBalance.length > 0) {
+                    // 날짜, 시간 순으로 정렬하여 가장 최신(마지막 차감 반영건) 선택
+                    courseBookingsWithBalance.sort((a, b) => {
+                        const dateA = String(a.Date || '').replace(/\./g, '-').substring(0, 10);
+                        const dateB = String(b.Date || '').replace(/\./g, '-').substring(0, 10);
+                        if (dateA !== dateB) return dateA.localeCompare(dateB);
+                        const timeA = String(a.Time || '');
+                        const timeB = String(b.Time || '');
+                        return timeA.localeCompare(timeB);
+                    });
+
+                    latestBooking = courseBookingsWithBalance[courseBookingsWithBalance.length - 1];
+                    latestDate = String(latestBooking.Date).replace(/\./g, '-').substring(0, 10);
+                    const rawVal = String(latestBooking['선불제 잔여금액']).replace(/[^0-9.-]/g, '');
+                    latestBalanceNum = Number(rawVal);
+                }
+
+                const hasBalance = (latestBalanceNum !== null && !isNaN(latestBalanceNum));
+                const isUnder5M = (hasBalance && latestBalanceNum <= 5000000);
+
+                // 색상 클래스 (500만원 이하면 빨간색)
+                const balanceColorClass = isUnder5M ? 'text-red-600 font-black' : 'text-navy-900 font-black';
+                const cardBorderClass = isUnder5M ? 'border-2 border-red-400 bg-red-50/30' : 'border border-gray-200 bg-white';
+                const formattedBalance = hasBalance ? `₩${latestBalanceNum.toLocaleString()}` : '차감 계산 내역 없음';
+
+                const statusBadge = isUnder5M
+                    ? `<span class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-black border border-red-200 animate-pulse">⚠️ 500만원 이하 (충전필요)</span>`
+                    : (hasBalance ? `<span class="bg-emerald-100 text-emerald-700 text-xs px-2.5 py-1 rounded-full font-bold">잔액 여유</span>` : `<span class="bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded">미계산</span>`);
+
+                // 1. 카드형 뷰
+                cardsHtml += `
+                    <div class="rounded-2xl ${cardBorderClass} p-4 md:p-6 card-shadow flex flex-col justify-between transition-transform hover:-translate-y-0.5">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <span class="text-xs font-bold tracking-wider text-gray-500 uppercase">선불제 관리</span>
+                                <h4 class="text-lg md:text-xl font-black text-navy-900 mt-0.5">📍 ${c.title}</h4>
+                            </div>
+                            <div>${statusBadge}</div>
+                        </div>
+                        <div class="my-2">
+                            <span class="text-xs text-gray-500 font-semibold block mb-1">계산된 잔여금액</span>
+                            <div class="text-2xl md:text-3xl ${balanceColorClass} tracking-tight">
+                                ${formattedBalance}
+                            </div>
+                        </div>
+                        <div class="pt-3 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">
+                            <span>최종 차감일자: <strong class="text-gray-700">${latestDate}</strong></span>
+                            ${latestBooking ? `<span class="truncate max-w-[150px]">마지막 예약자: ${esc(latestBooking.Name)}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+
+                // 2. 요약 테이블 뷰 (골프장명 / 일자 / 잔여금액)
+                tableHtml += `
+                    <tr class="border-b hover:bg-gray-50 transition-colors">
+                        <td class="py-3 px-4 text-left font-bold text-navy-900">${c.title}</td>
+                        <td class="py-3 px-4 font-semibold text-gray-600">${latestDate}</td>
+                        <td class="py-3 px-4 text-right ${balanceColorClass} text-base md:text-lg">${formattedBalance}</td>
+                        <td class="py-3 px-4">${statusBadge}</td>
+                    </tr>
+                `;
+            });
+
+            cardsContainer.innerHTML = cardsHtml;
+            tableBody.innerHTML = tableHtml;
         }
 
         function setupEventListeners() {
@@ -1695,7 +1829,7 @@
                 });
             });
 
-            // [수정됨] 문자전달 & 문자현황 통합 모달 닫기 및 동시 저장
+            // 문자전달 & 문자현황 통합 모달 닫기 및 동시 저장
             document.getElementById('closeDeliveryStatusBtn').addEventListener('click', () => closeModalWithAnim('deliveryStatusModal'));
             document.getElementById('saveDeliveryStatusBtn').addEventListener('click', async () => {
                 const id = document.getElementById('deliveryStatusBookingId').value;
@@ -2065,14 +2199,12 @@
             }
         }
 
-        // [수정됨] 문자전달 & 문자현황 통합 편집 팝업 열기
         function openDeliveryStatusModal(booking) {
             document.getElementById('deliveryStatusBookingId').value = booking.id;
             const cleanDate = String(booking.Date).replace(/\./g, '-').substring(0, 10);
             document.getElementById('deliveryStatusInfo').innerHTML =
                 `<span class="font-bold text-navy-900">${esc(booking['Golf Course'])}</span> · <span>${esc(booking.Name)}</span> · <span>${esc(cleanDate)}</span> · <span class="text-gold-500 font-bold">${esc(booking.Status || '')}</span>`;
             
-            // 1. 문자전달 (DeliveryStatus / R열) 값 바인딩
             const delivSel = document.getElementById('deliveryStatusSelect');
             const currentDeliv = (booking.DeliveryStatus || '').toString().trim();
             if (currentDeliv && !Array.from(delivSel.options).some(o => o.value === currentDeliv)) {
@@ -2083,7 +2215,6 @@
             }
             delivSel.value = currentDeliv;
 
-            // 2. 문자현황 (문자현황 / M열) 값 바인딩
             const smsSel = document.getElementById('smsStatusSelect');
             const currentSms = (booking['문자현황'] || '').toString().trim();
             if (currentSms && !Array.from(smsSel.options).some(o => o.value === currentSms)) {
