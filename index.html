@@ -25,8 +25,6 @@
     </script>
     <style>
         body { font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 16px; -webkit-tap-highlight-color: transparent; }
-
-        /* === 캐디피 영수증 시스템 디자인 토큰 === */
         .card-shadow { box-shadow: 0 1px 2px rgba(12,26,51,.04), 0 12px 28px -12px rgba(12,26,51,.18); }
         .hairline { background: linear-gradient(90deg, transparent, #b08d4f 30%, #b08d4f 70%, transparent); height: 1px; }
         ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -34,7 +32,6 @@
         ::-webkit-scrollbar-thumb { background: #c4bfb4; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #a8a294; } 
         
-        /* 캘린더 레이아웃 */
         .calendar-container { 
             display: grid; 
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); 
@@ -48,7 +45,6 @@
         .day-cell:hover { background-color: #faf7ef; border-color: #b08d4f; transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
         .booking-info { font-size: 14px; line-height: 1.4; margin-top: 2px; width: 100%; text-align: center; font-weight: 700; transition: opacity 0.2s; }
         
-        /* 부드러운 모달(팝업) 애니메이션 CSS 추가 */
         @keyframes fadeInScale {
             0% { opacity: 0; transform: scale(0.95); }
             100% { opacity: 1; transform: scale(1); }
@@ -58,21 +54,19 @@
             0% { opacity: 1; }
             100% { opacity: 0; }
         }
-
         .modal-overlay { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background-color: rgba(0, 0, 0, 0.5); display: none; justify-content: center; align-items: center; z-index: 1000;
-            backdrop-filter: blur(2px); /* 배경을 살짝 흐리게 */
+            backdrop-filter: blur(2px);
             transition: opacity 0.3s ease;
         }
         
         .modal-content { 
             background-color: white; padding: 40px; border-radius: 20px; width: 95%; max-width: 600px; max-height: 90vh; 
             overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            animation: fadeInScale 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; /* 팝업 생성 시 부드러운 스케일 효과 */
+            animation: fadeInScale 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         
-        /* 탭 콘텐츠 부드러운 전환 효과 */
         @keyframes fadeInTab {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -80,11 +74,9 @@
         .tab-content:not(.hidden) {
             animation: fadeInTab 0.4s ease-out forwards;
         }
-
         th, td { padding: 12px 10px; font-size: 15px; white-space: nowrap; }
         .col-comment { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         
-        /* 그리드 뷰 (무기명/선불제/금일예약) 테이블 스타일 */
         .grid-view-table th, .grid-view-table td { text-align: center; border: 1px solid #cbd5e1; padding: 8px; font-size: 14px; white-space: nowrap; }
         .grid-view-table th { background-color: #f1f5f9; font-weight: bold; }
         
@@ -92,38 +84,28 @@
         #lookupResults table th { background-color: #f8fafc; font-weight: bold; }
         
         input, select { font-size: 16px !important; padding: 10px !important; transition: border-color 0.2s, box-shadow 0.2s; }
-
-        /* 금일 예약 테이블 스타일 (자동 너비) */
         .compact-table { table-layout: auto; width: auto; min-width: 100%; }
         .compact-table th, .compact-table td {
             font-size: 11px !important; padding: 4px 6px !important; border: 1px solid #e2e8f0; text-align: center; white-space: nowrap; 
         }
         .compact-table th { background-color: #f8fafc; font-weight: 700; color: #475569; }
         
-        /* 비고란 전용 스타일: 줄바꿈 허용 및 최소 너비 */
         .compact-table td.wrap-text {
             white-space: normal !important; min-width: 150px; max-width: 300px; text-align: left; word-break: break-word;
         }
-
-        /* 테이블 인풋 스타일 최적화 (Time 등) */
         .table-input {
             font-size: 11px !important; padding: 0px 2px !important; height: 22px !important; width: 100%; min-width: 60px; 
             background-color: transparent; border: 1px solid transparent; text-align: center; transition: all 0.2s;
         }
         .table-input:focus { background-color: #f3eee3; border-color: #b08d4f; border-radius: 4px; }
-
-        /* 체크박스 커스텀 스타일 */
         .checkbox-label {
             display: flex; align-items: center; cursor: pointer; padding: 0.5rem 0.75rem; border-radius: 0.5rem; transition: background-color 0.2s ease;
         }
         .checkbox-label:hover { background-color: #f3eee3; }
         .checkbox-input { width: 1.2rem; height: 1.2rem; margin-right: 0.5rem; accent-color: #0c1a33; cursor: pointer; transition: transform 0.1s; }
         .checkbox-input:active { transform: scale(0.9); }
-
-        /* 가로 스크롤바 숨기기 (줄바꿈 방지 컨테이너용) */
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-
         @keyframes loadingSlide {
             0% { left: -40%; width: 30%; }
             50% { width: 60%; }
@@ -132,12 +114,8 @@
         .progress-bar-inner {
             position: absolute; top: 0; height: 100%; background-color: #b08d4f; border-radius: 9999px; animation: loadingSlide 1.5s infinite ease-in-out;
         }
-
-        /* 버튼 호버 부드럽게 */
         button { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
         button:active { transform: scale(0.97); }
-
-        /* 모바일 최적화 스타일 */
         @media (max-width: 640px) {
             body { padding: 0.5rem !important; font-size: 13px !important; }
             .calendar-container { grid-template-columns: 1fr; gap: 12px; }
@@ -149,7 +127,6 @@
             button { padding-top: 6px !important; padding-bottom: 6px !important; font-size: 13px !important; }
             .modal-content { padding: 20px !important; width: 98% !important; }
             
-            /* 체크박스 라벨 타이트하게 */
             .checkbox-label { padding: 0.1rem 0.15rem; font-size: 11px; }
             .checkbox-input { width: 0.9rem; height: 0.9rem; margin-right: 0.15rem; }
             
@@ -161,7 +138,6 @@
     </style>
 </head>
 <body class="bg-paper p-4 md:p-6 text-gray-800 transition-colors duration-300">
-
     <div id="loginScreen" class="flex flex-col items-center justify-center min-h-screen transition-opacity duration-500">
         <div class="bg-white rounded-3xl card-shadow p-6 md:p-10 w-full max-w-md border border-[#e7e4dc] transform transition-transform">
             <p class="text-[10px] md:text-xs font-bold tracking-[0.25em] text-gold-500 text-center mb-2">GOLF RESERVATION</p>
@@ -184,7 +160,6 @@
             </form>
         </div>
     </div>
-
     <div id="mainApp" class="hidden opacity-0 transition-opacity duration-500">
         <div class="bg-white rounded-2xl md:rounded-3xl card-shadow p-3 md:p-10 max-w-[1400px] mx-auto border border-[#e7e4dc]">
             <header class="bg-navy-900 rounded-2xl px-5 py-4 md:px-9 md:py-6 mb-4 md:mb-8 card-shadow">
@@ -202,14 +177,12 @@
                     </div>
                 </div>
             </header>
-
             <div class="flex flex-wrap items-center gap-2 md:gap-4 mb-4 md:mb-8 p-3 md:p-6 bg-[#eef1f6] rounded-xl md:rounded-2xl border border-[#d9dde6] shadow-inner">
                 <div class="flex items-center gap-2 md:gap-3 w-full md:w-auto">
                     <label class="text-sm md:text-lg font-bold text-navy-900 whitespace-nowrap">기간(연도):</label>
                     <select id="globalPeriodSelector" class="border-2 border-navy-800 rounded-lg bg-white text-gray-800 font-bold focus:ring-2 focus:ring-gold-400 outline-none w-full md:min-w-[280px] cursor-pointer shadow-sm text-sm transition-shadow"></select>
                 </div>
             </div>
-
             <div class="mb-4 md:mb-6 overflow-x-auto">
                 <nav class="flex space-x-2 md:space-x-4 pb-1" aria-label="Tabs">
                     <button id="calendarTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-navy-900 text-white whitespace-nowrap hover:shadow-md">캘린더</button>
@@ -221,7 +194,8 @@
                     <button id="prepaidTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 hidden whitespace-nowrap hover:shadow-md">선불제</button>
                 </nav>
             </div>
-
+            
+            <!-- 캘린더 탭 -->
             <div id="calendarView" class="tab-content">
                 <div class="bg-gray-50 p-1.5 md:p-4 rounded-xl border border-gray-200 mb-2 md:mb-3 flex flex-wrap justify-between items-center gap-1 md:gap-4">
                     <div class="flex flex-wrap gap-0.5 md:gap-2 items-center flex-shrink-0">
@@ -266,10 +240,10 @@
                         <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calMonthFilter" value="11" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">12월</span></label>
                     </div>
                 </div>
-
                 <div id="calendar" class="calendar-container"></div>
             </div>
 
+            <!-- 예약 현황 탭 -->
             <div id="statusView" class="tab-content hidden">
                  <div class="bg-gray-50 p-1.5 md:p-4 rounded-xl border border-gray-200 mb-2 md:mb-3 flex flex-wrap justify-start items-center gap-1 md:gap-3">
                     <span class="font-bold text-gray-700 mr-0.5 md:mr-2 text-[10px] sm:text-[11px] md:text-base flex-shrink-0">상태:</span>
@@ -279,14 +253,12 @@
                     <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="statusFilter" value="예약중" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">예약중</span></label>
                     <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="statusFilter" value="취소" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">취소</span></label>
                     <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" id="statusNonMemberFilter" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1" style="accent-color:#b08d4f"><span class="text-[10px] sm:text-[11px] md:text-sm font-bold text-gold-500">비회원가</span></label>
-
                     <div id="sienaCourseFilterWrapper" class="hidden flex items-center gap-1 flex-shrink-0 ml-1 md:ml-2 pl-1 md:pl-2 border-l border-gray-300">
                         <span class="font-bold text-gray-700 mr-0.5 text-[10px] sm:text-[11px] md:text-base flex-shrink-0">시에나:</span>
                         <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="sienaStatusFilter" value="전체" checked class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">전체</span></label>
                         <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="sienaStatusFilter" value="벨루토" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">벨루토</span></label>
                         <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="sienaStatusFilter" value="중부" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">중부</span></label>
                     </div>
-
                     <div id="statusCourseFilterWrapper" class="hidden flex items-center gap-1 flex-shrink-0 ml-1 md:ml-2">
                         <label class="font-bold text-gray-700 text-[10px] sm:text-[11px] md:text-sm flex-shrink-0">골프장:</label>
                         <select id="statusCourseSelect" class="border border-gray-300 rounded-lg p-0.5 md:p-1 text-[10px] sm:text-xs md:text-sm w-[70px] md:min-w-[110px] h-[22px] md:h-auto leading-none bg-white transition-shadow"></select>
@@ -296,7 +268,6 @@
                         <select id="statusNameSelect" class="border border-gray-300 rounded-lg p-0.5 md:p-1 text-[10px] sm:text-xs md:text-sm w-[70px] md:min-w-[110px] h-[22px] md:h-auto leading-none bg-white transition-shadow"></select>
                     </div>
                  </div>
-
                  <div class="bg-gray-50 p-1.5 md:p-4 rounded-xl border border-gray-200 mb-3 md:mb-4 flex flex-wrap justify-start items-center gap-1 md:gap-4">
                     <div class="flex flex-wrap gap-0.5 md:gap-2 items-center flex-shrink-0">
                         <span class="font-bold text-gray-700 mr-0.5 md:mr-2 text-[10px] sm:text-[11px] md:text-base">월(Month):</span>
@@ -315,7 +286,6 @@
                         <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="statusMonthFilter" value="11" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">12월</span></label>
                     </div>
                  </div>
-
                  <div class="flex items-center mb-3 md:mb-6 gap-2 md:gap-4">
                     <div id="statusWeekendSummary" class="hidden flex items-center gap-2 md:gap-4 text-xs md:text-base font-bold whitespace-nowrap">
                         <span class="text-navy-800">주말: <span id="weekendCount">0</span>건</span>
@@ -355,17 +325,18 @@
                 </div>
             </div>
             
+            <!-- 금일 예약 탭 -->
             <div id="todayView" class="tab-content hidden space-y-4">
                  <div class="bg-gray-50 p-2 rounded-lg border border-gray-200 flex flex-wrap gap-2 items-center text-xs">
                      <span class="font-bold text-gray-700 mr-2">표시할 항목:</span>
                      <div id="todayColumnControls" class="flex flex-wrap gap-2"></div>
                  </div>
-
                  <div id="yesterdayContainer" class="overflow-x-auto"></div>
                  <div id="todayContainer" class="overflow-x-auto"></div>
                  <div id="tomorrowContainer" class="overflow-x-auto"></div>
             </div>
 
+            <!-- 접대비 차감 탭 -->
             <div id="entertainmentView" class="tab-content hidden">
                 <div class="mb-4 md:mb-8 p-4 md:p-8 bg-gradient-to-r from-[#f3f1ea] to-[#eef1f6] rounded-xl md:rounded-2xl border border-[#d9dde6] shadow-sm">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 items-end">
@@ -406,6 +377,7 @@
                 </div>
             </div>
 
+            <!-- 조회 탭 -->
             <div id="lookupView" class="tab-content hidden">
                 <div class="bg-gray-50 p-4 md:p-8 rounded-xl md:rounded-2xl border border-gray-200 mb-4 md:mb-8 flex flex-wrap gap-4 md:gap-6 items-center shadow-sm">
                     <div class="flex items-center gap-2 md:gap-3">
@@ -421,29 +393,110 @@
                 <div id="lookupResults" class="space-y-4 md:space-y-8"></div>
             </div>
 
+            <!-- 무기명 탭 -->
             <div id="anonymousView" class="tab-content hidden">
                 <div id="anonymousTableContainer" class="overflow-x-auto rounded-xl border border-gray-300 shadow-sm"></div>
             </div>
 
-            <div id="prepaidView" class="tab-content hidden">
+            <!-- 선불제 탭 -->
+            <div id="prepaidView" class="tab-content hidden space-y-4">
+                <div class="flex justify-between items-center bg-gray-50 p-3 md:p-4 rounded-xl border border-gray-200">
+                    <div>
+                        <h3 class="text-base md:text-lg font-extrabold text-navy-900">선불제 회원권 이용 및 잔액 현황</h3>
+                        <p class="text-xs md:text-sm text-gray-500">스카이밸리CC 및 힐드로사이CC 이용 현황</p>
+                    </div>
+                    <button id="openPrepaidCalcBtn" class="bg-navy-900 hover:bg-navy-800 text-white text-xs md:text-sm font-bold py-2 px-4 rounded-xl shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 whitespace-nowrap">
+                        <span>⚡</span> 잔여금액 차감 계산
+                    </button>
+                </div>
                 <div id="prepaidTableContainer" class="overflow-x-auto rounded-xl border border-gray-300 shadow-sm"></div>
             </div>
         </div>
     </div>
 
-    <!-- 문자전달(DeliveryStatus / R열) 편집 모달 -->
+    <!-- 선불제 잔여금액(W열) 차감 계산 설정 모달 -->
+    <div id="prepaidCalcModal" class="modal-overlay">
+        <div class="modal-content max-w-lg">
+            <h2 class="text-xl md:text-2xl font-black mb-1 text-navy-900 border-b pb-3">선불제 잔여금액 차감 계산</h2>
+            <p class="text-xs md:text-sm text-gray-500 mb-5 leading-relaxed">
+                각 골프장의 기준 잔여금액과 기준일자를 지정하면, 기준일자 이후 <strong class="text-navy-900">'완료' 또는 '예약완료'</strong> 건의 V열 금액을 시간 순서대로 차감하여 W열(선불제 잔여금액)에 자동 갱신합니다.
+            </p>
+
+            <form id="prepaidCalcForm" class="space-y-5">
+                <!-- 스카이밸리 설정 -->
+                <div class="p-4 rounded-xl border border-gold-400/40 bg-[#fbf9f4] space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="font-extrabold text-sm md:text-base text-gold-500">📍 스카이밸리CC</span>
+                        <label class="text-xs font-semibold text-gray-600 flex items-center gap-1 cursor-pointer">
+                            <input type="checkbox" id="skyValleyIncludeBase" checked class="w-3.5 h-3.5 accent-[#0c1a33]"> 기준일 당일 포함
+                        </label>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">기준일자</label>
+                            <input type="date" id="skyValleyBaseDate" class="block w-full border border-gray-300 rounded-lg p-2 text-sm bg-white focus:ring-2 focus:ring-gold-400">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">기준 잔여금액 (원)</label>
+                            <input type="text" id="skyValleyBalance" placeholder="예: 10,000,000" oninput="this.value = formatNumberWithCommas(this.value)" class="block w-full border border-gray-300 rounded-lg p-2 text-sm bg-white font-bold focus:ring-2 focus:ring-gold-400">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 힐드로사이 설정 -->
+                <div class="p-4 rounded-xl border border-red-200 bg-red-50/40 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="font-extrabold text-sm md:text-base text-red-600">📍 힐드로사이CC</span>
+                        <label class="text-xs font-semibold text-gray-600 flex items-center gap-1 cursor-pointer">
+                            <input type="checkbox" id="hildrosieIncludeBase" checked class="w-3.5 h-3.5 accent-[#0c1a33]"> 기준일 당일 포함
+                        </label>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">기준일자</label>
+                            <input type="date" id="hildrosieBaseDate" class="block w-full border border-gray-300 rounded-lg p-2 text-sm bg-white focus:ring-2 focus:ring-gold-400">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">기준 잔여금액 (원)</label>
+                            <input type="text" id="hildrosieBalance" placeholder="예: 8,000,000" oninput="this.value = formatNumberWithCommas(this.value)" class="block w-full border border-gray-300 rounded-lg p-2 text-sm bg-white font-bold focus:ring-2 focus:ring-gold-400">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-2 md:space-x-3 pt-3 border-t">
+                    <button type="button" id="closePrepaidCalcBtn" class="px-4 py-2 rounded-xl border border-gray-300 font-bold text-gray-600 hover:bg-gray-100 text-sm transition-colors">취소</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-navy-900 text-white font-bold hover:bg-navy-800 text-sm shadow-md transition-colors">차감 계산 실행</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- [수정됨] 문자전달 & 문자현황 통합 편집 모달 -->
     <div id="deliveryStatusModal" class="modal-overlay">
         <div class="modal-content max-w-md">
-            <h2 class="text-xl md:text-2xl font-extrabold mb-2 text-gray-800 border-b pb-3">문자전달</h2>
-            <p id="deliveryStatusInfo" class="text-sm text-gray-500 mb-4"></p>
+            <h2 class="text-xl md:text-2xl font-black mb-1 text-navy-900 border-b pb-3">문자전달 및 문자현황 설정</h2>
+            <p id="deliveryStatusInfo" class="text-xs md:text-sm text-gray-500 mb-5 leading-relaxed"></p>
             <input type="hidden" id="deliveryStatusBookingId">
-            <div>
-                <label class="block text-sm font-extrabold text-gray-700 mb-1">문자전달 상태 선택</label>
-                <select id="deliveryStatusSelect" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-gold-400 focus:border-gold-400 bg-white font-medium">
-                    <option value="">(공란)</option>
-                    <option value="완료">완료</option>
-                    <option value="-">-</option>
-                </select>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-extrabold text-gray-700 mb-1">문자전달 (R열)</label>
+                    <select id="deliveryStatusSelect" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-gold-400 focus:border-gold-400 bg-white font-medium">
+                        <option value="">(공란)</option>
+                        <option value="완료">완료</option>
+                        <option value="-">-</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-extrabold text-gray-700 mb-1">문자현황 (M열)</label>
+                    <select id="smsStatusSelect" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-gold-400 focus:border-gold-400 bg-white font-medium">
+                        <option value="">미지정</option>
+                        <option value="예약완료">예약완료</option>
+                        <option value="10일전">10일전</option>
+                        <option value="7일전">7일전</option>
+                        <option value="1일전">1일전</option>
+                        <option value="완료">완료</option>
+                    </select>
+                </div>
             </div>
             <div class="flex justify-end space-x-2 md:space-x-4 pt-6 border-t mt-6">
                 <button type="button" id="closeDeliveryStatusBtn" class="px-4 py-2 md:px-6 md:py-3 rounded-xl border-2 border-gray-300 font-bold text-gray-600 hover:bg-gray-100 text-sm md:text-base transition-colors">닫기</button>
@@ -452,31 +505,7 @@
         </div>
     </div>
 
-    <!-- 문자현황(M열) 편집 모달 -->
-    <div id="smsStatusModal" class="modal-overlay">
-        <div class="modal-content max-w-md">
-            <h2 class="text-xl md:text-2xl font-extrabold mb-2 text-gray-800 border-b pb-3">문자현황</h2>
-            <p id="smsStatusInfo" class="text-sm text-gray-500 mb-4"></p>
-            <input type="hidden" id="smsStatusBookingId">
-            <div>
-                <label class="block text-sm font-extrabold text-gray-700 mb-1">문자현황 선택</label>
-                <select id="smsStatusSelect" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-gold-400 focus:border-gold-400 bg-white font-medium">
-                    <option value="">미지정</option>
-                    <option value="예약완료">예약완료</option>
-                    <option value="10일전">10일전</option>
-                    <option value="7일전">7일전</option>
-                    <option value="1일전">1일전</option>
-                    <option value="완료">완료</option>
-                </select>
-            </div>
-            <div class="flex justify-end space-x-2 md:space-x-4 pt-6 border-t mt-6">
-                <button type="button" id="closeSmsStatusBtn" class="px-4 py-2 md:px-6 md:py-3 rounded-xl border-2 border-gray-300 font-bold text-gray-600 hover:bg-gray-100 text-sm md:text-base transition-colors">닫기</button>
-                <button type="button" id="saveSmsStatusBtn" class="px-4 py-2 md:px-6 md:py-3 rounded-xl bg-navy-900 text-white font-bold hover:bg-navy-800 text-sm md:text-base shadow-md transition-colors">저장</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 모달 등 -->
+    <!-- 예약 신청/수정 모달 -->
     <div id="bookingModal" class="modal-overlay">
         <div class="modal-content">
             <h2 id="modalTitle" class="text-2xl md:text-3xl font-extrabold mb-4 md:mb-8 text-gray-800 border-b pb-2 md:pb-4">예약 신청</h2>
@@ -487,7 +516,7 @@
                         <label class="block text-sm font-extrabold text-gray-700 mb-1">신청인</label>
                         <input type="text" id="userName" required class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-gold-400 focus:border-gold-400 bg-gray-50 text-gray-600 transition-shadow">
                     </div>
-                     <div class="col-span-2 hidden">
+                    <div class="col-span-2 hidden">
                         <label class="block text-sm font-extrabold text-gray-700 mb-1">전화번호</label>
                         <input type="text" id="userPhone" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-gold-400 focus:border-gold-400 bg-white">
                     </div>
@@ -526,7 +555,7 @@
                         <label class="block text-sm font-extrabold text-gray-700 mb-1">부킹일자</label>
                         <input type="date" id="bookingRecordDate" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base bg-white">
                     </div>
-                     <div class="hidden">
+                    <div class="hidden">
                         <label class="block text-sm font-extrabold text-gray-700 mb-1">전달여부</label>
                         <input type="text" id="deliveryStatus" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base bg-white">
                     </div>
@@ -543,6 +572,7 @@
         </div>
     </div>
     
+    <!-- 안내 모달 -->
     <div id="noticeModal" class="modal-overlay">
         <div class="modal-content relative max-w-3xl max-h-[80vh] overflow-y-auto">
             <button id="closeNoticeBtn" class="absolute top-4 right-4 text-2xl text-gray-500 hover:text-gray-800 transition-colors">&times;</button>
@@ -614,7 +644,7 @@
             </div>
         </div>
     </div>
-
+    
     <div id="alertModal" class="modal-overlay">
         <div class="modal-content max-w-sm text-center">
             <h3 class="text-lg md:text-xl font-bold mb-3 md:mb-4 text-gray-800">알림</h3>
@@ -622,7 +652,7 @@
             <button id="closeAlertBtn" class="bg-navy-900 text-white px-6 py-2 md:px-8 rounded-lg font-bold hover:bg-navy-800 transition-colors text-sm md:text-base hover:shadow-md">확인</button>
         </div>
     </div>
-
+    
     <div id="editChooserModal" class="modal-overlay">
         <div class="modal-content max-w-sm">
             <h3 class="text-lg md:text-xl font-bold mb-1 text-navy-900">예약 수정 선택</h3>
@@ -631,8 +661,7 @@
             <button id="closeEditChooserBtn" class="mt-4 w-full bg-gray-100 text-gray-600 px-6 py-2 rounded-lg font-bold hover:bg-gray-200 transition-colors text-sm md:text-base border border-gray-200">닫기</button>
         </div>
     </div>
-
-    <!-- [추가됨] 사이트 이전 안내 모달 -->
+    
     <div id="migrationModal" class="modal-overlay">
         <div class="modal-content max-w-md text-center border-t-4 border-red-500">
             <h3 class="text-xl md:text-2xl font-black mb-3 md:mb-4 text-red-600">사이트 이전 안내</h3>
@@ -685,7 +714,6 @@
         
         const CALENDAR_GOLF_COURSES = ['레이크우드', '스카이밸리', '벨루토', '힐드로사이', '중부'];
         const MODAL_GOLF_COURSES = ['레이크우드', '스카이밸리', '벨루토', '힐드로사이', '중부'];
-
         const GOLF_COURSE_COLORS = {
             '레이크우드': 'text-black',
             '스카이밸리': 'text-gold-500',
@@ -693,9 +721,7 @@
             '힐드로사이': 'text-red-600',
             '중부': 'text-purple-600'
         };
-
         const COURSE_PRIORITY = { '레이크우드': 1, '스카이밸리': 2, '힐드로사이': 3, '벨루토': 4, '중부': 5 };
-
         const COURSE_ABBR = {
             '레이크우드': '레이크',
             '스카이밸리': '스카이',
@@ -703,7 +729,6 @@
             '힐드로사이': '힐드로',
             '중부': '중부'
         };
-
         const holidays = {
             '2024-01-01': '신정', '2024-02-09': '설날', '2024-02-10': '설날', '2024-02-11': '설날', '2024-02-12': '설날 대체공휴일', '2024-03-01': '삼일절', '2024-04-10': '국회의원 선거', '2024-05-01': '근로자의 날', '2024-05-05': '어린이날', '2024-05-06': '어린이날 대체공휴일', '2024-05-15': '부처님 오신 날', '2024-06-06': '현충일', '2024-08-15': '광복절', '2024-09-16': '추석', '2024-09-17': '추석', '2024-09-18': '추석', '2024-10-03': '개천절', '2024-10-09': '한글날', '2024-12-25': '크리스마스',
             '2025-01-01': '신정', '2025-01-28': '설날', '2025-01-29': '설날', '2025-01-30': '설날', '2025-03-01': '삼일절', '2025-05-01': '근로자의 날', '2025-05-05': '어린이날', '2025-05-06': '부처님 오신 날', '2025-06-06': '현충일', '2025-08-15': '광복절', '2025-10-03': '개천절', '2025-10-06': '추석', '2025-10-07': '추석', '2025-10-08': '추석', '2025-10-09': '한글날', '2025-12-25': '크리스마스',
@@ -722,7 +747,6 @@
             return day === 0 || day === 6 || holidays[dateStr];
         };
 
-        // [보안] HTML 이스케이프 헬퍼 — 모든 사용자 입력값을 화면에 넣기 전 반드시 통과시킴 (XSS 방지)
         function esc(v) {
             if (v === null || v === undefined) return '';
             return String(v).replace(/[&<>"']/g, function (c) {
@@ -730,34 +754,27 @@
             });
         }
 
-        // [보안] 역할(role)은 서버 로그인 응답으로만 결정됨. 클라이언트에서 이름으로 판별하지 않음.
-        //  아래 상수는 UI 표시용 폴백일 뿐, 권한의 근거가 아님(실제 권한 검사는 서버에서 수행).
         function getUserRole(name) {
             if (currentUser && currentUser.name === name && currentUser.role) return currentUser.role;
             return (currentUser && currentUser.role) ? currentUser.role : 'NORMAL_USER';
         }
 
-        let currentUser = null;      // { name, role }  — 비밀번호는 저장하지 않음
-        let sessionToken = null;     // 서버 발급 세션 토큰
+        let currentUser = null;
+        let sessionToken = null;
         let bookings = [];
         let userQuotas = {};
         let users = [];
         let allEntertainmentLogs = [];
-        
         let selectedYear = new Date().getFullYear();
-        
         let calendarMyBookingFilter = false;
-        
         let calendarNameFilter = '전체';
         let statusNameFilter = '전체';
         let statusCourseFilter = '전체';
-
         let sortColumn = 'Date';
         let sortDirection = 'asc';
         let entertainmentSortColumn = 'Date';
         let entertainmentSortDirection = 'asc';
         let entertainmentSelectedName = '전체';
-
         let confirmCallback = null;
 
         function isInSelectedPeriod(dateStr) {
@@ -769,11 +786,9 @@
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
-            // [애니메이션 처리] 페이지 로드 시 로그인 창 부드럽게 나타남
             setTimeout(() => {
                 document.getElementById('loginScreen').classList.remove('opacity-0');
             }, 100);
-
             const globalPeriodSelector = document.getElementById('globalPeriodSelector');
             
             let periodOptions = '';
@@ -782,7 +797,6 @@
             }
             globalPeriodSelector.innerHTML = periodOptions;
             globalPeriodSelector.value = `${selectedYear}`;
-
             globalPeriodSelector.addEventListener('change', (e) => {
                 selectedYear = parseInt(e.target.value);
                 renderApp();
@@ -794,7 +808,6 @@
             setupCheckboxLogic('statusMonthFilter', renderStatus, 'golf_statusMonthFilter');
             setupCheckboxLogic('sienaStatusFilter', renderStatus);
 
-            // 캘린더/예약현황 탭 필터 임시 저장값 복원 (다음 접속 시 동일 필터 유지)
             restoreCheckboxState('calCourseFilter', 'golf_calCourseFilter');
             restoreCheckboxState('calMonthFilter', 'golf_calMonthFilter');
             restoreCheckboxState('statusFilter', 'golf_statusFilter');
@@ -804,11 +817,8 @@
                 calendarMyBookingFilter = e.target.checked;
                 renderCalendar();
             });
-
-            // 비회원가 필터 (레이크우드/벨루토 MP≠1)
             document.getElementById('calNonMemberFilter').addEventListener('change', renderCalendar);
             document.getElementById('statusNonMemberFilter').addEventListener('change', renderStatus);
-
             document.getElementById('bookingDate').addEventListener('change', (e) => {
                 const val = e.target.value;
                 const bookingId = document.getElementById('bookingId').value;
@@ -820,8 +830,6 @@
                 updateAvailableGolfCourses(val, bookingId);
             });
 
-            // [보안] 인증 전에는 데이터를 불러오지 않음.
-            //  저장된 토큰이 있으면 initializeLoginState 내부에서 검증 후 로드함.
             showLoading(true, "시스템을 준비하는 중입니다...");
             try {
                 await initializeLoginState();
@@ -835,9 +843,6 @@
             setupEventListeners();
         });
 
-        // ########## Functions ##########
-        
-        // [애니메이션 처리를 위한 모달 열기/닫기 헬퍼 함수]
         function openModalWithAnim(modalId) {
             const modal = document.getElementById(modalId);
             modal.style.display = 'flex';
@@ -847,7 +852,7 @@
         function closeModalWithAnim(modalId) {
             const modal = document.getElementById(modalId);
             modal.style.opacity = '0';
-            setTimeout(() => { modal.style.display = 'none'; }, 300); // CSS transition 시간과 맞춤
+            setTimeout(() => { modal.style.display = 'none'; }, 300);
         }
 
         function showAlert(message) {
@@ -919,12 +924,10 @@
                 sessionToken = savedToken;
                 currentUser = JSON.parse(savedUser);
                 try {
-                    // 저장된 토큰이 서버에서 유효한지 실제 요청으로 확인 (유효하면 데이터도 함께 로드)
                     await fetchInitialData();
                     showMainApp();
                     return;
                 } catch (e) {
-                    // 토큰 만료/무효 → 로그인 화면
                     clearSession();
                 }
             }
@@ -946,7 +949,7 @@
             login.classList.remove('hidden');
             setTimeout(() => { login.classList.remove('opacity-0'); login.classList.add('opacity-100'); }, 50);
         }
-        
+
         function showMainApp() {
             const login = document.getElementById('loginScreen');
             const main = document.getElementById('mainApp');
@@ -957,7 +960,6 @@
                 setTimeout(() => { 
                     main.classList.remove('opacity-0'); 
                     main.classList.add('opacity-100'); 
-                    // [추가됨] 메인 앱 진입 시 사이트 이전 안내 모달 띄우기 (0.5초 뒤 부드럽게)
                     setTimeout(() => openModalWithAnim('migrationModal'), 500);
                 }, 50);
                 renderApp();
@@ -977,7 +979,6 @@
             const cancelBtn = document.getElementById('cancelSelectedBtn');
             const completeBtn = document.getElementById('completeSelectedBtn');
             const adminControls = document.getElementById('adminOnlyControls');
-
             if (isManager) {
                 adminControls.classList.remove('hidden');
                 deleteBtn.classList.remove('hidden');
@@ -989,16 +990,15 @@
                 cancelBtn.classList.remove('hidden');
                 completeBtn.classList.add('hidden');
             }
-
             document.getElementById('calendarNameFilterWrapper').classList.toggle('hidden', !isManager);
             document.getElementById('statusNameFilterWrapper').classList.toggle('hidden', !isManager);
             document.getElementById('statusCourseFilterWrapper').classList.toggle('hidden', !isManager);
             document.getElementById('statusWeekendSummary').classList.toggle('hidden', !isManager);
             document.getElementById('adminEntertainmentFilter').classList.toggle('hidden', !isManager);
-
+            
             const sienaFilter = document.getElementById('sienaCourseFilterWrapper');
             if (sienaFilter) sienaFilter.classList.toggle('hidden', role !== 'SIENA_ADMIN');
-
+            
             const calJungbuLabel = document.getElementById('calJungbuFilterLabel');
             if (['ADMIN', 'SIENA_ADMIN', 'JUNGBU_USER'].includes(role)) {
                 calJungbuLabel.classList.remove('hidden');
@@ -1007,12 +1007,10 @@
                 const jungbuCheckbox = document.querySelector('input[name="calCourseFilter"][value="중부"]');
                 if (jungbuCheckbox) jungbuCheckbox.checked = false;
             }
-
             if (isManager) {
                 populateNameOptions();
                 populateCourseOptions();
             }
-
             renderCalendar();
             renderStatus();
             renderEntertainmentView();
@@ -1027,17 +1025,13 @@
             const nameSet = new Set(users.map(u => u.name));
             bookings.forEach(b => { if(b.Name) nameSet.add(b.Name); });
             const sortedNames = Array.from(nameSet).sort((a, b) => a.localeCompare(b));
-
             const options = `<option value="전체">전체</option>` + sortedNames.map(name => `<option value="${esc(name)}">${esc(name)}</option>`).join('');
-
             const calSelect = document.getElementById('calendarNameSelect');
             const statSelect = document.getElementById('statusNameSelect');
             const entSelect = document.getElementById('entertainmentNameFilter');
-
             const currentCalVal = calSelect.value || '전체';
             const currentStatVal = statSelect.value || '전체';
             const currentEntVal = entSelect.value || '전체';
-
             calSelect.innerHTML = options;
             statSelect.innerHTML = options;
             entSelect.innerHTML = options;
@@ -1070,22 +1064,18 @@
         }
 
         async function fetchInitialData() {
-            // [보안] read를 POST로 전환하여 토큰을 URL이 아닌 본문으로 전송(로그 노출 방지).
-            //  서버는 토큰의 권한에 따라 필터링된 데이터만 반환한다.
             const response = await fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: 'read', token: sessionToken })
             });
             const data = await response.json();
             if (data.status !== 'success') {
-                // 토큰 만료/무효 등
                 throw new Error(data.message || '데이터를 불러올 수 없습니다.');
             }
             bookings = data.bookings || [];
-            users = data.users || [];   // 관리자에게만 이름 목록이 옴 (비밀번호 없음)
+            users = data.users || [];
             allEntertainmentLogs = data.entertainmentData || [];
             userQuotas = (data.quotas || []).reduce((acc, q) => { acc[q.Name] = q; return acc; }, {});
-            // 서버가 확정한 역할/이름/VIP로 갱신 (신뢰 원천은 서버)
             if (data.role && currentUser) {
                 currentUser.role = data.role;
                 currentUser.name = data.userName || currentUser.name;
@@ -1108,9 +1098,7 @@
             }
             
             const checkedCourses = Array.from(document.querySelectorAll('input[name="calCourseFilter"]:checked')).map(cb => cb.value);
-            
             let filteredBookings = bookings.filter(b => isInSelectedPeriod(b.Date) && VALID_STATUSES.includes(b.Status));
-
             const role = getUserRole(currentUser.name);
             
             if (role === 'ADMIN') {
@@ -1120,7 +1108,6 @@
             } else {
                 filteredBookings = filteredBookings.filter(b => b['Golf Course'] !== '중부');
             }
-
             if (!checkedCourses.includes('전체')) {
                 filteredBookings = filteredBookings.filter(b => checkedCourses.includes(b['Golf Course']));
             }
@@ -1128,25 +1115,20 @@
             if (role === 'ADMIN' && calendarNameFilter !== '전체') {
                 filteredBookings = filteredBookings.filter(b => b.Name === calendarNameFilter);
             }
-
             if (calendarMyBookingFilter) {
                 filteredBookings = filteredBookings.filter(b => b.Name === currentUser.name);
             }
-
             if (document.getElementById('calNonMemberFilter')?.checked) {
                 filteredBookings = filteredBookings.filter(b => b['회원구분'] === '비회원가' && !['취소중', '취소완료'].includes(b.Status));
             }
-
             const bookingMap = new Map();
             filteredBookings.forEach(b => {
                 const normDate = String(b.Date).replace(/\./g, '-').substring(0, 10);
                 if (!bookingMap.has(normDate)) bookingMap.set(normDate, []);
                 bookingMap.get(normDate).push(b);
             });
-
             const _today = new Date();
             const todayStrGlobal = `${_today.getFullYear()}-${String(_today.getMonth() + 1).padStart(2, '0')}-${String(_today.getDate()).padStart(2, '0')}`;
-
             for (let m of renderMonths) {
                 const firstDay = new Date(selectedYear, m, 1);
                 const lastDay = new Date(selectedYear, m + 1, 0);
@@ -1159,18 +1141,15 @@
                 
                 const userMonthly = monthlyBookings.filter(b => b.Name === currentUser.name);
                 const q = userQuotas[currentUser.name] || {};
-
                 let warnings = [];
                 const lakewoodWd = monthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && !isWeekendBooking(b)).length;
                 const lakewoodWe = monthlyBookings.filter(b => b['Golf Course'] === '레이크우드' && isWeekendBooking(b)).length;
                 if (lakewoodWd >= 9) warnings.push('※ 레이크 주중 마감');
                 if (lakewoodWe >= 6) warnings.push('※ 레이크 주말 마감');
-
                 const vellutoWd = monthlyBookings.filter(b => b['Golf Course'] === '벨루토' && !isWeekendBooking(b)).length;
                 const vellutoWe = monthlyBookings.filter(b => b['Golf Course'] === '벨루토' && isWeekendBooking(b)).length;
                 if (vellutoWd >= 5) warnings.push('※ 벨루토 주중 마감');
                 if (vellutoWe >= 3) warnings.push('※ 벨루토 주말 마감');
-
                 const monthContainer = document.createElement('div');
                 monthContainer.className = 'bg-white p-2 md:p-4 rounded-xl md:rounded-2xl shadow-sm border border-gray-200';
                 
@@ -1182,11 +1161,9 @@
                     <span>벨루토(주중): ${userMonthly.filter(b => b['Golf Course'] === '벨루토' && !isWeekendBooking(b)).length}/${q.Velluto_Weekday || q.Seragio_Weekday || 0}</span>
                     <span>벨루토(주말): ${userMonthly.filter(b => b['Golf Course'] === '벨루토' && isWeekendBooking(b)).length}/${q.Velluto_Weekend || q.Seragio_Weekend || 0}</span>
                 </div>`;
-
                 const warningHtml = warnings.length > 0 
                     ? `<div class="mb-2 md:mb-3 text-[10px] md:text-xs font-bold text-red-600 bg-red-50 p-1 md:p-2 rounded-lg text-center border border-red-100">${warnings.join('<br>')}</div>` 
                     : `<div class="mb-2 md:mb-3 border-b"></div>`;
-
                 monthContainer.innerHTML = `${quotaHtml}${warningHtml}<div class="text-base md:text-xl font-black text-center mb-2 md:mb-4 text-gray-800">${selectedYear}년 ${m + 1}월</div><div class="grid grid-cols-7 gap-1 text-center text-xs md:text-sm font-bold text-gray-400 mb-1 md:mb-2"><div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div></div>`;
                 
                 const dayGrid = document.createElement('div');
@@ -1202,22 +1179,18 @@
                     let color = 'text-gray-700';
                     if (dayOfWeek === 0 || holidays[dateStr]) color = 'text-red-600';
                     else if (dayOfWeek === 6) color = 'text-navy-700';
-
                     if (dateStr === todayStrGlobal) {
                         dayCell.classList.add('bg-yellow-50', 'border-2', 'border-gold-400', 'shadow-md');
                         color = 'text-gold-500 font-black';
                     }
-
                     const dayNumEl = document.createElement('div');
                     dayNumEl.className = `text-sm md:text-lg font-bold ${color} mb-0 md:mb-1`;
                     dayNumEl.textContent = d;
                     dayCell.appendChild(dayNumEl);
-
                     if (bookingMap.has(dateStr)) {
                         const dayBookings = bookingMap.get(dateStr);
                         const uniqueCourses = [...new Set(dayBookings.map(b => b['Golf Course']))];
                         uniqueCourses.sort((a, b) => (COURSE_PRIORITY[a] || 99) - (COURSE_PRIORITY[b] || 99));
-
                         uniqueCourses.forEach(course => {
                             const courseEl = document.createElement('div');
                             courseEl.className = `booking-info ${GOLF_COURSE_COLORS[course] || ''} truncate`;
@@ -1234,7 +1207,6 @@
                             dayCell.appendChild(courseEl);
                         });
                     }
-
                     dayCell.onclick = () => openBookingModal(null, dateStr);
                     dayGrid.appendChild(dayCell);
                 }
@@ -1248,9 +1220,7 @@
             statusTableBody.innerHTML = '';
             
             let filtered = bookings.filter(b => isInSelectedPeriod(b.Date));
-
             const role = getUserRole(currentUser.name);
-
             if (role === 'ADMIN') {
                 if (statusNameFilter !== '전체') {
                     filtered = filtered.filter(b => b.Name === statusNameFilter);
@@ -1270,9 +1240,7 @@
             } else {
                 filtered = filtered.filter(b => b.Name === currentUser.name);
             }
-
             const checkedStatuses = Array.from(document.querySelectorAll('input[name="statusFilter"]:checked')).map(cb => cb.value);
-
             if (!checkedStatuses.includes('전체')) {
                 filtered = filtered.filter(b => {
                     if (checkedStatuses.includes(b.Status)) return true;
@@ -1280,7 +1248,6 @@
                     return false;
                 });
             }
-
             const checkedMonths = Array.from(document.querySelectorAll('input[name="statusMonthFilter"]:checked')).map(cb => cb.value);
             if (!checkedMonths.includes('전체') && checkedMonths.length > 0) {
                 const monthSet = new Set(checkedMonths.map(Number));
@@ -1289,12 +1256,10 @@
                     return !isNaN(d) && monthSet.has(d.getMonth());
                 });
             }
-
             if (document.getElementById('statusNonMemberFilter')?.checked) {
                 filtered = filtered.filter(b => b['회원구분'] === '비회원가' && !['취소중', '취소완료'].includes(b.Status));
             }
-
-            // 관리자 표시용: WE 컬럼 "주 말" 기준 주말/주중 집계 (회원가 기준)
+            
             const membersFiltered = filtered.filter(b => b['회원구분'] !== '비회원가');
             const weekendCnt = membersFiltered.filter(b => String(b.WE || '').replace(/\s/g, '') === '주말').length;
             const nonMemberCnt = filtered.length - membersFiltered.length;
@@ -1305,12 +1270,10 @@
             if (_wkEl) _wkEl.textContent = weekendCnt;
             if (_wdEl) _wdEl.textContent = membersFiltered.length - weekendCnt;
             if (_nmEl) _nmEl.textContent = nonMemberCnt;
-
             if (filtered.length === 0) {
                 statusTableBody.innerHTML = `<tr><td colspan="9" class="text-center py-6 md:py-10 text-gray-500 font-bold text-sm md:text-base">조건에 맞는 예약 내역이 없습니다.</td></tr>`;
                 return;
             }
-
             filtered.sort((a, b) => {
                 let vA = a[sortColumn], vB = b[sortColumn];
                 return sortDirection === 'asc' ? String(vA).localeCompare(String(vB)) : String(vB).localeCompare(String(vA));
@@ -1326,8 +1289,6 @@
                 if (['우천취소', '취소완료', '취소중'].includes(status)) {
                     rowClass = "border-b hover:bg-red-50 bg-red-50 text-red-900 cursor-pointer transition-colors";
                 }
-
-                // 문자현황(M열) 기반 경고 색상 적용
                 let statusBgClass = "bg-white";
                 let statusBorderClass = "border-gray-300";
                 let statusTextClass = "";
@@ -1340,7 +1301,6 @@
                     bDateForCalc.setHours(0,0,0,0);
                     const diffTime = bDateForCalc - todayForCalc;
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
                     if (diffDays <= 2 && diffDays >= 0) {
                         if (smsStatus === '예약완료' || smsStatus === '7일전') {
                             statusBgClass = "bg-red-500";
@@ -1355,22 +1315,16 @@
                         }
                     }
                 }
-
-                // 비회원가 라벨
                 const nonMemberBadge = b['회원구분'] === '비회원가' ? `<span class="ml-1 text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-bold">비</span>` : '';
-
-                // 문자전달(DeliveryStatus / R열) 표시
                 const deliveryVal = (b.DeliveryStatus || '').toString().trim();
                 let deliveryCellHtml;
                 if (deliveryVal === '완료') {
-                    deliveryCellHtml = `<span class="delivery-trigger cursor-pointer px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-bold border shadow-sm whitespace-nowrap bg-emerald-500 border-emerald-600 text-white" data-id="${esc(b.id)}" title="클릭하여 문자전달 상태 수정">완료</span>`;
+                    deliveryCellHtml = `<span class="delivery-trigger cursor-pointer px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-bold border shadow-sm whitespace-nowrap bg-emerald-500 border-emerald-600 text-white" data-id="${esc(b.id)}" title="클릭하여 문자전달 및 문자현황 수정">완료</span>`;
                 } else if (deliveryVal === '-') {
-                    deliveryCellHtml = `<span class="delivery-trigger cursor-pointer text-gray-400 font-bold" data-id="${esc(b.id)}" title="클릭하여 문자전달 상태 수정">-</span>`;
+                    deliveryCellHtml = `<span class="delivery-trigger cursor-pointer text-gray-400 font-bold px-2 py-0.5" data-id="${esc(b.id)}" title="클릭하여 문자전달 및 문자현황 수정">-</span>`;
                 } else {
-                    // 공란: 클릭 가능한 빈 영역
-                    deliveryCellHtml = `<span class="delivery-trigger cursor-pointer inline-block min-w-[40px] min-h-[20px] rounded border border-dashed border-gray-300 hover:border-gold-400 hover:bg-[#faf7ef]" data-id="${esc(b.id)}" title="클릭하여 문자전달 상태 입력">&nbsp;</span>`;
+                    deliveryCellHtml = `<span class="delivery-trigger cursor-pointer inline-block min-w-[40px] min-h-[22px] rounded border border-dashed border-gray-300 hover:border-gold-400 hover:bg-[#faf7ef]" data-id="${esc(b.id)}" title="클릭하여 문자전달 및 문자현황 입력">&nbsp;</span>`;
                 }
-
                 const row = document.createElement('tr');
                 row.className = rowClass;
                 row.innerHTML = `<td class="p-2 md:p-4 text-center"><input type="checkbox" class="booking-checkbox w-4 h-4 md:w-5 md:h-5 accent-[#0c1a33]" data-id="${esc(b.id)}"></td>
@@ -1379,18 +1333,12 @@
                     <td class="p-2 md:p-4 font-bold text-gray-600 whitespace-nowrap">${esc(displayDate)}${dayLabel}</td>
                     <td class="p-2 md:p-4 text-center font-bold">${esc(b.Team)}</td>
                     <td class="p-2 md:p-4">${esc(b.Time) || '-'}</td>
-                    <td class="p-2 md:p-4"><span class="sms-status-trigger cursor-pointer px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-bold border shadow-sm whitespace-nowrap ${statusBgClass} ${statusBorderClass} ${statusTextClass}" data-id="${esc(b.id)}" title="클릭하여 문자현황 확인/수정">${esc(status) || '미정'}</span>${nonMemberBadge}</td>
+                    <td class="p-2 md:p-4"><span class="px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-bold border shadow-sm whitespace-nowrap ${statusBgClass} ${statusBorderClass} ${statusTextClass}">${esc(status) || '미정'}</span>${nonMemberBadge}</td>
                     <td class="p-2 md:p-4 text-center">${deliveryCellHtml}</td>
                     <td class="p-2 md:p-4 text-xs md:text-sm text-gray-500 col-comment" title="${esc(b.Comment) || ''}">${esc(b.Comment) || ''}</td>`;
                 row.onclick = (e) => {
                     if (e.target.type === 'checkbox') return;
-                    // 상태 뱃지 클릭 시: 문자현황 편집 팝업
-                    if (e.target.closest('.sms-status-trigger')) {
-                        e.stopPropagation();
-                        openSmsStatusModal(b);
-                        return;
-                    }
-                    // 문자전달 셀 클릭 시: 문자전달 편집 팝업
+                    // 문자전달 셀(또는 버튼) 클릭 시: 문자전달 및 문자현황 통합 모달 오픈
                     if (e.target.closest('.delivery-trigger')) {
                         e.stopPropagation();
                         openDeliveryStatusModal(b);
@@ -1407,18 +1355,15 @@
             const today = new Date();
             const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
             const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
-
             const todayStr = getFormattedDate(today);
             const yesterdayStr = getFormattedDate(yesterday);
             const tomorrowStr = getFormattedDate(tomorrow);
-
             const defaultHiddenColumns = ['status', 'bookingDate', 'we', 'deliveryStatus'];
             
             let savedState = JSON.parse(localStorage.getItem('golfBooking_todayColumnState') || 'null');
             if (!savedState) {
                 savedState = {};
             }
-
             const columns = [
                 { name: '골프장', key: 'golfCourse', isTight: true, width: '50px' },
                 { name: '성명', key: 'name', isTight: true, width: '50px' },
@@ -1433,10 +1378,8 @@
                 { name: '부킹일자', key: 'bookingDate', isTight: true, width: '45px' },
                 { name: '전달여부', key: 'deliveryStatus', isTight: true, width: '40px' }
             ];
-
             const controlsContainer = document.getElementById('todayColumnControls');
             controlsContainer.innerHTML = ''; 
-
             columns.forEach((col, index) => {
                 const label = document.createElement('label');
                 label.className = 'checkbox-label bg-white border border-gray-200';
@@ -1447,11 +1390,9 @@
                 } else {
                     if (defaultHiddenColumns.includes(col.key)) isChecked = false;
                 }
-
                 label.innerHTML = `<input type="checkbox" ${isChecked ? 'checked' : ''} class="checkbox-input col-toggle" data-col-index="${index}" data-col-key="${col.key}">${col.name}`;
                 controlsContainer.appendChild(label);
             });
-
             controlsContainer.onchange = (e) => {
                 if (e.target.classList.contains('col-toggle')) {
                     const index = e.target.getAttribute('data-col-index');
@@ -1461,20 +1402,17 @@
                     const currentState = JSON.parse(localStorage.getItem('golfBooking_todayColumnState') || '{}');
                     currentState[key] = isVisible;
                     localStorage.setItem('golfBooking_todayColumnState', JSON.stringify(currentState));
-
                     const cells = document.querySelectorAll(`#todayView table tr > *:nth-child(${parseInt(index) + 1})`);
                     cells.forEach(cell => {
                         cell.style.display = isVisible ? '' : 'none';
                     });
                 }
             };
-
             const sections = [
                 { id: 'yesterdayContainer', title: `어제 (${yesterdayStr})`, dateStr: yesterdayStr, bg: 'bg-gray-100', text: 'text-gray-600' },
                 { id: 'todayContainer', title: `오늘 (${todayStr})`, dateStr: todayStr, bg: 'bg-[#eef1f6]', text: 'text-navy-800' },
                 { id: 'tomorrowContainer', title: `내일 (${tomorrowStr})`, dateStr: tomorrowStr, bg: 'bg-green-50', text: 'text-green-800' }
             ];
-
             sections.forEach(section => {
                 const container = document.getElementById(section.id);
                 const filtered = bookings.filter(b => {
@@ -1482,7 +1420,6 @@
                     const bDate = String(b.BookingDate).replace(/\./g, '-').substring(0, 10);
                     return bDate === section.dateStr;
                 });
-
                 let html = `<div class="rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                     <div class="${section.bg} p-2 md:p-3 font-black text-sm md:text-base ${section.text} border-b border-gray-200">${section.title}</div>
                     <div class="overflow-x-auto">
@@ -1501,7 +1438,6 @@
                         const courseName = b['Golf Course'];
                         const abbr = COURSE_ABBR[courseName] || courseName;
                         const displayCourse = `<span class="md:hidden">${abbr}</span><span class="hidden md:inline">${courseName}</span>`;
-
                         html += `<tr>
                             <td>${esc(displayCourse)}</td>
                             <td>${esc(b.Name)}</td>
@@ -1531,7 +1467,6 @@
                     
                     if(booking) {
                         const updatedBooking = { ...booking, [field]: value };
-                        // 티오프 시간 입력 시 상태 자동 '예약완료'
                         if (field === 'Time' && value && value.trim()) {
                             updatedBooking.Status = '예약완료';
                         }
@@ -1539,7 +1474,6 @@
                     }
                 });
             });
-
             const toggles = document.querySelectorAll('.col-toggle');
             toggles.forEach(toggle => {
                 if (!toggle.checked) {
@@ -1558,15 +1492,12 @@
                 isInSelectedPeriod(b.Date) && b.MP != 0 &&
                 (b.Status === '예약완료' || b.Status === '우천취소' || b.Status === '예약중' || !b.Status)
             );
-
             const role = getUserRole(currentUser.name);
-
             if (role === 'ADMIN') {
                 if (entertainmentSelectedName !== '전체') filtered = filtered.filter(b => b.Name === entertainmentSelectedName);
             } else {
                 filtered = filtered.filter(b => b.Name === currentUser.name);
             }
-
             let total = 0;
             filtered.forEach(b => {
                 total += parseInt(b.EE) || 0;
@@ -1576,7 +1507,6 @@
                 row.innerHTML = `<td class="p-2 md:p-4 font-bold">${esc(b['Golf Course'])}</td><td class="p-2 md:p-4">${esc(b.Name)}</td><td class="p-2 md:p-4">${esc(displayDate)}</td><td class="p-2 md:p-4 text-center">${esc(b.Team)}</td><td class="p-2 md:p-4">${esc(b.Time) || ''}</td><td class="p-2 md:p-4">${esc(b.Status) || ''}</td><td class="p-2 md:p-4 text-right font-black text-navy-800 text-sm md:text-lg">₩${(parseInt(b.EE)||0).toLocaleString()}</td>`;
                 entertainmentTableBody.appendChild(row);
             });
-
             document.getElementById('totalEntertainmentCost').textContent = `₩${total.toLocaleString()}`;
             loadEntertainmentInputs(role === 'ADMIN' ? entertainmentSelectedName : currentUser.name);
         }
@@ -1593,7 +1523,6 @@
             
             const startM = 1;
             const endM = 12;
-
             const userNames = [...new Set(bookings.filter(b => isInSelectedPeriod(b.Date)).map(b => b.Name))].sort();
             
             let html = `<table class="grid-view-table w-full border-collapse"><thead><tr class="bg-gray-50">
@@ -1602,7 +1531,6 @@
             html += `</tr><tr>`;
             cats.forEach(() => { for(let i=startM; i<=endM; i++) html += `<th class="p-1 md:p-2 border text-[10px] md:text-xs text-gray-500">${i}월</th>`; });
             html += `</tr></thead><tbody>`;
-
             userNames.forEach(name => {
                 html += `<tr><td class="p-2 md:p-3 border font-bold bg-gray-50 text-xs md:text-base">${esc(name)}</td>`;
                 cats.forEach(cat => {
@@ -1613,7 +1541,6 @@
                                 if(isNaN(d)) return false;
                                 const isTargetMonth = (d.getMonth() + 1) === m && d.getFullYear() === selectedYear;
                                 if(!isTargetMonth) return false;
-
                                 const isW = isWeekendBooking(b);
                                 if(cat.startsWith('Lakewood')) return b['Golf Course'] === '레이크우드' && (cat.endsWith('Weekend') ? isW : !isW);
                                 if(cat.startsWith('Velluto')) return b['Golf Course'] === '벨루토' && (cat.endsWith('Weekend') ? isW : !isW);
@@ -1634,7 +1561,6 @@
             const courses = ['스카이밸리', '힐드로사이'];
             const startM = 1;
             const endM = 12;
-
             const userNames = [...new Set(bookings.filter(b => isInSelectedPeriod(b.Date)).map(b => b.Name))].sort();
             
             let html = `<table class="grid-view-table w-full border-collapse"><thead><tr class="bg-gray-50">
@@ -1643,7 +1569,6 @@
             html += `</tr><tr>`;
             courses.forEach(() => { for(let i=startM; i<=endM; i++) html += `<th class="p-1 md:p-2 border text-[10px] md:text-xs text-gray-500">${i}월</th>`; });
             html += `</tr></thead><tbody>`;
-
             userNames.forEach(name => {
                 html += `<tr><td class="p-2 md:p-3 border font-bold bg-gray-50 text-xs md:text-base">${esc(name)}</td>`;
                 courses.forEach(course => {
@@ -1684,7 +1609,6 @@
             document.getElementById('logoutBtn').onclick = () => {
                 const t = sessionToken;
                 clearSession();
-                // 서버 세션도 무효화 (실패해도 클라이언트는 이미 로그아웃 상태)
                 try {
                     fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'logout', token: t }) });
                 } catch (e) {}
@@ -1699,16 +1623,12 @@
             document.getElementById('closeNoticeBtn').addEventListener('click', () => {
                 closeModalWithAnim('noticeModal');
             });
-
             document.getElementById('closeAlertBtn').addEventListener('click', () => {
                 closeModalWithAnim('alertModal');
             });
-
-            // [추가됨] 사이트 이전 팝업 닫기 버튼 이벤트
             document.getElementById('closeMigrationBtn').addEventListener('click', () => {
                 closeModalWithAnim('migrationModal');
             });
-
             document.getElementById('confirmOkBtn').onclick = () => {
                 closeModalWithAnim('confirmModal');
                 if(confirmCallback) confirmCallback();
@@ -1720,8 +1640,7 @@
             document.getElementById('openModalBtn').onclick = () => openBookingModal();
             document.getElementById('closeModalBtn').onclick = () => closeModalWithAnim('bookingModal');
             document.getElementById('closeEditChooserBtn').addEventListener('click', () => closeModalWithAnim('editChooserModal'));
-
-            // 티오프 시간 입력 시 상태 필드를 즉시 '예약완료'로 표시 (관리자용)
+            
             document.getElementById('bookingTime').addEventListener('input', () => {
                 const timeVal = (document.getElementById('bookingTime').value || '').trim();
                 if (timeVal) {
@@ -1729,37 +1648,73 @@
                 }
             });
 
-            // 문자전달(DeliveryStatus / R열) 편집 모달
+            // 선불제 잔여금액 계산 모달 열기/닫기
+            document.getElementById('openPrepaidCalcBtn')?.addEventListener('click', () => {
+                const defaultDate = `${selectedYear}-01-01`;
+                if (!document.getElementById('skyValleyBaseDate').value) document.getElementById('skyValleyBaseDate').value = defaultDate;
+                if (!document.getElementById('hildrosieBaseDate').value) document.getElementById('hildrosieBaseDate').value = defaultDate;
+                openModalWithAnim('prepaidCalcModal');
+            });
+            document.getElementById('closePrepaidCalcBtn')?.addEventListener('click', () => {
+                closeModalWithAnim('prepaidCalcModal');
+            });
+
+            // 선불제 잔여금액 차감 계산 실행
+            document.getElementById('prepaidCalcForm')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const svDate = document.getElementById('skyValleyBaseDate').value;
+                const svBal = removeCommas(document.getElementById('skyValleyBalance').value);
+                const svInc = document.getElementById('skyValleyIncludeBase').checked;
+
+                const hdDate = document.getElementById('hildrosieBaseDate').value;
+                const hdBal = removeCommas(document.getElementById('hildrosieBalance').value);
+                const hdInc = document.getElementById('hildrosieIncludeBase').checked;
+
+                if (!svBal && !hdBal) {
+                    showAlert("스카이밸리 또는 힐드로사이의 기준 잔여금액을 1개 이상 입력해 주세요.");
+                    return;
+                }
+
+                const settings = {};
+                if (svBal) {
+                    if (!svDate) { showAlert("스카이밸리의 기준일자를 선택해 주세요."); return; }
+                    settings['스카이밸리'] = { baseDate: svDate, balance: Number(svBal), includeBaseDate: svInc };
+                }
+                if (hdBal) {
+                    if (!hdDate) { showAlert("힐드로사이의 기준일자를 선택해 주세요."); return; }
+                    settings['힐드로사이'] = { baseDate: hdDate, balance: Number(hdBal), includeBaseDate: hdInc };
+                }
+
+                showConfirm("입력한 기준일자와 잔액을 바탕으로 대상 예약 건들의 선불제 잔여금액(W열)을 시간 순서대로 차감 계산하시겠습니까?", async () => {
+                    closeModalWithAnim('prepaidCalcModal');
+                    try {
+                        await postData('recalculatePrepaid', { settings: settings });
+                    } catch (err) {
+                        console.error(err);
+                    }
+                });
+            });
+
+            // [수정됨] 문자전달 & 문자현황 통합 모달 닫기 및 동시 저장
             document.getElementById('closeDeliveryStatusBtn').addEventListener('click', () => closeModalWithAnim('deliveryStatusModal'));
             document.getElementById('saveDeliveryStatusBtn').addEventListener('click', async () => {
                 const id = document.getElementById('deliveryStatusBookingId').value;
-                const newVal = document.getElementById('deliveryStatusSelect').value;
+                const newDelivery = document.getElementById('deliveryStatusSelect').value;
+                const newSms = document.getElementById('smsStatusSelect').value;
                 const booking = bookings.find(b => String(b.id) === String(id));
                 if (!booking) { showAlert('예약을 찾을 수 없습니다.'); return; }
-
-                const updatedBooking = { ...booking, 'DeliveryStatus': newVal };
+                const updatedBooking = { 
+                    ...booking, 
+                    'DeliveryStatus': newDelivery,
+                    '문자현황': newSms
+                };
                 try {
-                    await postData('update', { user: currentUser.name, booking: updatedBooking, logMessage: `문자전달 수정(${newVal || '공란'})` }, true);
+                    await postData('update', { 
+                        user: currentUser.name, 
+                        booking: updatedBooking, 
+                        logMessage: `문자전달(${newDelivery || '공란'})/문자현황(${newSms || '미지정'}) 수정` 
+                    }, true);
                     closeModalWithAnim('deliveryStatusModal');
-                    await fetchInitialData();
-                    renderApp();
-                } catch (err) {
-                    showAlert(`저장 실패: ${err.message}`);
-                }
-            });
-
-            // 문자현황(M열) 편집 모달
-            document.getElementById('closeSmsStatusBtn').addEventListener('click', () => closeModalWithAnim('smsStatusModal'));
-            document.getElementById('saveSmsStatusBtn').addEventListener('click', async () => {
-                const id = document.getElementById('smsStatusBookingId').value;
-                const newVal = document.getElementById('smsStatusSelect').value;
-                const booking = bookings.find(b => String(b.id) === String(id));
-                if (!booking) { showAlert('예약을 찾을 수 없습니다.'); return; }
-
-                const updatedBooking = { ...booking, '문자현황': newVal };
-                try {
-                    await postData('update', { user: currentUser.name, booking: updatedBooking, logMessage: `문자현황 수정(${newVal || '미지정'})` }, true);
-                    closeModalWithAnim('smsStatusModal');
                     await fetchInitialData();
                     renderApp();
                 } catch (err) {
@@ -1773,7 +1728,6 @@
                 const p = document.getElementById('loginPassword').value;
                 showLoading(true, "로그인 중입니다...");
                 try {
-                    // [보안] 인증은 전적으로 서버에서 수행. 클라이언트는 자격증명을 검증하지 않음.
                     const response = await fetch(SCRIPT_URL, {
                         method: 'POST',
                         body: JSON.stringify({ action: 'login', username: u, password: p })
@@ -1781,7 +1735,7 @@
                     const result = await response.json();
                     if (result.status === 'success' && result.token) {
                         sessionToken = result.token;
-                        currentUser = result.user; // { name, role } — 비밀번호 미포함
+                        currentUser = result.user;
                         sessionStorage.setItem('golf_token', sessionToken);
                         sessionStorage.setItem('golf_currentUser', JSON.stringify(currentUser));
                         document.getElementById('loginPassword').value = '';
@@ -1804,9 +1758,7 @@
                 
                 const q = userQuotas[name];
                 if (!q) return results.innerHTML = `<p class="text-red-600 font-bold p-4">⚠️ 해당 사용자의 정보가 없습니다.</p>`;
-
                 const periodBookings = bookings.filter(b => b.Name === name && isInSelectedPeriod(b.Date) && IS_VALID_FOR_COUNTING(b));
-
                 let html = `<div class="p-4 md:p-6 bg-white border border-gray-200 rounded-xl md:rounded-2xl shadow-sm"><h3 class="font-black text-xl md:text-2xl mb-4 md:mb-6 text-gray-800 border-b pb-2 md:pb-4">${esc(name)}님 ${selectedYear}년 이용 현황</h3>`;
                 html += `<table class="w-full text-sm md:text-base border-collapse"><thead><tr class="bg-gray-100 text-gray-700"><th class="p-2 md:p-3 border">항목</th><th class="p-2 md:p-3 border">연간 한도</th><th class="p-2 md:p-3 border">사용</th><th class="p-2 md:p-3 border">잔여</th></tr></thead><tbody>`;
                 
@@ -1818,7 +1770,6 @@
                     {k: '벨루토 주중', val: q.Velluto_Weekday || q.Seragio_Weekday, used: periodBookings.filter(b => b['Golf Course']==='벨루토' && !isWeekendBooking(b)).length},
                     {k: '벨루토 주말', val: q.Velluto_Weekend || q.Seragio_Weekend, used: periodBookings.filter(b => b['Golf Course']==='벨루토' && isWeekendBooking(b)).length}
                 ];
-
                 items.forEach(i => {
                     const totalLimit = (i.val || 0) * 12; 
                     const remaining = totalLimit - i.used;
@@ -1831,39 +1782,32 @@
                 calendarNameFilter = e.target.value;
                 renderCalendar();
             });
-
             document.getElementById('statusNameSelect').addEventListener('change', (e) => {
                 statusNameFilter = e.target.value;
                 renderStatus();
             });
-
             document.getElementById('statusCourseSelect').addEventListener('change', (e) => {
                 statusCourseFilter = e.target.value;
                 renderStatus();
             });
-
             document.getElementById('entertainmentNameFilter').addEventListener('change', (e) => {
                 entertainmentSelectedName = e.target.value;
                 renderEntertainmentView();
             });
-
             document.addEventListener('change', function(e) {
                 if(e.target && e.target.id === 'selectAllStatus') {
                     const isChecked = e.target.checked;
                     document.querySelectorAll('.booking-checkbox').forEach(cb => cb.checked = isChecked);
                 }
             });
-
             document.getElementById('cancelSelectedBtn').addEventListener('click', async () => {
                 const checkedBoxes = document.querySelectorAll('.booking-checkbox:checked');
                 if (checkedBoxes.length === 0) {
                     showAlert("취소할 내역을 선택해주세요.");
                     return;
                 }
-
                 showConfirm(`선택한 ${checkedBoxes.length}건의 예약을 취소하시겠습니까?\n상태가 '취소중'으로 변경됩니다.`, async () => {
                     showLoading(true, "선택한 예약을 취소 처리 중입니다...");
-
                     try {
                         const updatePromises = Array.from(checkedBoxes).map(cb => {
                             const id = cb.getAttribute('data-id');
@@ -1872,7 +1816,6 @@
                             const updatedBooking = { ...originalBooking, Status: '취소중' };
                             return postData('update', { user: currentUser.name, booking: updatedBooking }, true);
                         }).filter(p => p !== null);
-
                         await Promise.all(updatePromises);
                         showAlert("선택한 예약이 일괄 취소(상태 변경) 되었습니다.");
                         await fetchInitialData();
@@ -1887,14 +1830,12 @@
                     }
                 });
             });
-
             document.getElementById('completeSelectedBtn').addEventListener('click', async () => {
                 const checkedBoxes = document.querySelectorAll('.booking-checkbox:checked');
                 if (checkedBoxes.length === 0) {
                     showAlert("취소 완료 처리할 내역을 선택해주세요.");
                     return;
                 }
-
                 showConfirm(`선택한 ${checkedBoxes.length}건을 '취소완료' 처리하시겠습니까?`, async () => {
                     showLoading(true, "취소 완료 처리 중입니다...");
                     try {
@@ -1905,7 +1846,6 @@
                             const updatedBooking = { ...originalBooking, Status: '취소완료' };
                             return postData('update', { user: currentUser.name, booking: updatedBooking, logMessage: '취소완료' }, true);
                         }).filter(p => p !== null);
-
                         await Promise.all(updatePromises);
                         showAlert("선택한 예약이 '취소완료'로 변경되었습니다.");
                         await fetchInitialData();
@@ -1920,17 +1860,14 @@
                     }
                 });
             });
-
             document.getElementById('deleteSelectedBtn').addEventListener('click', async () => {
                 const checkedBoxes = document.querySelectorAll('.booking-checkbox:checked');
                 if (checkedBoxes.length === 0) {
                     showAlert("삭제할 내역을 선택해주세요.");
                     return;
                 }
-
                 showConfirm(`선택한 ${checkedBoxes.length}건의 예약을 정말 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`, async () => {
                     showLoading(true, "선택한 예약을 삭제 중입니다...");
-
                     try {
                         const deletePromises = Array.from(checkedBoxes).map(cb => {
                             const id = cb.getAttribute('data-id');
@@ -1938,7 +1875,6 @@
                             if (!originalBooking) return null;
                             return postData('delete', { user: currentUser.name, booking: originalBooking }, true);
                         }).filter(p => p !== null);
-
                         await Promise.all(deletePromises);
                         showAlert("선택한 예약이 삭제되었습니다.");
                         await fetchInitialData();
@@ -1953,10 +1889,8 @@
                     }
                 });
             });
-
             document.getElementById('downloadExcelBtn')?.addEventListener('click', () => {
                 const filteredBookings = bookings.filter(b => isInSelectedPeriod(b.Date));
-
                 if (!filteredBookings || filteredBookings.length === 0) {
                     showAlert("다운로드할 데이터가 없습니다.");
                     return;
@@ -1981,22 +1915,18 @@
                 link.click();
                 document.body.removeChild(link);
             });
-
             document.getElementById('uploadExcelBtn')?.addEventListener('click', () => {
                 openModalWithAnim('uploadModal');
             });
-
             document.getElementById('closeUploadModalBtn')?.addEventListener('click', () => {
                 closeModalWithAnim('uploadModal');
                 document.getElementById('uploadForm').reset();
             });
-
             document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const fileInput = document.getElementById('excelFile');
                 const file = fileInput.files[0];
                 if (!file) return;
-
                 Papa.parse(file, {
                     header: true,
                     skipEmptyLines: true,
@@ -2006,7 +1936,6 @@
                             showAlert("업로드할 데이터가 없습니다.");
                             return;
                         }
-
                         showConfirm(`${uploadedData.length}건의 데이터를 업로드하시겠습니까?`, async () => {
                             closeModalWithAnim('uploadModal');
                             await postData('addMultiple', { user: currentUser.name, bookings: uploadedData });
@@ -2026,12 +1955,10 @@
             
             if (targetMonth < 6) return true;
             if (['신석중', '채훈'].includes(currentUser.name)) return true;
-
             const now = new Date();
             const openDateVIP = new Date('2026-04-21T09:00:00+09:00');
             const openDateGeneral = new Date('2026-04-23T09:00:00+09:00');
             const isVIP = !!(currentUser && currentUser.isVIP);
-
             if (isVIP) {
                 if (now < openDateVIP) {
                     showAlert("하반기(7~12월) 예약은 2026년 4월 21일 오전 9시부터 가능합니다.");
@@ -2076,14 +2003,11 @@
             if (dateStr && !booking && !canBookForDate(dateStr)) {
                 return; 
             }
-
             const title = document.getElementById('modalTitle');
             const form = document.getElementById('bookingForm');
             
             updateAvailableGolfCourses(dateStr || new Date().toISOString().split('T')[0]);
-
             const isAdminUser = (getUserRole(currentUser.name) === 'ADMIN');
-
             if (booking) {
                 title.textContent = "예약 수정";
                 document.getElementById('bookingId').value = booking.id;
@@ -2103,7 +2027,6 @@
                 
                 updateAvailableGolfCourses(String(booking.Date).replace(/\./g, '-'), booking.id);
                 document.getElementById('golfCourse').value = booking['Golf Course'];
-
             } else {
                 title.textContent = "예약 신청";
                 form.reset();
@@ -2117,87 +2040,66 @@
                     updateAvailableGolfCourses(dateStr);
                 }
             }
-
-            // [권한별 UI] 관리자: 시간 입력/수정, 상태 수정, 회원구분 수정 허용
             applyModalPermissions(isAdminUser, !!booking);
-
             openModalWithAnim('bookingModal');
         }
 
-        // 예약 모달 필드의 권한별 활성화/비활성화 처리
         function applyModalPermissions(isAdminUser, isEdit) {
             const timeWrapper = document.getElementById('bookingTimeWrapper');
             const statusInput = document.getElementById('bookingStatus');
             const memberSelect = document.getElementById('memberType');
-
             if (isAdminUser) {
-                // 티오프 시간: 관리자에게 표시 및 입력 가능
                 timeWrapper.classList.remove('hidden');
-
-                // 상태: 관리자 수정 가능
                 statusInput.readOnly = false;
                 statusInput.classList.remove('bg-gray-50', 'text-gray-600');
                 statusInput.classList.add('bg-white', 'focus:ring-2', 'focus:ring-gold-400', 'focus:border-gold-400');
-
-                // 회원구분: 관리자 수정 가능
                 memberSelect.disabled = false;
                 memberSelect.classList.remove('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
             } else {
-                // 일반 사용자: 시간 숨김, 상태 읽기전용, 회원구분 조회만 가능
                 timeWrapper.classList.add('hidden');
-
                 statusInput.readOnly = true;
                 statusInput.classList.add('bg-gray-50', 'text-gray-600');
                 statusInput.classList.remove('bg-white', 'focus:ring-2', 'focus:ring-gold-400', 'focus:border-gold-400');
-
                 memberSelect.disabled = true;
                 memberSelect.classList.add('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
             }
         }
 
-        // 문자현황(M열) 편집 팝업 열기
-        function openSmsStatusModal(booking) {
-            document.getElementById('smsStatusBookingId').value = booking.id;
-            const cleanDate = String(booking.Date).replace(/\./g, '-').substring(0, 10);
-            document.getElementById('smsStatusInfo').textContent =
-                `${booking['Golf Course'] || ''} · ${booking.Name || ''} · ${cleanDate} · ${booking.Status || ''}`;
-
-            const sel = document.getElementById('smsStatusSelect');
-            const current = booking['문자현황'] || '';
-            // 목록에 없는 값이면 임시 옵션으로 추가하여 표시
-            if (current && !Array.from(sel.options).some(o => o.value === current)) {
-                const opt = document.createElement('option');
-                opt.value = current;
-                opt.textContent = current;
-                sel.appendChild(opt);
-            }
-            sel.value = current;
-            openModalWithAnim('smsStatusModal');
-        }
-
-        // 문자전달(DeliveryStatus / R열) 편집 팝업 열기
+        // [수정됨] 문자전달 & 문자현황 통합 편집 팝업 열기
         function openDeliveryStatusModal(booking) {
             document.getElementById('deliveryStatusBookingId').value = booking.id;
             const cleanDate = String(booking.Date).replace(/\./g, '-').substring(0, 10);
-            document.getElementById('deliveryStatusInfo').textContent =
-                `${booking['Golf Course'] || ''} · ${booking.Name || ''} · ${cleanDate} · ${booking.Status || ''}`;
-
-            const sel = document.getElementById('deliveryStatusSelect');
-            const current = (booking.DeliveryStatus || '').toString().trim();
-            if (current && !Array.from(sel.options).some(o => o.value === current)) {
+            document.getElementById('deliveryStatusInfo').innerHTML =
+                `<span class="font-bold text-navy-900">${esc(booking['Golf Course'])}</span> · <span>${esc(booking.Name)}</span> · <span>${esc(cleanDate)}</span> · <span class="text-gold-500 font-bold">${esc(booking.Status || '')}</span>`;
+            
+            // 1. 문자전달 (DeliveryStatus / R열) 값 바인딩
+            const delivSel = document.getElementById('deliveryStatusSelect');
+            const currentDeliv = (booking.DeliveryStatus || '').toString().trim();
+            if (currentDeliv && !Array.from(delivSel.options).some(o => o.value === currentDeliv)) {
                 const opt = document.createElement('option');
-                opt.value = current;
-                opt.textContent = current;
-                sel.appendChild(opt);
+                opt.value = currentDeliv;
+                opt.textContent = currentDeliv;
+                delivSel.appendChild(opt);
             }
-            sel.value = current;
+            delivSel.value = currentDeliv;
+
+            // 2. 문자현황 (문자현황 / M열) 값 바인딩
+            const smsSel = document.getElementById('smsStatusSelect');
+            const currentSms = (booking['문자현황'] || '').toString().trim();
+            if (currentSms && !Array.from(smsSel.options).some(o => o.value === currentSms)) {
+                const opt = document.createElement('option');
+                opt.value = currentSms;
+                opt.textContent = currentSms;
+                smsSel.appendChild(opt);
+            }
+            smsSel.value = currentSms;
+
             openModalWithAnim('deliveryStatusModal');
         }
 
         function updateAvailableGolfCourses(date, excludeBookingId = null) {
             const s = document.getElementById('golfCourse');
             const targetDate = String(date).replace(/\./g, '-').substring(0, 10);
-
             const bookedCourses = bookings.filter(b => {
                 if (excludeBookingId && String(b.id) === String(excludeBookingId)) return false;
                 
@@ -2206,7 +2108,6 @@
                 
                 return bDate === targetDate && isActive;
             }).map(b => b['Golf Course']);
-
             let allowedCourses = MODAL_GOLF_COURSES;
             
             if (currentUser) {
@@ -2215,27 +2116,25 @@
                     allowedCourses = allowedCourses.filter(c => c !== '중부');
                 }
             }
-
             const availableCourses = allowedCourses.filter(c => !bookedCourses.includes(c));
-
             if (availableCourses.length === 0) {
                 s.innerHTML = '<option value="">예약 가능한 골프장이 없습니다</option>';
             } else {
                 s.innerHTML = availableCourses.map(c => `<option value="${c}">${c}</option>`).join('');
             }
         }
+
         function loadEntertainmentInputs(name) { }
-        
+
         async function postData(action, data, silent = false) {
             let msg = "처리 중입니다...";
             if(action === 'add' || action === 'update') msg = "예약 정보를 저장하고 있습니다...";
             else if(action === 'saveEntertainment') msg = "접대비 정보를 저장하고 있습니다...";
             else if(action === 'cancel') msg = "예약을 취소하고 있습니다...";
             else if(action === 'delete') msg = "예약을 삭제하고 있습니다...";
-
+            else if(action === 'recalculatePrepaid') msg = "선불제 잔여금액을 차감 계산 중입니다...";
             if (!silent) showLoading(true, msg);
             try {
-                // [보안] 모든 쓰기 요청에 세션 토큰을 포함. 서버가 권한을 검증한다.
                 const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action, token: sessionToken, ...data }) });
                 const result = await response.json();
                 if (result.status !== 'success') {
@@ -2273,11 +2172,9 @@
             const dayOfWeek = targetDate.getDay();
             const dateKey = dateStr.substring(0, 10);
             const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6 || holidays[dateKey]);
-
             const q = userQuotas[currentUser.name] || {};
             let limit = 0;
             let currentUsage = 0;
-
             if (course === '레이크우드') {
                 limit = isWeekend ? (q.Lakewood_Weekend || 0) : (q.Lakewood_Weekday || 0);
                 currentUsage = bookings.filter(b => {
@@ -2289,7 +2186,6 @@
                     
                     if (bDate.getFullYear() !== targetYear || bDate.getMonth() !== targetMonth) return false;
                     if (b['Golf Course'] !== '레이크우드') return false;
-
                     const bDay = bDate.getDay();
                     const bDateKey = String(b.Date).replace(/\./g, '-').substring(0, 10);
                     const bIsWeekend = (bDay === 0 || bDay === 6 || holidays[bDateKey]);
@@ -2303,9 +2199,10 @@
                     if (!VALID_STATUSES.includes(b.Status)) return false;
                     
                     const bDate = new Date(String(b.Date).replace(/\./g, '-'));
+                    if (isNaN(bDate)) return false;
+                    
                     if (bDate.getFullYear() !== targetYear || bDate.getMonth() !== targetMonth) return false;
                     if (b['Golf Course'] !== '벨루토') return false;
-
                     const bDay = bDate.getDay();
                     const bDateKey = String(b.Date).replace(/\./g, '-').substring(0, 10);
                     const bIsWeekend = (bDay === 0 || bDay === 6 || holidays[bDateKey]);
@@ -2331,29 +2228,23 @@
                      return b['Golf Course'] === '힐드로사이';
                 }).length;
             }
-
             if (currentUsage >= limit) {
                 return `[${course}] ${targetMonth + 1}월 예약 한도(${limit}회)를 초과했습니다.`;
             }
             return null; 
         }
-        
+
         document.getElementById('bookingForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const dateVal = document.getElementById('bookingDate').value;
             const inputName = document.getElementById('userName').value;
-
             if (dateVal && !canBookForDate(dateVal)) {
                 return;
             }
-
             const bookingId = document.getElementById('bookingId').value;
             const isAdminUser = (getUserRole(currentUser.name) === 'ADMIN');
-
-            // 수정 시 기존 예약의 모든 컬럼을 보존하기 위해 원본 객체를 기반으로 병합
             const originalBooking = bookingId ? (bookings.find(b => String(b.id) === String(bookingId)) || {}) : {};
-
             const bookingData = {
                 ...originalBooking,
                 'id': bookingId, 
@@ -2363,46 +2254,35 @@
                 'Team': document.getElementById('numberOfTeams').value, 
                 'Comment': document.getElementById('notes').value
             };
-
-            // 회원구분: 관리자만 수정 반영 (일반 사용자는 원본 유지)
             if (isAdminUser) {
                 bookingData['회원구분'] = document.getElementById('memberType').value;
                 bookingData['Status'] = document.getElementById('bookingStatus').value;
-
                 const timeVal = (document.getElementById('bookingTime').value || '').trim();
                 bookingData['Time'] = timeVal;
-
-                // [자동] 티오프 시간이 입력되면 상태를 '예약완료'로 변경
                 if (timeVal) {
                     bookingData['Status'] = '예약완료';
                 }
             }
-
-            // 회원구분 기본값: 값이 없으면 '회원가'
             if (!bookingData['회원구분']) {
                 bookingData['회원구분'] = document.getElementById('memberType').value || '회원가';
             }
             
             if (!bookingData.id) {
-                // 신규 예약 기본값 (관리자가 지정하지 않은 경우)
                 if (bookingData['Status'] === undefined || bookingData['Status'] === '') {
                     bookingData['Status'] = document.getElementById('bookingStatus').value || '예약중';
                 }
                 if (bookingData['회원구분'] === undefined || bookingData['회원구분'] === '') {
                     bookingData['회원구분'] = document.getElementById('memberType').value || '회원가';
                 }
-
                 const isDuplicate = bookings.some(b => {
                     const bDate = String(b.Date).replace(/\./g, '-').substring(0, 10);
                     const isActive = !['취소완료', '우천취소', '취소중'].includes(b.Status);
                     return b.Name === inputName && bDate === dateVal && isActive;
                 });
-
                 if (isDuplicate) {
                     showAlert("이미 해당 날짜에 예약이 있습니다.");
                     return;
                 }
-
                 if (currentUser.name === inputName) { 
                       const quotaError = checkQuota(bookingData);
                       if (quotaError) {
@@ -2416,10 +2296,9 @@
                 await postData('update', { user: currentUser.name, booking: bookingData });
             }
         });
-        
+
         function formatNumberWithCommas(value) { return String(value).replace(/[^0-9]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
         function removeCommas(value) { return String(value).replace(/,/g, ''); }
-
         function formatTimeInput(event) {
             let input = event.target;
             let val = input.value.replace(/[^0-9]/g, ''); 
