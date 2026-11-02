@@ -16,7 +16,7 @@
             fontFamily: { sans: ['Pretendard', 'system-ui', 'sans-serif'] },
             colors: {
               navy:  { 900:'#0c1a33', 800:'#13254a', 700:'#1c335f', 600:'#26477d' },
-              gold:  { 500:'#b08d4f', 400:'#c6a667' },
+              gold:  { 50:'#faf6ec', 500:'#b08d4f', 400:'#c6a667' },
               paper: '#f5f4f0'
             }
           }
@@ -30,43 +30,43 @@
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #ecebe6; border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #c4bfb4; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #a8a294; } 
-        
-        .calendar-container { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); 
-            gap: 24px; 
+        ::-webkit-scrollbar-thumb:hover { background: #a8a294; }
+
+        .calendar-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
         }
-        
-        .day-cell { 
-            min-height: 80px; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; 
-            cursor: pointer; border: 1px solid #e5e7eb; transition: all 0.2s ease-in-out; 
+
+        .day-cell {
+            min-height: 80px; display: flex; flex-direction: column; justify-content: flex-start; align-items: center;
+            cursor: pointer; border: 1px solid #e5e7eb; transition: all 0.2s ease-in-out;
         }
         .day-cell:hover { background-color: #faf7ef; border-color: #b08d4f; transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
         .booking-info { font-size: 14px; line-height: 1.4; margin-top: 2px; width: 100%; text-align: center; font-weight: 700; transition: opacity 0.2s; }
-        
+
         @keyframes fadeInScale {
             0% { opacity: 0; transform: scale(0.95); }
             100% { opacity: 1; transform: scale(1); }
         }
-        
+
         @keyframes fadeOut {
             0% { opacity: 1; }
             100% { opacity: 0; }
         }
-        .modal-overlay { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.5); display: none; justify-content: center; align-items: center; z-index: 1000;
             backdrop-filter: blur(2px);
             transition: opacity 0.3s ease;
         }
-        
-        .modal-content { 
-            background-color: white; padding: 40px; border-radius: 20px; width: 95%; max-width: 600px; max-height: 90vh; 
+
+        .modal-content {
+            background-color: white; padding: 40px; border-radius: 20px; width: 95%; max-width: 600px; max-height: 90vh;
             overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             animation: fadeInScale 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
-        
+
         @keyframes fadeInTab {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -76,25 +76,25 @@
         }
         th, td { padding: 12px 10px; font-size: 15px; white-space: nowrap; }
         .col-comment { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        
+
         .grid-view-table th, .grid-view-table td { text-align: center; border: 1px solid #cbd5e1; padding: 8px; font-size: 14px; white-space: nowrap; }
         .grid-view-table th { background-color: #f1f5f9; font-weight: bold; }
-        
+
         #lookupResults table th, #lookupResults table td { border: 1px solid #cbd5e1; padding: 12px; text-align: center; font-size: 16px; white-space: nowrap; }
         #lookupResults table th { background-color: #f8fafc; font-weight: bold; }
-        
+
         input, select { font-size: 16px !important; padding: 10px !important; transition: border-color 0.2s, box-shadow 0.2s; }
         .compact-table { table-layout: auto; width: auto; min-width: 100%; }
         .compact-table th, .compact-table td {
-            font-size: 11px !important; padding: 4px 6px !important; border: 1px solid #e2e8f0; text-align: center; white-space: nowrap; 
+            font-size: 11px !important; padding: 4px 6px !important; border: 1px solid #e2e8f0; text-align: center; white-space: nowrap;
         }
         .compact-table th { background-color: #f8fafc; font-weight: 700; color: #475569; }
-        
+
         .compact-table td.wrap-text {
             white-space: normal !important; min-width: 150px; max-width: 300px; text-align: left; word-break: break-word;
         }
         .table-input {
-            font-size: 11px !important; padding: 0px 2px !important; height: 22px !important; width: 100%; min-width: 60px; 
+            font-size: 11px !important; padding: 0px 2px !important; height: 22px !important; width: 100%; min-width: 60px;
             background-color: transparent; border: 1px solid transparent; text-align: center; transition: all 0.2s;
         }
         .table-input:focus { background-color: #f3eee3; border-color: #b08d4f; border-radius: 4px; }
@@ -121,18 +121,18 @@
             .calendar-container { grid-template-columns: 1fr; gap: 12px; }
             .day-cell { min-height: 50px; padding: 2px !important; }
             .booking-info { font-size: 10px; line-height: 1.1; margin-top: 1px; }
-            
+
             th, td { padding: 6px 4px !important; font-size: 12px !important; }
             input, select { font-size: 13px !important; padding: 6px !important; }
             button { padding-top: 6px !important; padding-bottom: 6px !important; font-size: 13px !important; }
             .modal-content { padding: 20px !important; width: 98% !important; }
-            
+
             .checkbox-label { padding: 0.1rem 0.15rem; font-size: 11px; }
             .checkbox-input { width: 0.9rem; height: 0.9rem; margin-right: 0.15rem; }
-            
+
             nav button { padding: 6px 12px !important; font-size: 13px !important; }
             h1 { font-size: 1.25rem !important; margin-bottom: 0.25rem !important; }
-            
+
             .hidden-mobile { display: none; }
         }
     </style>
@@ -194,7 +194,7 @@
                     <button id="prepaidTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 hidden whitespace-nowrap hover:shadow-md">선불제</button>
                 </nav>
             </div>
-            
+
             <!-- 캘린더 탭 -->
             <div id="calendarView" class="tab-content">
                 <div class="bg-gray-50 p-1.5 md:p-4 rounded-xl border border-gray-200 mb-2 md:mb-3 flex flex-wrap justify-between items-center gap-1 md:gap-4">
@@ -211,17 +211,17 @@
                              <label class="font-bold text-gray-700 text-[10px] sm:text-[11px] md:text-base">이름:</label>
                              <select id="calendarNameSelect" class="border border-gray-300 rounded-lg p-0.5 md:p-2 text-[10px] sm:text-xs md:text-sm w-[55px] sm:w-[70px] md:min-w-[120px] h-[22px] md:h-auto leading-none bg-white transition-shadow"></select>
                         </div>
-                        <label class="flex items-center cursor-pointer font-bold text-gold-500 bg-[#f3eee3] px-1.5 py-1 md:px-4 md:py-2 rounded-lg hover:bg-[#e9dfc8] transition text-[10px] sm:text-[11px] md:text-base flex-shrink-0">
+                        <label class="flex items-center cursor-pointer font-bold text-gold-500 bg-[#f3eee3] px-1.5 py-1 md:px-4 md:py-2 rounded-lg hover:bg-[#e9dfc8] transition text-[10px] sm:text-[11px] md:text-base flex-shrink-0 whitespace-nowrap">
                             <input type="checkbox" id="calNonMemberFilter" class="w-3 h-3 md:w-5 md:h-5 mr-1 md:mr-2 accent-[#b08d4f] transition-transform">
                             비회원가
                         </label>
-                        <label class="flex items-center cursor-pointer font-bold text-navy-800 bg-[#eef1f6] px-1.5 py-1 md:px-4 md:py-2 rounded-lg hover:bg-[#dde2ec] transition text-[10px] sm:text-[11px] md:text-base flex-shrink-0">
+                        <label class="flex items-center cursor-pointer font-bold text-navy-800 bg-[#eef1f6] px-1.5 py-1 md:px-4 md:py-2 rounded-lg hover:bg-[#dde2ec] transition text-[10px] sm:text-[11px] md:text-base flex-shrink-0 whitespace-nowrap">
                             <input type="checkbox" id="calMyBookingFilter" class="w-3 h-3 md:w-5 md:h-5 mr-1 md:mr-2 accent-[#0c1a33] transition-transform">
                             내 예약만
                         </label>
                     </div>
                 </div>
-                
+
                 <div class="bg-gray-50 p-1.5 md:p-4 rounded-xl border border-gray-200 mb-3 md:mb-4 flex flex-wrap justify-start items-center gap-1 md:gap-4">
                     <div class="flex flex-wrap gap-0.5 md:gap-2 items-center flex-shrink-0">
                         <span class="font-bold text-gray-700 mr-0.5 md:mr-2 text-[10px] sm:text-[11px] md:text-base">월(Month):</span>
@@ -304,7 +304,7 @@
                         <button id="deleteSelectedBtn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 md:py-2 md:px-5 rounded-lg text-xs md:text-base shadow-sm hidden whitespace-nowrap hover:shadow-md">삭제</button>
                     </div>
                 </div>
-                
+
                 <div class="overflow-x-auto rounded-xl border border-gray-300 shadow-sm">
                     <table class="min-w-full bg-white">
                         <thead id="statusTableHead" class="bg-gray-100 text-gray-800 uppercase text-xs md:text-sm font-extrabold border-b border-gray-300">
@@ -324,7 +324,7 @@
                     </table>
                 </div>
             </div>
-            
+
             <!-- 금일 예약 탭 -->
             <div id="todayView" class="tab-content hidden space-y-4">
                  <div class="bg-gray-50 p-2 rounded-lg border border-gray-200 flex flex-wrap gap-2 items-center text-xs">
@@ -411,10 +411,10 @@
                     </button>
                 </div>
 
-                <!-- [신규] 계산된 선불제 잔여금액 요약 카드 영역 -->
+                <!-- 계산된 선불제 잔여금액 요약 카드 영역 -->
                 <div id="prepaidBalanceCards" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
 
-                <!-- [신규] 계산된 선불제 잔액 현황 테이블 (골프장명 / 일자 / 잔여금액) -->
+                <!-- 계산된 선불제 잔액 현황 테이블 (골프장명 / 일자 / 잔여금액) -->
                 <div class="rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                     <div class="bg-[#eef1f6] px-4 py-3 border-b border-gray-200 font-extrabold text-sm md:text-base text-navy-900 flex items-center justify-between">
                         <span>📊 선불제 최종 잔액 요약 (골프장명 / 일자 / 잔여금액)</span>
@@ -435,7 +435,7 @@
                     </div>
                 </div>
 
-                <!-- 기존 회원별 월별 이용일수 그리드 테이블 -->
+                <!-- 회원별 월별 이용일수 그리드 테이블 -->
                 <div class="rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                     <div class="bg-gray-100 px-4 py-2.5 border-b border-gray-200 font-bold text-xs md:text-sm text-gray-700">
                         🗓️ 선불제 월별 예약일수 현황
@@ -459,7 +459,7 @@
                 <div class="p-4 rounded-xl border border-gold-400/40 bg-[#fbf9f4] space-y-3">
                     <div class="flex items-center justify-between">
                         <span class="font-extrabold text-sm md:text-base text-gold-500">📍 스카이밸리CC</span>
-                        <label class="text-xs font-semibold text-gray-600 flex items-center gap-1 cursor-pointer">
+                        <label class="text-xs font-semibold text-gray-600 flex items-center gap-1 cursor-pointer whitespace-nowrap">
                             <input type="checkbox" id="skyValleyIncludeBase" checked class="w-3.5 h-3.5 accent-[#0c1a33]"> 기준일 당일 포함
                         </label>
                     </div>
@@ -479,7 +479,7 @@
                 <div class="p-4 rounded-xl border border-red-200 bg-red-50/40 space-y-3">
                     <div class="flex items-center justify-between">
                         <span class="font-extrabold text-sm md:text-base text-red-600">📍 힐드로사이CC</span>
-                        <label class="text-xs font-semibold text-gray-600 flex items-center gap-1 cursor-pointer">
+                        <label class="text-xs font-semibold text-gray-600 flex items-center gap-1 cursor-pointer whitespace-nowrap">
                             <input type="checkbox" id="hildrosieIncludeBase" checked class="w-3.5 h-3.5 accent-[#0c1a33]"> 기준일 당일 포함
                         </label>
                     </div>
@@ -496,8 +496,8 @@
                 </div>
 
                 <div class="flex justify-end space-x-2 md:space-x-3 pt-3 border-t">
-                    <button type="button" id="closePrepaidCalcBtn" class="px-4 py-2 rounded-xl border border-gray-300 font-bold text-gray-600 hover:bg-gray-100 text-sm transition-colors">취소</button>
-                    <button type="submit" class="px-5 py-2 rounded-xl bg-navy-900 text-white font-bold hover:bg-navy-800 text-sm shadow-md transition-colors">차감 계산 실행</button>
+                    <button type="button" id="closePrepaidCalcBtn" class="px-4 py-2 rounded-xl border border-gray-300 font-bold text-gray-600 hover:bg-gray-100 text-sm transition-colors whitespace-nowrap">취소</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-navy-900 text-white font-bold hover:bg-navy-800 text-sm shadow-md transition-colors whitespace-nowrap">차감 계산 실행</button>
                 </div>
             </form>
         </div>
@@ -531,8 +531,8 @@
                 </div>
             </div>
             <div class="flex justify-end space-x-2 md:space-x-4 pt-6 border-t mt-6">
-                <button type="button" id="closeDeliveryStatusBtn" class="px-4 py-2 md:px-6 md:py-3 rounded-xl border-2 border-gray-300 font-bold text-gray-600 hover:bg-gray-100 text-sm md:text-base transition-colors">닫기</button>
-                <button type="button" id="saveDeliveryStatusBtn" class="px-4 py-2 md:px-6 md:py-3 rounded-xl bg-navy-900 text-white font-bold hover:bg-navy-800 text-sm md:text-base shadow-md transition-colors">저장</button>
+                <button type="button" id="closeDeliveryStatusBtn" class="px-4 py-2 md:px-6 md:py-3 rounded-xl border-2 border-gray-300 font-bold text-gray-600 hover:bg-gray-100 text-sm md:text-base transition-colors whitespace-nowrap">닫기</button>
+                <button type="button" id="saveDeliveryStatusBtn" class="px-4 py-2 md:px-6 md:py-3 rounded-xl bg-navy-900 text-white font-bold hover:bg-navy-800 text-sm md:text-base shadow-md transition-colors whitespace-nowrap">저장</button>
             </div>
         </div>
     </div>
@@ -595,6 +595,7 @@
                         <label class="block text-sm font-extrabold text-gray-700 mb-1">비고</label>
                         <input type="text" id="notes" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-gold-400 focus:border-gold-400 bg-white font-medium transition-shadow">
                     </div>
+                    <p id="multiBookingHint" class="col-span-2 hidden text-xs md:text-sm text-gold-500 font-semibold bg-gold-50 border border-gold-400/40 rounded-lg px-3 py-2"></p>
                 </div>
                 <div class="flex justify-end space-x-2 md:space-x-4 pt-4 md:pt-8 border-t">
                     <button type="button" id="closeModalBtn" class="px-4 py-2 md:px-8 md:py-3 rounded-xl border-2 border-gray-300 font-bold text-gray-600 hover:bg-gray-100 text-sm md:text-lg transition-colors whitespace-nowrap">닫기</button>
@@ -603,7 +604,7 @@
             </form>
         </div>
     </div>
-    
+
     <!-- 안내 모달 -->
     <div id="noticeModal" class="modal-overlay">
         <div class="modal-content relative max-w-3xl max-h-[80vh] overflow-y-auto">
@@ -676,24 +677,24 @@
             </div>
         </div>
     </div>
-    
+
     <div id="alertModal" class="modal-overlay">
         <div class="modal-content max-w-sm text-center">
             <h3 class="text-lg md:text-xl font-bold mb-3 md:mb-4 text-gray-800">알림</h3>
             <p id="alertMessage" class="text-gray-600 mb-4 md:mb-6 whitespace-pre-wrap font-medium text-sm md:text-base"></p>
-            <button id="closeAlertBtn" class="bg-navy-900 text-white px-6 py-2 md:px-8 rounded-lg font-bold hover:bg-navy-800 transition-colors text-sm md:text-base hover:shadow-md">확인</button>
+            <button id="closeAlertBtn" class="bg-navy-900 text-white px-6 py-2 md:px-8 rounded-lg font-bold hover:bg-navy-800 transition-colors text-sm md:text-base hover:shadow-md whitespace-nowrap">확인</button>
         </div>
     </div>
-    
+
     <div id="editChooserModal" class="modal-overlay">
         <div class="modal-content max-w-sm">
             <h3 class="text-lg md:text-xl font-bold mb-1 text-navy-900">예약 수정 선택</h3>
             <p class="text-gray-500 text-xs md:text-sm mb-4">이 날짜에 해당 골프장 예약이 여러 건입니다. 수정할 예약을 선택하세요.</p>
             <div id="editChooserList" class="flex flex-col gap-2 max-h-[50vh] overflow-y-auto"></div>
-            <button id="closeEditChooserBtn" class="mt-4 w-full bg-gray-100 text-gray-600 px-6 py-2 rounded-lg font-bold hover:bg-gray-200 transition-colors text-sm md:text-base border border-gray-200">닫기</button>
+            <button id="closeEditChooserBtn" class="mt-4 w-full bg-gray-100 text-gray-600 px-6 py-2 rounded-lg font-bold hover:bg-gray-200 transition-colors text-sm md:text-base border border-gray-200 whitespace-nowrap">닫기</button>
         </div>
     </div>
-    
+
     <div id="migrationModal" class="modal-overlay">
         <div class="modal-content max-w-md text-center border-t-4 border-red-500">
             <h3 class="text-xl md:text-2xl font-black mb-3 md:mb-4 text-red-600">사이트 이전 안내</h3>
@@ -702,7 +703,7 @@
                 아래 사이트에서 신청 부탁드립니다.<br><br>
                 <a href="https://kre.cjtone.co.kr/se/" target="_blank" class="inline-block bg-gray-100 px-4 py-2 rounded-lg text-navy-800 font-bold hover:bg-[#f3eee3] transition-colors break-all">https://kre.cjtone.co.kr/se/</a>
             </p>
-            <button id="closeMigrationBtn" class="bg-gray-800 text-white px-6 py-3 w-full rounded-xl font-bold hover:bg-gray-900 transition-colors text-sm md:text-base hover:shadow-md">닫기</button>
+            <button id="closeMigrationBtn" class="bg-gray-800 text-white px-6 py-3 w-full rounded-xl font-bold hover:bg-gray-900 transition-colors text-sm md:text-base hover:shadow-md whitespace-nowrap">닫기</button>
         </div>
     </div>
 
@@ -711,8 +712,8 @@
             <h3 class="text-lg md:text-xl font-bold mb-3 md:mb-4 text-gray-800">확인</h3>
             <p id="confirmMessage" class="text-gray-600 mb-4 md:mb-6 whitespace-pre-wrap font-medium text-sm md:text-base"></p>
             <div class="flex justify-center gap-3 md:gap-4">
-                <button id="confirmCancelBtn" class="border border-gray-300 text-gray-600 px-4 py-2 md:px-6 rounded-lg font-bold hover:bg-gray-50 transition-colors text-sm md:text-base">취소</button>
-                <button id="confirmOkBtn" class="bg-navy-900 text-white px-4 py-2 md:px-6 rounded-lg font-bold hover:bg-navy-800 transition-colors text-sm md:text-base hover:shadow-md">확인</button>
+                <button id="confirmCancelBtn" class="border border-gray-300 text-gray-600 px-4 py-2 md:px-6 rounded-lg font-bold hover:bg-gray-50 transition-colors text-sm md:text-base whitespace-nowrap">취소</button>
+                <button id="confirmOkBtn" class="bg-navy-900 text-white px-4 py-2 md:px-6 rounded-lg font-bold hover:bg-navy-800 transition-colors text-sm md:text-base hover:shadow-md whitespace-nowrap">확인</button>
             </div>
         </div>
     </div>
@@ -743,9 +744,13 @@
     <script>
         // ##### 설정 (Configuration) #####
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-xf0NKlY0LHjCA-cPL3iq243XzgoIJ87vtvhlEfxj1zRnei7tXZFGwN9f9cQ4nhMu/exec';
-        
+
         const CALENDAR_GOLF_COURSES = ['레이크우드', '스카이밸리', '벨루토', '힐드로사이', '중부'];
         const MODAL_GOLF_COURSES = ['레이크우드', '스카이밸리', '벨루토', '힐드로사이', '중부'];
+        // 관리자: 하루 여러 건 예약 가능한 골프장 (회원구분 무관)
+        const MULTI_BOOKING_COURSES = ['스카이밸리', '힐드로사이'];
+        const INACTIVE_STATUSES = ['취소완료', '우천취소', '취소중'];
+        const MANAGER_ROLES = ['ADMIN', 'SIENA_ADMIN'];
         const GOLF_COURSE_COLORS = {
             '레이크우드': 'text-black',
             '스카이밸리': 'text-gold-500',
@@ -761,22 +766,23 @@
             '힐드로사이': '힐드로',
             '중부': '중부'
         };
+        // 공휴일 (서버 Code.gs 의 HOLIDAYS 와 동일하게 유지)
         const holidays = {
             '2024-01-01': '신정', '2024-02-09': '설날', '2024-02-10': '설날', '2024-02-11': '설날', '2024-02-12': '설날 대체공휴일', '2024-03-01': '삼일절', '2024-04-10': '국회의원 선거', '2024-05-01': '근로자의 날', '2024-05-05': '어린이날', '2024-05-06': '어린이날 대체공휴일', '2024-05-15': '부처님 오신 날', '2024-06-06': '현충일', '2024-08-15': '광복절', '2024-09-16': '추석', '2024-09-17': '추석', '2024-09-18': '추석', '2024-10-03': '개천절', '2024-10-09': '한글날', '2024-12-25': '크리스마스',
             '2025-01-01': '신정', '2025-01-28': '설날', '2025-01-29': '설날', '2025-01-30': '설날', '2025-03-01': '삼일절', '2025-05-01': '근로자의 날', '2025-05-05': '어린이날', '2025-05-06': '부처님 오신 날', '2025-06-06': '현충일', '2025-08-15': '광복절', '2025-10-03': '개천절', '2025-10-06': '추석', '2025-10-07': '추석', '2025-10-08': '추석', '2025-10-09': '한글날', '2025-12-25': '크리스마스',
             '2026-01-01': '신정', '2026-02-16': '설날', '2026-02-17': '설날', '2026-02-18': '설날', '2026-03-01': '삼일절', '2026-05-01': '근로자의 날', '2026-05-05': '어린이날', '2026-05-24': '부처님 오신 날', '2026-06-06': '현충일', '2026-08-15': '광복절', '2026-09-24': '추석', '2026-09-25': '추석', '2026-09-26': '추석', '2026-10-03': '개천절', '2026-10-09': '한글날', '2026-12-25': '크리스마스'
         };
-        
+
         const VALID_STATUSES = ['예약완료', '예약중'];
         const IS_VALID_FOR_COUNTING = (b) => b.MP != 0 && VALID_STATUSES.includes(b.Status);
-        
+
         const isWeekendBooking = (booking) => {
             if (!booking || !booking.Date) return false;
             const dateStr = String(booking.Date).replace(/\./g, '-').substring(0, 10);
             const date = new Date(dateStr);
             if (isNaN(date.getTime())) return false;
             const day = date.getDay();
-            return day === 0 || day === 6 || holidays[dateStr];
+            return day === 0 || day === 6 || !!holidays[dateStr];
         };
 
         function esc(v) {
@@ -784,6 +790,19 @@
             return String(v).replace(/[&<>"']/g, function (c) {
                 return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
             });
+        }
+
+        // 로컬(KST) 기준 YYYY-MM-DD (toISOString 은 UTC 라 오전 9시 이전에 하루 밀림)
+        function toLocalDateStr(d) {
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+
+        function normDateStr(v) {
+            return String(v || '').replace(/\./g, '-').substring(0, 10);
+        }
+
+        function isActiveBooking(b) {
+            return !INACTIVE_STATUSES.includes(b.Status);
         }
 
         function getUserRole(name) {
@@ -797,6 +816,7 @@
         let userQuotas = {};
         let users = [];
         let allEntertainmentLogs = [];
+        let openSchedule = {};
         let selectedYear = new Date().getFullYear();
         let calendarMyBookingFilter = false;
         let calendarNameFilter = '전체';
@@ -811,7 +831,7 @@
 
         function isInSelectedPeriod(dateStr) {
             if (!dateStr) return false;
-            const cleanDateStr = String(dateStr).replace(/\./g, '-').substring(0, 10);
+            const cleanDateStr = normDateStr(dateStr);
             const date = new Date(cleanDateStr);
             if (isNaN(date.getTime())) return false;
             return date.getFullYear() === parseInt(selectedYear);
@@ -822,7 +842,7 @@
                 document.getElementById('loginScreen').classList.remove('opacity-0');
             }, 100);
             const globalPeriodSelector = document.getElementById('globalPeriodSelector');
-            
+
             let periodOptions = '';
             for(let y=2024; y<=2027; y++) {
                 periodOptions += `<option value="${y}">${y}년 (전체)</option>`;
@@ -835,7 +855,7 @@
             });
 
             setupCheckboxLogic('calCourseFilter', renderCalendar, 'golf_calCourseFilter');
-            setupCheckboxLogic('calMonthFilter', renderCalendar, 'golf_calMonthFilter'); 
+            setupCheckboxLogic('calMonthFilter', renderCalendar, 'golf_calMonthFilter');
             setupCheckboxLogic('statusFilter', renderStatus, 'golf_statusFilter');
             setupCheckboxLogic('statusMonthFilter', renderStatus, 'golf_statusMonthFilter');
             setupCheckboxLogic('sienaStatusFilter', renderStatus);
@@ -861,6 +881,12 @@
                 }
                 updateAvailableGolfCourses(val, bookingId);
             });
+            // 회원구분 변경 시 골프장 드롭다운 재계산 (관리자 비회원가 다중 예약)
+            document.getElementById('memberType').addEventListener('change', () => {
+                const dateVal = document.getElementById('bookingDate').value || toLocalDateStr(new Date());
+                updateAvailableGolfCourses(dateVal, document.getElementById('bookingId').value);
+            });
+            document.getElementById('golfCourse').addEventListener('change', updateMultiBookingHint);
 
             showLoading(true, "시스템을 준비하는 중입니다...");
             try {
@@ -871,7 +897,7 @@
             } finally {
                 showLoading(false);
             }
-            
+
             setupEventListeners();
         });
 
@@ -971,6 +997,7 @@
             currentUser = null;
             sessionStorage.removeItem('golf_token');
             sessionStorage.removeItem('golf_currentUser');
+            sessionStorage.removeItem('golf_migrationShown');
         }
 
         function showLoginScreen() {
@@ -989,10 +1016,16 @@
             setTimeout(() => {
                 login.classList.add('hidden');
                 main.classList.remove('hidden');
-                setTimeout(() => { 
-                    main.classList.remove('opacity-0'); 
-                    main.classList.add('opacity-100'); 
-                    setTimeout(() => openModalWithAnim('migrationModal'), 500);
+                setTimeout(() => {
+                    main.classList.remove('opacity-0');
+                    main.classList.add('opacity-100');
+                    // 사이트 이전 안내는 로그인 세션당 1회만 표시
+                    let shown = false;
+                    try { shown = sessionStorage.getItem('golf_migrationShown') === '1'; } catch (e) {}
+                    if (!shown) {
+                        setTimeout(() => openModalWithAnim('migrationModal'), 500);
+                        try { sessionStorage.setItem('golf_migrationShown', '1'); } catch (e) {}
+                    }
                 }, 50);
                 renderApp();
             }, 300);
@@ -1001,12 +1034,12 @@
         function renderApp() {
             const role = getUserRole(currentUser.name);
             const isManager = (role === 'ADMIN');
-            
+
             document.getElementById('anonymousTabBtn').classList.toggle('hidden', !isManager);
             document.getElementById('prepaidTabBtn').classList.toggle('hidden', !isManager);
             document.getElementById('lookupTabBtn').classList.toggle('hidden', !isManager);
             document.getElementById('todayTabBtn').classList.toggle('hidden', !isManager);
-            
+
             const deleteBtn = document.getElementById('deleteSelectedBtn');
             const cancelBtn = document.getElementById('cancelSelectedBtn');
             const completeBtn = document.getElementById('completeSelectedBtn');
@@ -1014,7 +1047,7 @@
             if (isManager) {
                 adminControls.classList.remove('hidden');
                 deleteBtn.classList.remove('hidden');
-                cancelBtn.classList.remove('hidden'); 
+                cancelBtn.classList.remove('hidden');
                 completeBtn.classList.remove('hidden');
             } else {
                 adminControls.classList.add('hidden');
@@ -1027,10 +1060,10 @@
             document.getElementById('statusCourseFilterWrapper').classList.toggle('hidden', !isManager);
             document.getElementById('statusWeekendSummary').classList.toggle('hidden', !isManager);
             document.getElementById('adminEntertainmentFilter').classList.toggle('hidden', !isManager);
-            
+
             const sienaFilter = document.getElementById('sienaCourseFilterWrapper');
             if (sienaFilter) sienaFilter.classList.toggle('hidden', role !== 'SIENA_ADMIN');
-            
+
             const calJungbuLabel = document.getElementById('calJungbuFilterLabel');
             if (['ADMIN', 'SIENA_ADMIN', 'JUNGBU_USER'].includes(role)) {
                 calJungbuLabel.classList.remove('hidden');
@@ -1056,7 +1089,7 @@
         function populateNameOptions() {
             const nameSet = new Set(users.map(u => u.name));
             bookings.forEach(b => { if(b.Name) nameSet.add(b.Name); });
-            const sortedNames = Array.from(nameSet).sort((a, b) => a.localeCompare(b));
+            const sortedNames = Array.from(nameSet).sort((a, b) => String(a).localeCompare(String(b)));
             const options = `<option value="전체">전체</option>` + sortedNames.map(name => `<option value="${esc(name)}">${esc(name)}</option>`).join('');
             const calSelect = document.getElementById('calendarNameSelect');
             const statSelect = document.getElementById('statusNameSelect');
@@ -1067,7 +1100,7 @@
             calSelect.innerHTML = options;
             statSelect.innerHTML = options;
             entSelect.innerHTML = options;
-            
+
             calSelect.value = currentCalVal;
             statSelect.value = currentStatVal;
             entSelect.value = currentEntVal;
@@ -1075,8 +1108,8 @@
 
         function populateCourseOptions() {
              const select = document.getElementById('statusCourseSelect');
-             if (select.options.length > 1) return; 
-             
+             if (select.options.length > 1) return;
+
              let html = `<option value="전체">전체</option>`;
              CALENDAR_GOLF_COURSES.forEach(c => {
                  html += `<option value="${c}">${c}</option>`;
@@ -1085,7 +1118,6 @@
         }
 
         function showLoading(isLoading, message = "처리 중입니다...") {
-            const overlay = document.getElementById('loadingOverlay');
             const text = document.getElementById('loadingText');
             if (isLoading) {
                 text.textContent = message;
@@ -1107,6 +1139,7 @@
             bookings = data.bookings || [];
             users = data.users || [];
             allEntertainmentLogs = data.entertainmentData || [];
+            openSchedule = data.openSchedule || {};
             userQuotas = (data.quotas || []).reduce((acc, q) => { acc[q.Name] = q; return acc; }, {});
             if (data.role && currentUser) {
                 currentUser.role = data.role;
@@ -1119,20 +1152,20 @@
         function renderCalendar() {
             const calendarEl = document.getElementById('calendar');
             calendarEl.innerHTML = '';
-            
+
             let renderMonths = [];
             const checkedMonthsRaw = Array.from(document.querySelectorAll('input[name="calMonthFilter"]:checked')).map(cb => cb.value);
-            
+
             if (checkedMonthsRaw.includes('전체') || checkedMonthsRaw.length === 0) {
                 renderMonths = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
             } else {
                 renderMonths = checkedMonthsRaw.map(Number).sort((a, b) => a - b);
             }
-            
+
             const checkedCourses = Array.from(document.querySelectorAll('input[name="calCourseFilter"]:checked')).map(cb => cb.value);
             let filteredBookings = bookings.filter(b => isInSelectedPeriod(b.Date) && VALID_STATUSES.includes(b.Status));
             const role = getUserRole(currentUser.name);
-            
+
             if (role === 'ADMIN') {
             } else if (role === 'SIENA_ADMIN') {
                 filteredBookings = filteredBookings.filter(b => ['벨루토', '중부'].includes(b['Golf Course']));
@@ -1143,7 +1176,7 @@
             if (!checkedCourses.includes('전체')) {
                 filteredBookings = filteredBookings.filter(b => checkedCourses.includes(b['Golf Course']));
             }
-            
+
             if (role === 'ADMIN' && calendarNameFilter !== '전체') {
                 filteredBookings = filteredBookings.filter(b => b.Name === calendarNameFilter);
             }
@@ -1155,22 +1188,21 @@
             }
             const bookingMap = new Map();
             filteredBookings.forEach(b => {
-                const normDate = String(b.Date).replace(/\./g, '-').substring(0, 10);
+                const normDate = normDateStr(b.Date);
                 if (!bookingMap.has(normDate)) bookingMap.set(normDate, []);
                 bookingMap.get(normDate).push(b);
             });
-            const _today = new Date();
-            const todayStrGlobal = `${_today.getFullYear()}-${String(_today.getMonth() + 1).padStart(2, '0')}-${String(_today.getDate()).padStart(2, '0')}`;
+            const todayStrGlobal = toLocalDateStr(new Date());
             for (let m of renderMonths) {
                 const firstDay = new Date(selectedYear, m, 1);
                 const lastDay = new Date(selectedYear, m + 1, 0);
-                
+
                 const monthlyBookings = bookings.filter(b => {
-                    if (!VALID_STATUSES.includes(b.Status)) return false; 
+                    if (!VALID_STATUSES.includes(b.Status)) return false;
                     const d = new Date(String(b.Date).replace(/\./g, '-'));
                     return !isNaN(d) && d.getFullYear() === selectedYear && d.getMonth() === m;
                 });
-                
+
                 const userMonthly = monthlyBookings.filter(b => b.Name === currentUser.name);
                 const q = userQuotas[currentUser.name] || {};
                 let warnings = [];
@@ -1184,7 +1216,7 @@
                 if (vellutoWe >= 3) warnings.push('※ 벨루토 주말 마감');
                 const monthContainer = document.createElement('div');
                 monthContainer.className = 'bg-white p-2 md:p-4 rounded-xl md:rounded-2xl shadow-sm border border-gray-200';
-                
+
                 const quotaHtml = `<div class="text-[10px] md:text-xs font-bold text-gray-500 grid grid-cols-2 gap-x-1 md:gap-x-2 mb-1 md:mb-2 gap-y-0.5 md:gap-y-1">
                     <span>레이크(주중): ${userMonthly.filter(b => b['Golf Course'] === '레이크우드' && !isWeekendBooking(b)).length}/${q.Lakewood_Weekday||0}</span>
                     <span>레이크(주말): ${userMonthly.filter(b => b['Golf Course'] === '레이크우드' && isWeekendBooking(b)).length}/${q.Lakewood_Weekend||0}</span>
@@ -1193,20 +1225,20 @@
                     <span>벨루토(주중): ${userMonthly.filter(b => b['Golf Course'] === '벨루토' && !isWeekendBooking(b)).length}/${q.Velluto_Weekday || q.Seragio_Weekday || 0}</span>
                     <span>벨루토(주말): ${userMonthly.filter(b => b['Golf Course'] === '벨루토' && isWeekendBooking(b)).length}/${q.Velluto_Weekend || q.Seragio_Weekend || 0}</span>
                 </div>`;
-                const warningHtml = warnings.length > 0 
-                    ? `<div class="mb-2 md:mb-3 text-[10px] md:text-xs font-bold text-red-600 bg-red-50 p-1 md:p-2 rounded-lg text-center border border-red-100">${warnings.join('<br>')}</div>` 
+                const warningHtml = warnings.length > 0
+                    ? `<div class="mb-2 md:mb-3 text-[10px] md:text-xs font-bold text-red-600 bg-red-50 p-1 md:p-2 rounded-lg text-center border border-red-100">${warnings.join('<br>')}</div>`
                     : `<div class="mb-2 md:mb-3 border-b"></div>`;
                 monthContainer.innerHTML = `${quotaHtml}${warningHtml}<div class="text-base md:text-xl font-black text-center mb-2 md:mb-4 text-gray-800">${selectedYear}년 ${m + 1}월</div><div class="grid grid-cols-7 gap-1 text-center text-xs md:text-sm font-bold text-gray-400 mb-1 md:mb-2"><div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div></div>`;
-                
+
                 const dayGrid = document.createElement('div');
                 dayGrid.className = 'grid grid-cols-7 gap-1';
                 for (let i = 0; i < firstDay.getDay(); i++) dayGrid.innerHTML += '<div></div>';
-                
+
                 for (let d = 1; d <= lastDay.getDate(); d++) {
                     const dateStr = `${selectedYear}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                     const dayCell = document.createElement('div');
                     dayCell.className = 'day-cell rounded-lg md:rounded-xl p-1';
-                    
+
                     const dayOfWeek = new Date(selectedYear, m, d).getDay();
                     let color = 'text-gray-700';
                     if (dayOfWeek === 0 || holidays[dateStr]) color = 'text-red-600';
@@ -1224,11 +1256,12 @@
                         const uniqueCourses = [...new Set(dayBookings.map(b => b['Golf Course']))];
                         uniqueCourses.sort((a, b) => (COURSE_PRIORITY[a] || 99) - (COURSE_PRIORITY[b] || 99));
                         uniqueCourses.forEach(course => {
+                            const courseBookings = dayBookings.filter(b => b['Golf Course'] === course);
                             const courseEl = document.createElement('div');
                             courseEl.className = `booking-info ${GOLF_COURSE_COLORS[course] || ''} truncate`;
-                            courseEl.textContent = COURSE_ABBR[course] || course;
+                            const label = COURSE_ABBR[course] || course;
+                            courseEl.textContent = courseBookings.length > 1 ? `${label}(${courseBookings.length})` : label;
                             if (role === 'ADMIN') {
-                                const courseBookings = dayBookings.filter(b => b['Golf Course'] === course);
                                 courseEl.classList.add('cursor-pointer', 'hover:underline');
                                 courseEl.title = '클릭하여 예약 수정';
                                 courseEl.addEventListener('click', (e) => {
@@ -1250,7 +1283,7 @@
         function renderStatus() {
             const statusTableBody = document.getElementById('statusTableBody');
             statusTableBody.innerHTML = '';
-            
+
             let filtered = bookings.filter(b => isInSelectedPeriod(b.Date));
             const role = getUserRole(currentUser.name);
             if (role === 'ADMIN') {
@@ -1284,18 +1317,18 @@
             if (!checkedMonths.includes('전체') && checkedMonths.length > 0) {
                 const monthSet = new Set(checkedMonths.map(Number));
                 filtered = filtered.filter(b => {
-                    const d = new Date(String(b.Date).replace(/\./g, '-').substring(0, 10));
+                    const d = new Date(normDateStr(b.Date));
                     return !isNaN(d) && monthSet.has(d.getMonth());
                 });
             }
             if (document.getElementById('statusNonMemberFilter')?.checked) {
                 filtered = filtered.filter(b => b['회원구분'] === '비회원가' && !['취소중', '취소완료'].includes(b.Status));
             }
-            
+
             const membersFiltered = filtered.filter(b => b['회원구분'] !== '비회원가');
             const weekendCnt = membersFiltered.filter(b => String(b.WE || '').replace(/\s/g, '') === '주말').length;
             const nonMemberCnt = filtered.length - membersFiltered.length;
-            
+
             const _wkEl = document.getElementById('weekendCount');
             const _wdEl = document.getElementById('weekdayCount');
             const _nmEl = document.getElementById('nonMemberCount');
@@ -1310,12 +1343,12 @@
                 let vA = a[sortColumn], vB = b[sortColumn];
                 return sortDirection === 'asc' ? String(vA).localeCompare(String(vB)) : String(vB).localeCompare(String(vA));
             }).forEach(b => {
-                const cleanDate = String(b.Date).replace(/\./g, '-').substring(0, 10);
+                const cleanDate = normDateStr(b.Date);
                 const displayDate = cleanDate.substring(5, 10);
                 const _dObj = new Date(cleanDate);
                 const _wd = ['일', '월', '화', '수', '목', '금', '토'];
                 const dayLabel = isNaN(_dObj.getTime()) ? '' : ` <span class="text-gray-400 font-normal">(${_wd[_dObj.getDay()]})</span>`;
-                
+
                 let rowClass = "border-b hover:bg-[#f3eee3] cursor-pointer transition-colors";
                 const status = b.Status || '';
                 if (['우천취소', '취소완료', '취소중'].includes(status)) {
@@ -1325,7 +1358,7 @@
                 let statusBorderClass = "border-gray-300";
                 let statusTextClass = "";
                 const smsStatus = b['문자현황'] || '';
-                
+
                 if (status === '예약완료') {
                     const todayForCalc = new Date();
                     todayForCalc.setHours(0,0,0,0);
@@ -1382,16 +1415,16 @@
         }
 
         function renderTodayView() {
-            const getFormattedDate = (d) => d.toISOString().split('T')[0];
             const today = new Date();
             const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
             const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
-            const todayStr = getFormattedDate(today);
-            const yesterdayStr = getFormattedDate(yesterday);
-            const tomorrowStr = getFormattedDate(tomorrow);
+            const todayStr = toLocalDateStr(today);
+            const yesterdayStr = toLocalDateStr(yesterday);
+            const tomorrowStr = toLocalDateStr(tomorrow);
             const defaultHiddenColumns = ['status', 'bookingDate', 'we', 'deliveryStatus'];
-            
-            let savedState = JSON.parse(localStorage.getItem('golfBooking_todayColumnState') || 'null');
+
+            let savedState = null;
+            try { savedState = JSON.parse(localStorage.getItem('golfBooking_todayColumnState') || 'null'); } catch (e) {}
             if (!savedState) {
                 savedState = {};
             }
@@ -1410,11 +1443,11 @@
                 { name: '전달여부', key: 'deliveryStatus', isTight: true, width: '40px' }
             ];
             const controlsContainer = document.getElementById('todayColumnControls');
-            controlsContainer.innerHTML = ''; 
+            controlsContainer.innerHTML = '';
             columns.forEach((col, index) => {
                 const label = document.createElement('label');
-                label.className = 'checkbox-label bg-white border border-gray-200';
-                
+                label.className = 'checkbox-label bg-white border border-gray-200 whitespace-nowrap';
+
                 let isChecked = true;
                 if (savedState[col.key] !== undefined) {
                     isChecked = savedState[col.key];
@@ -1429,10 +1462,12 @@
                     const index = e.target.getAttribute('data-col-index');
                     const key = e.target.getAttribute('data-col-key');
                     const isVisible = e.target.checked;
-                    
-                    const currentState = JSON.parse(localStorage.getItem('golfBooking_todayColumnState') || '{}');
-                    currentState[key] = isVisible;
-                    localStorage.setItem('golfBooking_todayColumnState', JSON.stringify(currentState));
+
+                    try {
+                        const currentState = JSON.parse(localStorage.getItem('golfBooking_todayColumnState') || '{}');
+                        currentState[key] = isVisible;
+                        localStorage.setItem('golfBooking_todayColumnState', JSON.stringify(currentState));
+                    } catch (err) {}
                     const cells = document.querySelectorAll(`#todayView table tr > *:nth-child(${parseInt(index) + 1})`);
                     cells.forEach(cell => {
                         cell.style.display = isVisible ? '' : 'none';
@@ -1448,8 +1483,7 @@
                 const container = document.getElementById(section.id);
                 const filtered = bookings.filter(b => {
                     if(!b.BookingDate) return false;
-                    const bDate = String(b.BookingDate).replace(/\./g, '-').substring(0, 10);
-                    return bDate === section.dateStr;
+                    return normDateStr(b.BookingDate) === section.dateStr;
                 });
                 let html = `<div class="rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                     <div class="${section.bg} p-2 md:p-3 font-black text-sm md:text-base ${section.text} border-b border-gray-200">${section.title}</div>
@@ -1461,18 +1495,19 @@
                                 </tr>
                             </thead>
                             <tbody>`;
-                
+
                 if (filtered.length === 0) {
                     html += `<tr><td colspan="${columns.length}" class="p-4 text-center text-gray-500">예약 내역이 없습니다.</td></tr>`;
                 } else {
                     filtered.forEach(b => {
                         const courseName = b['Golf Course'];
                         const abbr = COURSE_ABBR[courseName] || courseName;
-                        const displayCourse = `<span class="md:hidden">${abbr}</span><span class="hidden md:inline">${courseName}</span>`;
+                        // 이스케이프는 텍스트에만 적용하고 태그는 그대로 출력
+                        const displayCourse = `<span class="md:hidden">${esc(abbr)}</span><span class="hidden md:inline">${esc(courseName)}</span>`;
                         html += `<tr>
-                            <td>${esc(displayCourse)}</td>
+                            <td>${displayCourse}</td>
                             <td>${esc(b.Name)}</td>
-                            <td>${esc(String(b.Date).replace(/\./g, '-').substring(5))}</td>
+                            <td>${esc(normDateStr(b.Date).substring(5))}</td>
                             <td class="tight-col">${esc(b.Day) || ''}</td>
                             <td class="tight-col">${esc(b.Team)}</td>
                             <td>${esc(b.Phone) || ''}</td>
@@ -1480,7 +1515,7 @@
                             <td class="tight-col">${esc(b.WE) || ''}</td>
                             <td class="p-0"><input type="text" placeholder="HH:MM" maxlength="5" oninput="formatTimeInput(event)" class="table-input inline-edit" data-id="${esc(b.id)}" data-field="Time" value="${esc(b.Time) || ''}"></td>
                             <td class="p-0 tight-col"><input type="text" class="table-input inline-edit" data-id="${esc(b.id)}" data-field="Status" value="${esc(b.Status) || ''}"></td>
-                            <td>${b.BookingDate ? esc(String(b.BookingDate).replace(/\./g, '-').substring(5)) : ''}</td>
+                            <td>${b.BookingDate ? esc(normDateStr(b.BookingDate).substring(5)) : ''}</td>
                             <td class="p-0"><input type="text" class="table-input inline-edit" data-id="${esc(b.id)}" data-field="DeliveryStatus" value="${esc(b.DeliveryStatus) || ''}"></td>
                         </tr>`;
                     });
@@ -1488,20 +1523,25 @@
                 html += `</tbody></table></div></div>`;
                 container.innerHTML = html;
             });
-            
+
             document.querySelectorAll('.inline-edit').forEach(input => {
                 input.addEventListener('change', async (e) => {
                     const id = e.target.getAttribute('data-id');
                     const field = e.target.getAttribute('data-field');
                     const value = e.target.value;
                     const booking = bookings.find(b => String(b.id) === String(id));
-                    
+
                     if(booking) {
                         const updatedBooking = { ...booking, [field]: value };
                         if (field === 'Time' && value && value.trim()) {
                             updatedBooking.Status = '예약완료';
                         }
-                        await postData('update', { user: currentUser.name, booking: updatedBooking, logMessage: `[금일예약] ${field} 수정` }, true);
+                        try {
+                            await postData('update', { user: currentUser.name, booking: updatedBooking, logMessage: `[금일예약] ${field} 수정` }, true);
+                            Object.assign(booking, updatedBooking); // 로컬 데이터 동기화
+                        } catch (err) {
+                            showAlert(`저장 실패: ${err.message}`);
+                        }
                     }
                 });
             });
@@ -1518,8 +1558,8 @@
         function renderEntertainmentView() {
             const entertainmentTableBody = document.getElementById('entertainmentTableBody');
             entertainmentTableBody.innerHTML = '';
-            
-            let filtered = bookings.filter(b => 
+
+            let filtered = bookings.filter(b =>
                 isInSelectedPeriod(b.Date) && b.MP != 0 &&
                 (b.Status === '예약완료' || b.Status === '우천취소' || b.Status === '예약중' || !b.Status)
             );
@@ -1545,17 +1585,17 @@
         function renderAnonymousView() {
             const container = document.getElementById('anonymousTableContainer');
             container.innerHTML = '';
-            
+
             const cats = ['Lakewood_Weekday', 'Lakewood_Weekend', 'Velluto_Weekday', 'Velluto_Weekend'];
-            const catNames = { 
-                'Lakewood_Weekday': '레이크 주중', 'Lakewood_Weekend': '레이크 주말', 
-                'Velluto_Weekday': '벨루토 주중', 'Velluto_Weekend': '벨루토 주말' 
+            const catNames = {
+                'Lakewood_Weekday': '레이크 주중', 'Lakewood_Weekend': '레이크 주말',
+                'Velluto_Weekday': '벨루토 주중', 'Velluto_Weekend': '벨루토 주말'
             };
-            
+
             const startM = 1;
             const endM = 12;
             const userNames = [...new Set(bookings.filter(b => isInSelectedPeriod(b.Date)).map(b => b.Name))].sort();
-            
+
             let html = `<table class="grid-view-table w-full border-collapse"><thead><tr class="bg-gray-50">
                 <th rowspan="2" class="p-2 md:p-3 border font-bold text-xs md:text-base">성명</th>`;
             cats.forEach(c => html += `<th colspan="12" class="p-1 md:p-2 border text-xs md:text-sm font-bold bg-[#eef1f6] text-navy-800">${catNames[c]}</th>`);
@@ -1595,12 +1635,12 @@
 
             const container = document.getElementById('prepaidTableContainer');
             container.innerHTML = '';
-            
+
             const courses = ['스카이밸리', '힐드로사이'];
             const startM = 1;
             const endM = 12;
             const userNames = [...new Set(bookings.filter(b => isInSelectedPeriod(b.Date)).map(b => b.Name))].sort();
-            
+
             let html = `<table class="grid-view-table w-full border-collapse"><thead><tr class="bg-gray-50">
                 <th rowspan="2" class="p-2 md:p-3 border font-bold text-xs md:text-base">성명</th>`;
             courses.forEach(c => html += `<th colspan="12" class="p-1 md:p-2 border text-xs md:text-sm font-bold bg-[#f3eee3] text-gold-500">${c}</th>`);
@@ -1637,15 +1677,14 @@
             if (!cardsContainer || !tableBody) return;
 
             const targetCourses = [
-                { name: '스카이밸리', title: '스카이밸리CC', colorTheme: 'gold', badgeBg: 'bg-gold-50 text-gold-500' },
-                { name: '힐드로사이', title: '힐드로사이CC', colorTheme: 'red', badgeBg: 'bg-red-50 text-red-600' }
+                { name: '스카이밸리', title: '스카이밸리CC' },
+                { name: '힐드로사이', title: '힐드로사이CC' }
             ];
 
             let cardsHtml = '';
             let tableHtml = '';
 
             targetCourses.forEach(c => {
-                // 해당 골프장의 선불제 잔여금액(W열)이 기록되어 있는 예약 추출
                 const courseBookingsWithBalance = bookings.filter(b => {
                     if (b['Golf Course'] !== c.name) return false;
                     const bal = b['선불제 잔여금액'];
@@ -1657,18 +1696,15 @@
                 let latestBooking = null;
 
                 if (courseBookingsWithBalance.length > 0) {
-                    // 날짜, 시간 순으로 정렬하여 가장 최신(마지막 차감 반영건) 선택
                     courseBookingsWithBalance.sort((a, b) => {
-                        const dateA = String(a.Date || '').replace(/\./g, '-').substring(0, 10);
-                        const dateB = String(b.Date || '').replace(/\./g, '-').substring(0, 10);
+                        const dateA = normDateStr(a.Date);
+                        const dateB = normDateStr(b.Date);
                         if (dateA !== dateB) return dateA.localeCompare(dateB);
-                        const timeA = String(a.Time || '');
-                        const timeB = String(b.Time || '');
-                        return timeA.localeCompare(timeB);
+                        return String(a.Time || '').localeCompare(String(b.Time || ''));
                     });
 
                     latestBooking = courseBookingsWithBalance[courseBookingsWithBalance.length - 1];
-                    latestDate = String(latestBooking.Date).replace(/\./g, '-').substring(0, 10);
+                    latestDate = normDateStr(latestBooking.Date);
                     const rawVal = String(latestBooking['선불제 잔여금액']).replace(/[^0-9.-]/g, '');
                     latestBalanceNum = Number(rawVal);
                 }
@@ -1676,19 +1712,17 @@
                 const hasBalance = (latestBalanceNum !== null && !isNaN(latestBalanceNum));
                 const isUnder5M = (hasBalance && latestBalanceNum <= 5000000);
 
-                // 색상 클래스 (500만원 이하면 빨간색)
                 const balanceColorClass = isUnder5M ? 'text-red-600 font-black' : 'text-navy-900 font-black';
                 const cardBorderClass = isUnder5M ? 'border-2 border-red-400 bg-red-50/30' : 'border border-gray-200 bg-white';
                 const formattedBalance = hasBalance ? `₩${latestBalanceNum.toLocaleString()}` : '차감 계산 내역 없음';
 
                 const statusBadge = isUnder5M
-                    ? `<span class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-black border border-red-200 animate-pulse">⚠️ 500만원 이하 (충전필요)</span>`
-                    : (hasBalance ? `<span class="bg-emerald-100 text-emerald-700 text-xs px-2.5 py-1 rounded-full font-bold">잔액 여유</span>` : `<span class="bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded">미계산</span>`);
+                    ? `<span class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-black border border-red-200 animate-pulse whitespace-nowrap">⚠️ 500만원 이하 (충전필요)</span>`
+                    : (hasBalance ? `<span class="bg-emerald-100 text-emerald-700 text-xs px-2.5 py-1 rounded-full font-bold whitespace-nowrap">잔액 여유</span>` : `<span class="bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded whitespace-nowrap">미계산</span>`);
 
-                // 1. 카드형 뷰
                 cardsHtml += `
                     <div class="rounded-2xl ${cardBorderClass} p-4 md:p-6 card-shadow flex flex-col justify-between transition-transform hover:-translate-y-0.5">
-                        <div class="flex justify-between items-start mb-3">
+                        <div class="flex justify-between items-start mb-3 gap-2">
                             <div>
                                 <span class="text-xs font-bold tracking-wider text-gray-500 uppercase">선불제 관리</span>
                                 <h4 class="text-lg md:text-xl font-black text-navy-900 mt-0.5">📍 ${c.title}</h4>
@@ -1702,17 +1736,16 @@
                             </div>
                         </div>
                         <div class="pt-3 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">
-                            <span>최종 차감일자: <strong class="text-gray-700">${latestDate}</strong></span>
+                            <span>최종 차감일자: <strong class="text-gray-700">${esc(latestDate)}</strong></span>
                             ${latestBooking ? `<span class="truncate max-w-[150px]">마지막 예약자: ${esc(latestBooking.Name)}</span>` : ''}
                         </div>
                     </div>
                 `;
 
-                // 2. 요약 테이블 뷰 (골프장명 / 일자 / 잔여금액)
                 tableHtml += `
                     <tr class="border-b hover:bg-gray-50 transition-colors">
                         <td class="py-3 px-4 text-left font-bold text-navy-900">${c.title}</td>
-                        <td class="py-3 px-4 font-semibold text-gray-600">${latestDate}</td>
+                        <td class="py-3 px-4 font-semibold text-gray-600">${esc(latestDate)}</td>
                         <td class="py-3 px-4 text-right ${balanceColorClass} text-base md:text-lg">${formattedBalance}</td>
                         <td class="py-3 px-4">${statusBadge}</td>
                     </tr>
@@ -1739,7 +1772,7 @@
                     document.getElementById(id.replace('TabBtn', 'View')).classList.remove('hidden');
                 });
             });
-            
+
             document.getElementById('logoutBtn').onclick = () => {
                 const t = sessionToken;
                 clearSession();
@@ -1748,12 +1781,12 @@
                 } catch (e) {}
                 location.reload();
             };
-            
+
             document.getElementById('noticeLink').addEventListener('click', (e) => {
                 e.preventDefault();
                 openModalWithAnim('noticeModal');
             });
-            
+
             document.getElementById('closeNoticeBtn').addEventListener('click', () => {
                 closeModalWithAnim('noticeModal');
             });
@@ -1770,11 +1803,11 @@
             document.getElementById('confirmCancelBtn').onclick = () => {
                 closeModalWithAnim('confirmModal');
             };
-            
+
             document.getElementById('openModalBtn').onclick = () => openBookingModal();
             document.getElementById('closeModalBtn').onclick = () => closeModalWithAnim('bookingModal');
             document.getElementById('closeEditChooserBtn').addEventListener('click', () => closeModalWithAnim('editChooserModal'));
-            
+
             document.getElementById('bookingTime').addEventListener('input', () => {
                 const timeVal = (document.getElementById('bookingTime').value || '').trim();
                 if (timeVal) {
@@ -1837,16 +1870,16 @@
                 const newSms = document.getElementById('smsStatusSelect').value;
                 const booking = bookings.find(b => String(b.id) === String(id));
                 if (!booking) { showAlert('예약을 찾을 수 없습니다.'); return; }
-                const updatedBooking = { 
-                    ...booking, 
+                const updatedBooking = {
+                    ...booking,
                     'DeliveryStatus': newDelivery,
                     '문자현황': newSms
                 };
                 try {
-                    await postData('update', { 
-                        user: currentUser.name, 
-                        booking: updatedBooking, 
-                        logMessage: `문자전달(${newDelivery || '공란'})/문자현황(${newSms || '미지정'}) 수정` 
+                    await postData('update', {
+                        user: currentUser.name,
+                        booking: updatedBooking,
+                        logMessage: `문자전달(${newDelivery || '공란'})/문자현황(${newSms || '미지정'}) 수정`
                     }, true);
                     closeModalWithAnim('deliveryStatusModal');
                     await fetchInitialData();
@@ -1855,18 +1888,32 @@
                     showAlert(`저장 실패: ${err.message}`);
                 }
             });
-            
+
             document.getElementById('loginForm').onsubmit = async (e) => {
                 e.preventDefault();
-                const u = document.getElementById('loginUsername').value;
+                const u = document.getElementById('loginUsername').value.trim();
                 const p = document.getElementById('loginPassword').value;
                 showLoading(true, "로그인 중입니다...");
                 try {
-                    const response = await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({ action: 'login', username: u, password: p })
-                    });
-                    const result = await response.json();
+                    let response;
+                    try {
+                        response = await fetch(SCRIPT_URL, {
+                            method: 'POST',
+                            body: JSON.stringify({ action: 'login', username: u, password: p })
+                        });
+                    } catch (netErr) {
+                        throw new Error('서버에 연결할 수 없습니다. 네트워크 상태 또는 SCRIPT_URL 주소를 확인해 주세요.');
+                    }
+                    const raw = await response.text();
+                    let result;
+                    try {
+                        result = JSON.parse(raw);
+                    } catch (parseErr) {
+                        // Apps Script 배포 권한이 '모든 사용자'가 아니면 JSON 대신 구글 로그인 HTML 이 돌아옴
+                        throw new Error(/<html|<!doctype/i.test(raw)
+                            ? '서버가 데이터 대신 웹페이지(HTML)를 반환했습니다.\nApps Script 배포 설정에서 [액세스 권한: 모든 사용자]와 최신 버전 배포 여부를 확인해 주세요.'
+                            : `서버 응답을 해석할 수 없습니다. (HTTP ${response.status})`);
+                    }
                     if (result.status === 'success' && result.token) {
                         sessionToken = result.token;
                         currentUser = result.user;
@@ -1879,7 +1926,8 @@
                         showAlert(result.message || "로그인 정보가 올바르지 않습니다.");
                     }
                 } catch (err) {
-                    showAlert("로그인 처리 중 오류가 발생했습니다.");
+                    console.error(err);
+                    showAlert(`로그인 처리 중 오류가 발생했습니다.\n${err.message || ''}`);
                 } finally {
                     showLoading(false);
                 }
@@ -1889,13 +1937,13 @@
                 const name = document.getElementById('lookupName').value;
                 const results = document.getElementById('lookupResults');
                 if (!name) return showAlert("이름을 입력하세요.");
-                
+
                 const q = userQuotas[name];
                 if (!q) return results.innerHTML = `<p class="text-red-600 font-bold p-4">⚠️ 해당 사용자의 정보가 없습니다.</p>`;
                 const periodBookings = bookings.filter(b => b.Name === name && isInSelectedPeriod(b.Date) && IS_VALID_FOR_COUNTING(b));
                 let html = `<div class="p-4 md:p-6 bg-white border border-gray-200 rounded-xl md:rounded-2xl shadow-sm"><h3 class="font-black text-xl md:text-2xl mb-4 md:mb-6 text-gray-800 border-b pb-2 md:pb-4">${esc(name)}님 ${selectedYear}년 이용 현황</h3>`;
                 html += `<table class="w-full text-sm md:text-base border-collapse"><thead><tr class="bg-gray-100 text-gray-700"><th class="p-2 md:p-3 border">항목</th><th class="p-2 md:p-3 border">연간 한도</th><th class="p-2 md:p-3 border">사용</th><th class="p-2 md:p-3 border">잔여</th></tr></thead><tbody>`;
-                
+
                 const items = [
                     {k: '레이크 주중', val: q.Lakewood_Weekday, used: periodBookings.filter(b => b['Golf Course']==='레이크우드' && !isWeekendBooking(b)).length},
                     {k: '레이크 주말', val: q.Lakewood_Weekend, used: periodBookings.filter(b => b['Golf Course']==='레이크우드' && isWeekendBooking(b)).length},
@@ -1905,7 +1953,7 @@
                     {k: '벨루토 주말', val: q.Velluto_Weekend || q.Seragio_Weekend, used: periodBookings.filter(b => b['Golf Course']==='벨루토' && isWeekendBooking(b)).length}
                 ];
                 items.forEach(i => {
-                    const totalLimit = (i.val || 0) * 12; 
+                    const totalLimit = (i.val || 0) * 12;
                     const remaining = totalLimit - i.used;
                     html += `<tr class="border-b hover:bg-gray-50 text-center"><td class="p-2 md:p-3 font-bold text-gray-700 text-left">${i.k}</td><td class="p-2 md:p-3 text-gray-600">${totalLimit}</td><td class="p-2 md:p-3 text-navy-700 font-bold">${i.used}</td><td class="p-2 md:p-3 font-black text-base md:text-lg ${remaining < 0 ? 'text-red-500' : 'text-green-600'}">${remaining}</td></tr>`;
                 });
@@ -1934,6 +1982,7 @@
                     document.querySelectorAll('.booking-checkbox').forEach(cb => cb.checked = isChecked);
                 }
             });
+            // 선택 취소: 서버 전용 'cancel' 액션 사용 (상태만 '취소중'으로 변경)
             document.getElementById('cancelSelectedBtn').addEventListener('click', async () => {
                 const checkedBoxes = document.querySelectorAll('.booking-checkbox:checked');
                 if (checkedBoxes.length === 0) {
@@ -1943,23 +1992,14 @@
                 showConfirm(`선택한 ${checkedBoxes.length}건의 예약을 취소하시겠습니까?\n상태가 '취소중'으로 변경됩니다.`, async () => {
                     showLoading(true, "선택한 예약을 취소 처리 중입니다...");
                     try {
-                        const updatePromises = Array.from(checkedBoxes).map(cb => {
-                            const id = cb.getAttribute('data-id');
-                            const originalBooking = bookings.find(b => String(b.id) === String(id));
-                            if (!originalBooking) return null;
-                            const updatedBooking = { ...originalBooking, Status: '취소중' };
-                            return postData('update', { user: currentUser.name, booking: updatedBooking }, true);
-                        }).filter(p => p !== null);
-                        await Promise.all(updatePromises);
+                        const ids = Array.from(checkedBoxes).map(cb => cb.getAttribute('data-id'));
+                        await postData('cancel', { ids }, true);
                         showAlert("선택한 예약이 일괄 취소(상태 변경) 되었습니다.");
-                        await fetchInitialData();
-                        renderApp();
                     } catch (error) {
                         console.error(error);
-                        showAlert("일괄 처리 중 일부 오류가 발생했습니다.");
-                        await fetchInitialData(); 
-                        renderApp();
+                        showAlert(`취소 처리 중 오류가 발생했습니다: ${error.message}`);
                     } finally {
+                        try { await fetchInitialData(); renderApp(); } catch (e) {}
                         showLoading(false);
                     }
                 });
@@ -2029,20 +2069,19 @@
                     showAlert("다운로드할 데이터가 없습니다.");
                     return;
                 }
-                
+
                 const dataToExport = filteredBookings.map(b => {
-                    const { Comment, ...rest } = b; 
-                    return rest; 
+                    const { Comment, ...rest } = b;
+                    return rest;
                 });
-                
+
                 const csv = Papa.unparse(dataToExport);
-                const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+                const blob = new Blob(["﻿" + csv], { type: 'text/csv;charset=utf-8;' });
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement("a");
                 link.setAttribute("href", url);
-                
-                const today = new Date();
-                const dateStr = today.getFullYear() + String(today.getMonth()+1).padStart(2,'0') + String(today.getDate()).padStart(2,'0');
+
+                const dateStr = toLocalDateStr(new Date()).replace(/-/g, '');
                 link.setAttribute("download", `golf_bookings_${selectedYear}_${dateStr}.csv`);
                 link.style.visibility = 'hidden';
                 document.body.appendChild(link);
@@ -2083,26 +2122,25 @@
             });
         }
 
+        /**
+         * 반기별 예약 오픈 시각 검사 — 일정은 서버(Code.gs BOOKING_OPEN_SCHEDULE)에서 내려받음
+         * 관리자(ADMIN, SIENA_ADMIN)는 제한 없음 / 등록되지 않은 반기는 제한 없음
+         */
         function canBookForDate(dateStr) {
             if (!dateStr || !currentUser) return true;
-            const targetMonth = new Date(dateStr).getMonth();
-            
-            if (targetMonth < 6) return true;
-            if (['신석중', '채훈'].includes(currentUser.name)) return true;
-            const now = new Date();
-            const openDateVIP = new Date('2026-04-21T09:00:00+09:00');
-            const openDateGeneral = new Date('2026-04-23T09:00:00+09:00');
-            const isVIP = !!(currentUser && currentUser.isVIP);
-            if (isVIP) {
-                if (now < openDateVIP) {
-                    showAlert("하반기(7~12월) 예약은 2026년 4월 21일 오전 9시부터 가능합니다.");
-                    return false;
-                }
-            } else {
-                if (now < openDateGeneral) {
-                    showAlert("하반기(7~12월) 예약은 2026년 4월 23일 오전 9시부터 가능합니다.");
-                    return false;
-                }
+            if (MANAGER_ROLES.includes(getUserRole(currentUser.name))) return true;
+            const [y, m] = String(dateStr).split('-').map(Number);
+            if (!y || !m) return true;
+            const half = m <= 6 ? 'H1' : 'H2';
+            const cfg = openSchedule[`${y}-${half}`];
+            if (!cfg) return true;
+            const openAt = new Date(currentUser.isVIP ? cfg.vip : cfg.general);
+            if (isNaN(openAt.getTime())) return true;
+            if (new Date() < openAt) {
+                const label = half === 'H1' ? '상반기(1~6월)' : '하반기(7~12월)';
+                const when = openAt.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric' });
+                showAlert(`${y}년 ${label} 예약은 ${when}부터 가능합니다.`);
+                return false;
             }
             return true;
         }
@@ -2120,8 +2158,9 @@
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = 'text-left border border-gray-200 rounded-lg px-3 py-2 hover:bg-[#f3eee3] hover:border-gold-400 transition-colors';
-                const dateTxt = String(b.Date).replace(/\./g, '-').substring(0, 10);
-                const sub = `${esc(dateTxt)}${b.Time ? ' ' + esc(b.Time) : ''} · ${esc(b.Team) || ''}팀 · ${esc(b.Status) || ''}`;
+                const dateTxt = normDateStr(b.Date);
+                const memberTxt = b['회원구분'] === '비회원가' ? ' · 비회원가' : '';
+                const sub = `${esc(dateTxt)}${b.Time ? ' ' + esc(b.Time) : ''} · ${esc(b.Team) || ''}팀 · ${esc(b.Status) || ''}${memberTxt}`;
                 btn.innerHTML = `<div class="font-bold text-navy-900 text-sm md:text-base">${esc(b['Golf Course'])} · ${esc(b.Name) || ''}</div>`
                     + `<div class="text-xs md:text-sm text-gray-500 mt-0.5">${sub}</div>`;
                 btn.addEventListener('click', () => {
@@ -2135,32 +2174,41 @@
 
         function openBookingModal(booking = null, dateStr = null) {
             if (dateStr && !booking && !canBookForDate(dateStr)) {
-                return; 
+                return;
             }
             const title = document.getElementById('modalTitle');
             const form = document.getElementById('bookingForm');
-            
-            updateAvailableGolfCourses(dateStr || new Date().toISOString().split('T')[0]);
             const isAdminUser = (getUserRole(currentUser.name) === 'ADMIN');
+
             if (booking) {
+                const bDate = normDateStr(booking.Date);
                 title.textContent = "예약 수정";
                 document.getElementById('bookingId').value = booking.id;
                 document.getElementById('userName').value = booking.Name;
-                document.getElementById('bookingDate').value = String(booking.Date).replace(/\./g, '-');
-                document.getElementById('golfCourse').value = booking['Golf Course'];
+                document.getElementById('bookingDate').value = bDate;
                 document.getElementById('numberOfTeams').value = booking.Team;
                 document.getElementById('bookingTime').value = booking.Time || '';
                 document.getElementById('bookingStatus').value = booking.Status || '예약중';
                 document.getElementById('notes').value = booking.Comment || '';
                 document.getElementById('memberType').value = booking['회원구분'] || '회원가';
-                
+
                 document.getElementById('userPhone').value = booking.Phone || '';
                 document.getElementById('bookingDay').value = booking.Day || '';
-                document.getElementById('bookingRecordDate').value = booking.BookingDate ? String(booking.BookingDate).replace(/\./g, '-') : '';
+                document.getElementById('bookingRecordDate').value = booking.BookingDate ? normDateStr(booking.BookingDate) : '';
                 document.getElementById('deliveryStatus').value = booking.DeliveryStatus || '';
-                
-                updateAvailableGolfCourses(String(booking.Date).replace(/\./g, '-'), booking.id);
-                document.getElementById('golfCourse').value = booking['Golf Course'];
+
+                applyModalPermissions(isAdminUser, true);
+                updateAvailableGolfCourses(bDate, booking.id);
+                const courseSelect = document.getElementById('golfCourse');
+                // 기존 예약 골프장이 목록에 없으면(과거 중복 데이터 등) 강제로 추가
+                if (booking['Golf Course'] && !Array.from(courseSelect.options).some(o => o.value === booking['Golf Course'])) {
+                    const opt = document.createElement('option');
+                    opt.value = booking['Golf Course'];
+                    opt.textContent = booking['Golf Course'];
+                    courseSelect.prepend(opt);
+                }
+                courseSelect.value = booking['Golf Course'];
+                updateMultiBookingHint();
             } else {
                 title.textContent = "예약 신청";
                 form.reset();
@@ -2168,13 +2216,11 @@
                 document.getElementById('userName').value = currentUser ? currentUser.name : '';
                 document.getElementById('bookingStatus').value = '예약중';
                 document.getElementById('memberType').value = '회원가';
-                
-                if (dateStr) {
-                    document.getElementById('bookingDate').value = dateStr;
-                    updateAvailableGolfCourses(dateStr);
-                }
+                if (dateStr) document.getElementById('bookingDate').value = dateStr;
+
+                applyModalPermissions(isAdminUser, false);
+                updateAvailableGolfCourses(dateStr || toLocalDateStr(new Date()));
             }
-            applyModalPermissions(isAdminUser, !!booking);
             openModalWithAnim('bookingModal');
         }
 
@@ -2182,6 +2228,9 @@
             const timeWrapper = document.getElementById('bookingTimeWrapper');
             const statusInput = document.getElementById('bookingStatus');
             const memberSelect = document.getElementById('memberType');
+            const nameInput = document.getElementById('userName');
+            // 신청인: 관리자만 다른 사람 이름으로 입력 가능
+            nameInput.readOnly = !isAdminUser;
             if (isAdminUser) {
                 timeWrapper.classList.remove('hidden');
                 statusInput.readOnly = false;
@@ -2201,10 +2250,10 @@
 
         function openDeliveryStatusModal(booking) {
             document.getElementById('deliveryStatusBookingId').value = booking.id;
-            const cleanDate = String(booking.Date).replace(/\./g, '-').substring(0, 10);
+            const cleanDate = normDateStr(booking.Date);
             document.getElementById('deliveryStatusInfo').innerHTML =
                 `<span class="font-bold text-navy-900">${esc(booking['Golf Course'])}</span> · <span>${esc(booking.Name)}</span> · <span>${esc(cleanDate)}</span> · <span class="text-gold-500 font-bold">${esc(booking.Status || '')}</span>`;
-            
+
             const delivSel = document.getElementById('deliveryStatusSelect');
             const currentDeliv = (booking.DeliveryStatus || '').toString().trim();
             if (currentDeliv && !Array.from(delivSel.options).some(o => o.value === currentDeliv)) {
@@ -2228,30 +2277,74 @@
             openModalWithAnim('deliveryStatusModal');
         }
 
+        /** 해당 날짜·골프장의 활성 예약 목록 (수정 중인 예약 제외) */
+        function getSameDayCourseBookings(date, course, excludeBookingId = null) {
+            const targetDate = normDateStr(date);
+            return bookings.filter(b => {
+                if (excludeBookingId && String(b.id) === String(excludeBookingId)) return false;
+                return normDateStr(b.Date) === targetDate && isActiveBooking(b) && b['Golf Course'] === course;
+            });
+        }
+
+        /**
+         * 골프장 예약 가능 여부
+         * - 기본: 같은 날짜·골프장에 활성 예약이 있으면 불가 (하루 1건)
+         * - 관리자: 스카이밸리/힐드로사이는 항상 가능
+         * - 관리자: 레이크우드/중부/벨루토는 비회원가일 때 추가 예약 가능
+         *           (회원가는 기존 예약이 모두 비회원가일 때만 1건 가능)
+         */
+        function isCourseAvailable(course, date, memberType, excludeBookingId = null) {
+            const existing = getSameDayCourseBookings(date, course, excludeBookingId);
+            if (existing.length === 0) return true;
+            if (getUserRole(currentUser.name) !== 'ADMIN') return false;
+            if (MULTI_BOOKING_COURSES.includes(course)) return true;
+            if (memberType === '비회원가') return true;
+            return !existing.some(b => b['회원구분'] !== '비회원가');
+        }
+
         function updateAvailableGolfCourses(date, excludeBookingId = null) {
             const s = document.getElementById('golfCourse');
-            const targetDate = String(date).replace(/\./g, '-').substring(0, 10);
-            const bookedCourses = bookings.filter(b => {
-                if (excludeBookingId && String(b.id) === String(excludeBookingId)) return false;
-                
-                const bDate = String(b.Date).replace(/\./g, '-').substring(0, 10);
-                const isActive = !['취소완료', '우천취소', '취소중'].includes(b.Status);
-                
-                return bDate === targetDate && isActive;
-            }).map(b => b['Golf Course']);
+            const prevValue = s.value;
+            const memberType = document.getElementById('memberType').value || '회원가';
             let allowedCourses = MODAL_GOLF_COURSES;
-            
+
             if (currentUser) {
                 const role = getUserRole(currentUser.name);
                 if (role === 'NORMAL_USER') {
                     allowedCourses = allowedCourses.filter(c => c !== '중부');
                 }
             }
-            const availableCourses = allowedCourses.filter(c => !bookedCourses.includes(c));
+            const availableCourses = allowedCourses.filter(c => isCourseAvailable(c, date, memberType, excludeBookingId));
             if (availableCourses.length === 0) {
                 s.innerHTML = '<option value="">예약 가능한 골프장이 없습니다</option>';
             } else {
-                s.innerHTML = availableCourses.map(c => `<option value="${c}">${c}</option>`).join('');
+                s.innerHTML = availableCourses.map(c => {
+                    const cnt = getSameDayCourseBookings(date, c, excludeBookingId).length;
+                    const label = cnt > 0 ? `${c} (기존 ${cnt}건)` : c;
+                    return `<option value="${c}">${label}</option>`;
+                }).join('');
+                if (availableCourses.includes(prevValue)) s.value = prevValue;
+            }
+            updateMultiBookingHint();
+        }
+
+        /** 관리자 다중 예약 안내 문구 */
+        function updateMultiBookingHint() {
+            const hint = document.getElementById('multiBookingHint');
+            if (!hint || !currentUser) return;
+            const course = document.getElementById('golfCourse').value;
+            const date = document.getElementById('bookingDate').value;
+            const excludeId = document.getElementById('bookingId').value;
+            if (getUserRole(currentUser.name) !== 'ADMIN' || !course || !date) {
+                hint.classList.add('hidden');
+                return;
+            }
+            const cnt = getSameDayCourseBookings(date, course, excludeId).length;
+            if (cnt > 0) {
+                hint.textContent = `ℹ️ ${date} ${course}에 이미 ${cnt}건의 예약이 있습니다. 추가 예약으로 저장됩니다.`;
+                hint.classList.remove('hidden');
+            } else {
+                hint.classList.add('hidden');
             }
         }
 
@@ -2277,7 +2370,7 @@
                     }
                     throw new Error(result.message);
                 }
-                
+
                 if (!silent) {
                     showAlert(result.message);
                     closeModalWithAnim('bookingModal');
@@ -2295,79 +2388,51 @@
 
         function checkQuota(bookingData) {
             const course = bookingData['Golf Course'];
+            // 중부는 월 한도 없음
+            if (course === '중부') return null;
             const dateStr = bookingData['Date'];
             const targetDate = new Date(dateStr);
-            const targetMonth = targetDate.getMonth(); 
+            const targetMonth = targetDate.getMonth();
             const targetYear = targetDate.getFullYear();
-            
+
             const dayOfWeek = targetDate.getDay();
             const dateKey = dateStr.substring(0, 10);
-            const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6 || holidays[dateKey]);
+            const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6 || !!holidays[dateKey]);
             const q = userQuotas[currentUser.name] || {};
             let limit = 0;
             let currentUsage = 0;
+
+            const sameMonthMine = (b, courseName) => {
+                if (b.Name !== currentUser.name) return false;
+                if (!VALID_STATUSES.includes(b.Status)) return false;
+                const bDate = new Date(normDateStr(b.Date));
+                if (isNaN(bDate)) return false;
+                if (bDate.getFullYear() !== targetYear || bDate.getMonth() !== targetMonth) return false;
+                return b['Golf Course'] === courseName;
+            };
+
             if (course === '레이크우드') {
                 limit = isWeekend ? (q.Lakewood_Weekend || 0) : (q.Lakewood_Weekday || 0);
-                currentUsage = bookings.filter(b => {
-                    if (b.Name !== currentUser.name) return false;
-                    if (!VALID_STATUSES.includes(b.Status)) return false;
-                    
-                    const bDate = new Date(String(b.Date).replace(/\./g, '-'));
-                    if (isNaN(bDate)) return false;
-                    
-                    if (bDate.getFullYear() !== targetYear || bDate.getMonth() !== targetMonth) return false;
-                    if (b['Golf Course'] !== '레이크우드') return false;
-                    const bDay = bDate.getDay();
-                    const bDateKey = String(b.Date).replace(/\./g, '-').substring(0, 10);
-                    const bIsWeekend = (bDay === 0 || bDay === 6 || holidays[bDateKey]);
-                    
-                    return isWeekend === bIsWeekend;
-                }).length;
+                currentUsage = bookings.filter(b => sameMonthMine(b, '레이크우드') && isWeekendBooking(b) === isWeekend).length;
             } else if (course === '벨루토') {
                 limit = isWeekend ? (q.Velluto_Weekend || q.Seragio_Weekend || 0) : (q.Velluto_Weekday || q.Seragio_Weekday || 0);
-                currentUsage = bookings.filter(b => {
-                    if (b.Name !== currentUser.name) return false;
-                    if (!VALID_STATUSES.includes(b.Status)) return false;
-                    
-                    const bDate = new Date(String(b.Date).replace(/\./g, '-'));
-                    if (isNaN(bDate)) return false;
-                    
-                    if (bDate.getFullYear() !== targetYear || bDate.getMonth() !== targetMonth) return false;
-                    if (b['Golf Course'] !== '벨루토') return false;
-                    const bDay = bDate.getDay();
-                    const bDateKey = String(b.Date).replace(/\./g, '-').substring(0, 10);
-                    const bIsWeekend = (bDay === 0 || bDay === 6 || holidays[bDateKey]);
-                    
-                    return isWeekend === bIsWeekend;
-                }).length;
+                currentUsage = bookings.filter(b => sameMonthMine(b, '벨루토') && isWeekendBooking(b) === isWeekend).length;
             } else if (course === '스카이밸리') {
                 limit = q.SkyValley || 0;
-                currentUsage = bookings.filter(b => {
-                     if (b.Name !== currentUser.name) return false;
-                     if (!VALID_STATUSES.includes(b.Status)) return false;
-                     const bDate = new Date(String(b.Date).replace(/\./g, '-'));
-                     if (bDate.getFullYear() !== targetYear || bDate.getMonth() !== targetMonth) return false;
-                     return b['Golf Course'] === '스카이밸리';
-                }).length;
+                currentUsage = bookings.filter(b => sameMonthMine(b, '스카이밸리')).length;
             } else if (course === '힐드로사이') {
                 limit = q.HillydeSicy || 0;
-                 currentUsage = bookings.filter(b => {
-                     if (b.Name !== currentUser.name) return false;
-                     if (!VALID_STATUSES.includes(b.Status)) return false;
-                     const bDate = new Date(String(b.Date).replace(/\./g, '-'));
-                     if (bDate.getFullYear() !== targetYear || bDate.getMonth() !== targetMonth) return false;
-                     return b['Golf Course'] === '힐드로사이';
-                }).length;
+                currentUsage = bookings.filter(b => sameMonthMine(b, '힐드로사이')).length;
             }
             if (currentUsage >= limit) {
                 return `[${course}] ${targetMonth + 1}월 예약 한도(${limit}회)를 초과했습니다.`;
             }
-            return null; 
+            return null;
         }
 
         document.getElementById('bookingForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const dateVal = document.getElementById('bookingDate').value;
             const inputName = document.getElementById('userName').value;
             if (dateVal && !canBookForDate(dateVal)) {
@@ -2378,11 +2443,11 @@
             const originalBooking = bookingId ? (bookings.find(b => String(b.id) === String(bookingId)) || {}) : {};
             const bookingData = {
                 ...originalBooking,
-                'id': bookingId, 
+                'id': bookingId,
                 'Golf Course': document.getElementById('golfCourse').value,
-                'Name': inputName, 
+                'Name': inputName,
                 'Date': dateVal,
-                'Team': document.getElementById('numberOfTeams').value, 
+                'Team': document.getElementById('numberOfTeams').value,
                 'Comment': document.getElementById('notes').value
             };
             if (isAdminUser) {
@@ -2397,31 +2462,43 @@
             if (!bookingData['회원구분']) {
                 bookingData['회원구분'] = document.getElementById('memberType').value || '회원가';
             }
-            
+
+            const course = bookingData['Golf Course'];
+            if (!course) {
+                showAlert("골프장을 선택해 주세요.");
+                return;
+            }
+            // 골프장 중복 검사 (관리자 다중 예약 규칙 포함)
+            const originalDate = normDateStr(originalBooking.Date);
+            const slotChanged = !bookingId || originalDate !== dateVal || originalBooking['Golf Course'] !== course || originalBooking['회원구분'] !== bookingData['회원구분'];
+            if (slotChanged && !isCourseAvailable(course, dateVal, bookingData['회원구분'], bookingId || null)) {
+                showAlert("해당 날짜에 이미 예약된 골프장입니다. 다른 골프장을 선택해 주세요.");
+                return;
+            }
+
             if (!bookingData.id) {
                 if (bookingData['Status'] === undefined || bookingData['Status'] === '') {
                     bookingData['Status'] = document.getElementById('bookingStatus').value || '예약중';
                 }
-                if (bookingData['회원구분'] === undefined || bookingData['회원구분'] === '') {
-                    bookingData['회원구분'] = document.getElementById('memberType').value || '회원가';
+                // 관리자 다중 예약 허용 대상이면 동일인 같은 날 중복 검사 생략
+                const allowMultiple = isAdminUser && (MULTI_BOOKING_COURSES.includes(course) || bookingData['회원구분'] === '비회원가');
+                if (!allowMultiple) {
+                    const isDuplicate = bookings.some(b => {
+                        return b.Name === inputName && normDateStr(b.Date) === dateVal && isActiveBooking(b);
+                    });
+                    if (isDuplicate) {
+                        showAlert("이미 해당 날짜에 예약이 있습니다.");
+                        return;
+                    }
                 }
-                const isDuplicate = bookings.some(b => {
-                    const bDate = String(b.Date).replace(/\./g, '-').substring(0, 10);
-                    const isActive = !['취소완료', '우천취소', '취소중'].includes(b.Status);
-                    return b.Name === inputName && bDate === dateVal && isActive;
-                });
-                if (isDuplicate) {
-                    showAlert("이미 해당 날짜에 예약이 있습니다.");
-                    return;
-                }
-                if (currentUser.name === inputName) { 
+                if (!isAdminUser && currentUser.name === inputName) {
                       const quotaError = checkQuota(bookingData);
                       if (quotaError) {
                           showAlert(quotaError);
                           return;
                       }
                 }
-                
+
                 await postData('add', { user: currentUser.name, booking: bookingData });
             } else {
                 await postData('update', { user: currentUser.name, booking: bookingData });
@@ -2432,7 +2509,7 @@
         function removeCommas(value) { return String(value).replace(/,/g, ''); }
         function formatTimeInput(event) {
             let input = event.target;
-            let val = input.value.replace(/[^0-9]/g, ''); 
+            let val = input.value.replace(/[^0-9]/g, '');
             if (val.length > 2) {
                 val = val.substring(0, 2) + ':' + val.substring(2, 4);
             }
