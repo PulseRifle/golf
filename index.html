@@ -213,6 +213,47 @@
         /* 본문 카드는 살짝 투명 + 블러로 배경이 은은하게 비치도록 */
         #mainApp > div { background-color: rgba(255, 255, 255, 0.92) !important; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
         #loginScreen > div { background-color: rgba(255, 255, 255, 0.94) !important; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+
+        /* ===== 캘린더 배경: 사이트 배경 사진(golf-bg.jpg)을 투명도 차등 적용 =====
+           위쪽(하늘)은 거의 흰색으로 옅게 → 아래쪽(페어웨이)으로 갈수록 사진이 선명하게 보이는 그라데이션.
+           화면 높이만큼의 레이어를 sticky 로 고정해 스크롤하는 동안 여러 달 뒤에 같은 사진이 계속 깔림 */
+        #calendarWrap { position: relative; border-radius: 16px; background-color: #f5f4f0; overflow: clip; }
+        #calendarWrap .cal-bg-sticky {
+            position: sticky; top: 0; height: 100vh; margin-bottom: -100vh; z-index: 0; pointer-events: none;
+            background-image:
+                linear-gradient(to bottom,
+                    rgba(255, 255, 255, 0.88) 0%,
+                    rgba(255, 255, 255, 0.70) 35%,
+                    rgba(255, 255, 255, 0.40) 70%,
+                    rgba(255, 255, 255, 0.18) 100%),
+                url('golf-bg.jpg');
+            background-size: cover, cover; background-position: center, center 65%; background-repeat: no-repeat;
+        }
+        #calendar { position: relative; z-index: 1; padding: 12px; }
+        /* 월 카드는 거의 불투명하게 → 숫자 뒤로 그림이 지나가지 않고, 카드 사이 틈·바깥쪽에만 그림이 은은하게 보임 */
+        #calendar > div { background-color: rgba(255, 255, 255, 0.9) !important; border-color: rgba(203, 213, 225, 0.8) !important; }
+        #calendar .detail-day { background-color: rgba(255, 255, 255, 0.92); }
+        #calendar .detail-day.is-empty { background-color: rgba(248, 250, 252, 0.85); }
+        #calendar .detail-head { background-color: rgba(243, 244, 248, 0.95); }
+        @media (hover: hover) { #calendar .detail-day:hover { background-color: rgba(250, 247, 239, 0.85); } }
+        @media (max-width: 640px) { #calendar { padding: 6px; } #calendarWrap { border-radius: 12px; } }
+
+        /* ===== 예약 신청/수정 팝업: 그림은 제목 오른쪽 위 모서리에 작게 (입력칸 뒤에는 깔지 않음) ===== */
+        /* 팝업 바탕은 연한 베이지, 입력칸은 흰색 유지 */
+        #bookingModal .modal-content { position: relative; background-color: #fbf7ee; border: 1px solid #ece3cf; }
+        #bookingModal #modalTitle, #bookingForm .border-t { border-color: #e8dcc2; }
+        #bookingForm .bm-field { background-color: #fff; border-color: #ddd3bf; }
+        #bookingForm .bm-field[readonly], #bookingForm .bm-field:disabled { background-color: #f4f1ea; }
+        #bookingModal .booking-corner-icon {
+            position: absolute; top: 10px; right: 14px; height: 58px; width: auto;
+            pointer-events: none; user-select: none;
+            mix-blend-mode: multiply;   /* 아이콘 이미지의 흰 바탕을 베이지 배경에 자연스럽게 녹임 */
+        }
+        #bookingModal #modalTitle { padding-right: 80px; }
+        @media (max-width: 640px) {
+            #bookingModal .booking-corner-icon { top: 6px; right: 10px; height: 44px; }
+            #bookingModal #modalTitle { padding-right: 60px; }
+        }
     </style>
 </head>
 <body class="bg-paper p-2 md:p-4 text-gray-800 transition-colors duration-300">
@@ -326,7 +367,11 @@
                         <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calMonthFilter" value="11" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">12월</span></label>
                     </div>
                 </div>
-                <div id="calendar" class="calendar-container"></div>
+                <!-- 캘린더 배경: 화면에 고정(sticky)된 그림 1장이 여러 달 뒤에 걸쳐 보임 -->
+                <div id="calendarWrap">
+                    <div class="cal-bg-sticky" aria-hidden="true"></div>
+                    <div id="calendar" class="calendar-container"></div>
+                </div>
             </div>
 
             <!-- 예약 현황 탭 -->
@@ -686,6 +731,7 @@
     <!-- 예약 신청/수정 모달 -->
     <div id="bookingModal" class="modal-overlay">
         <div class="modal-content">
+            <img src="booking-icon.jpg" alt="" class="booking-corner-icon" aria-hidden="true">
             <h2 id="modalTitle" class="text-lg md:text-2xl font-extrabold mb-3 md:mb-5 text-gray-800 border-b pb-2 md:pb-3">예약 신청</h2>
             <form id="bookingForm" class="space-y-3 md:space-y-4">
                 <input type="hidden" id="bookingId">
