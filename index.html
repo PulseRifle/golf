@@ -59,6 +59,11 @@
         .booking-pill .bp-arrow { color: #374151; font-size: 10px; }
         .booking-pill .bp-dot { display: inline-block; width: 6px; height: 6px; border-radius: 9999px; background: #dc2626; margin-right: 3px; vertical-align: middle; }
 
+        /* ===== 예약현황 플로팅 버튼 바 ===== */
+        @keyframes floatBarIn { from { opacity: 0; transform: translate(-50%, -12px); } to { opacity: 1; transform: translate(-50%, 0); } }
+        #statusFloatingBar { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 900; width: max-content; max-width: calc(100% - 16px); }
+        #statusFloatingBar.show { animation: floatBarIn .22s ease-out; }
+
         /* 칸 폭이 좁아지면 자동으로 축약 표시 (글자 겹침 방지) */
         @container (max-width: 125px) {
             .course-tab { font-size: 11px; padding: 2px 6px; }
@@ -333,7 +338,7 @@
                         <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="statusMonthFilter" value="11" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">12월</span></label>
                     </div>
                  </div>
-                 <div class="flex flex-wrap items-center mb-3 md:mb-6 gap-2 md:gap-4">
+                 <div id="statusActionBar" class="flex flex-wrap items-center mb-3 md:mb-6 gap-2 md:gap-4">
                     <div id="statusWeekendSummary" class="hidden flex items-center gap-2 md:gap-4 text-xs md:text-base font-bold whitespace-nowrap">
                         <span class="text-navy-800">주말: <span id="weekendCount">0</span>건</span>
                         <span class="text-gray-300">|</span>
@@ -490,6 +495,18 @@
                     <div id="prepaidTableContainer" class="overflow-x-auto"></div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- 예약현황 탭: 스크롤 시 상단에 따라오는 플로팅 버튼 바 -->
+    <div id="statusFloatingBar" class="hidden">
+        <div class="flex flex-wrap items-center justify-center gap-1.5 md:gap-2 bg-white/95 backdrop-blur border border-[#e7e4dc] rounded-2xl shadow-xl px-2 py-1.5 md:px-3 md:py-2">
+            <span id="floatSelectedCount" class="text-[11px] md:text-sm font-bold text-navy-800 whitespace-nowrap px-1">선택 0건</span>
+            <button type="button" data-target="openModalBtn" class="float-btn bg-gold-500 hover:bg-gold-400 text-navy-900 font-bold py-1 px-3 md:py-2 md:px-4 rounded-lg text-xs md:text-sm shadow-sm whitespace-nowrap">+ 예약 신청</button>
+            <button type="button" data-target="cancelSelectedBtn" class="float-btn bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1 px-3 md:py-2 md:px-4 rounded-lg text-xs md:text-sm shadow-sm whitespace-nowrap">선택 취소</button>
+            <button type="button" data-target="completeSelectedBtn" class="float-btn bg-navy-700 hover:bg-navy-800 text-white font-bold py-1 px-3 md:py-2 md:px-4 rounded-lg text-xs md:text-sm shadow-sm whitespace-nowrap">취소 완료</button>
+            <button type="button" data-target="deleteSelectedBtn" class="float-btn bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 md:py-2 md:px-4 rounded-lg text-xs md:text-sm shadow-sm whitespace-nowrap">삭제</button>
+            <button type="button" id="floatScrollTopBtn" class="text-gray-500 hover:text-navy-900 font-bold py-1 px-2 rounded-lg text-xs md:text-sm whitespace-nowrap" title="맨 위로">▲</button>
         </div>
     </div>
 
@@ -1451,7 +1468,39 @@
             }
         }
 
+        /**
+         * 예약현황 플로팅 버튼 바 표시/갱신
+         * - 예약현황 탭이 열려 있고, 원래 버튼 줄이 화면 위로 지나가면 상단에 표시
+         * - 권한상 숨겨진 버튼은 플로팅 바에서도 숨김, 선택 건수 표시
+         */
+        function updateStatusFloatingBar() {
+            const bar = document.getElementById('statusFloatingBar');
+            const anchor = document.getElementById('statusActionBar');
+            if (!bar || !anchor) return;
+            const statusOpen = !document.getElementById('mainApp').classList.contains('hidden')
+                && !document.getElementById('statusView').classList.contains('hidden');
+            const passed = anchor.getBoundingClientRect().bottom < 0;
+            const shouldShow = statusOpen && passed;
+
+            if (shouldShow) {
+                bar.querySelectorAll('.float-btn').forEach(btn => {
+                    const target = document.getElementById(btn.dataset.target);
+                    btn.classList.toggle('hidden', !target || target.classList.contains('hidden'));
+                });
+                const cnt = document.querySelectorAll('.booking-checkbox:checked').length;
+                document.getElementById('floatSelectedCount').textContent = `선택 ${cnt}건`;
+            }
+            if (shouldShow && bar.classList.contains('hidden')) {
+                bar.classList.remove('hidden');
+                bar.classList.remove('show'); void bar.offsetWidth; bar.classList.add('show');
+            } else if (!shouldShow && !bar.classList.contains('hidden')) {
+                bar.classList.add('hidden');
+            }
+        }
+
         function renderStatus() {
+            // 표가 다시 그려지면 체크가 초기화되므로 렌더 직후 플로팅 바 갱신
+            queueMicrotask(updateStatusFloatingBar);
             const statusTableBody = document.getElementById('statusTableBody');
             statusTableBody.innerHTML = '';
 
@@ -1941,7 +1990,24 @@
                     target.classList.remove('bg-white', 'text-gray-600', 'border');
                     target.classList.add('bg-navy-900', 'text-white', 'shadow-md');
                     document.getElementById(id.replace('TabBtn', 'View')).classList.remove('hidden');
+                    updateStatusFloatingBar();
                 });
+            });
+
+            // 예약현황 플로팅 버튼 바: 스크롤/리사이즈 시 표시 갱신, 버튼은 원래 버튼을 그대로 실행
+            let floatTicking = false;
+            const onScrollFloat = () => {
+                if (floatTicking) return;
+                floatTicking = true;
+                requestAnimationFrame(() => { floatTicking = false; updateStatusFloatingBar(); });
+            };
+            window.addEventListener('scroll', onScrollFloat, { passive: true });
+            window.addEventListener('resize', onScrollFloat);
+            document.querySelectorAll('#statusFloatingBar .float-btn').forEach(btn => {
+                btn.addEventListener('click', () => document.getElementById(btn.dataset.target)?.click());
+            });
+            document.getElementById('floatScrollTopBtn').addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             });
 
             document.getElementById('logoutBtn').onclick = () => {
@@ -2151,6 +2217,9 @@
                 if(e.target && e.target.id === 'selectAllStatus') {
                     const isChecked = e.target.checked;
                     document.querySelectorAll('.booking-checkbox').forEach(cb => cb.checked = isChecked);
+                }
+                if (e.target && (e.target.id === 'selectAllStatus' || e.target.classList?.contains('booking-checkbox'))) {
+                    updateStatusFloatingBar();
                 }
             });
             // 선택 취소: 서버 전용 'cancel' 액션 사용 (상태만 '취소중'으로 변경)
