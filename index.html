@@ -61,6 +61,10 @@
         .booking-pill .bp-time { font-weight: 700; color: #111827; text-align: right; font-variant-numeric: tabular-nums; }
         .booking-pill .bp-arrow { color: #374151; font-size: 10px; }
         .booking-pill .bp-dot { display: inline-block; width: 6px; height: 6px; border-radius: 9999px; background: #dc2626; margin-right: 3px; vertical-align: middle; }
+        /* 승인대기(마케팅) 표시 */
+        .booking-pill.is-pending { border-style: dashed !important; }
+        .pending-tag { display: inline-block; font-size: 10px; font-weight: 800; color: #92400e; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 4px; padding: 0 4px; line-height: 1.4; }
+        .pending-dot { display: inline-block; width: 6px; height: 6px; border-radius: 9999px; background: #f59e0b; margin-left: 2px; vertical-align: middle; }
 
         /* ===== 예약 신청/수정 팝업: 컴팩트 입력칸 (글자보다 약간 큰 높이) ===== */
         #bookingModal .modal-content { padding: 24px; max-width: 520px; }
@@ -312,7 +316,7 @@
                     <button id="statusTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 whitespace-nowrap hover:shadow-md">예약 현황</button>
                     <button id="todayTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 hidden whitespace-nowrap hover:shadow-md">금일 예약</button>
                     <button id="entertainmentTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 whitespace-nowrap hover:shadow-md">접대비 차감</button>
-                    <button id="lookupTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 hidden whitespace-nowrap hover:shadow-md">조회</button>
+                    <button id="lookupTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 hidden whitespace-nowrap hover:shadow-md">조회<span id="pendingBadge" class="hidden ml-1.5 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-500 text-white text-[11px] font-black align-middle" title="마케팅 예약 승인 대기">0</span></button>
                     <button id="anonymousTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 hidden whitespace-nowrap hover:shadow-md">무기명</button>
                     <button id="prepaidTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 hidden whitespace-nowrap hover:shadow-md">선불제</button>
                 </nav>
@@ -382,6 +386,7 @@
                     <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="statusFilter" value="예약완료" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">예약완료</span></label>
                     <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="statusFilter" value="완료" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">완료</span></label>
                     <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="statusFilter" value="예약중" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">예약중</span></label>
+                    <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="statusFilter" value="승인대기" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">대기</span></label>
                     <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="statusFilter" value="취소" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">취소</span></label>
                     <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" id="statusNonMemberFilter" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1" style="accent-color:#b08d4f"><span class="text-[10px] sm:text-[11px] md:text-sm font-bold text-gold-500">비회원가</span></label>
                     <div id="sienaCourseFilterWrapper" class="hidden flex flex-wrap items-center gap-1 min-w-0 ml-1 md:ml-2 pl-1 md:pl-2 border-l border-gray-300">
@@ -538,6 +543,29 @@
 
             <!-- 조회 탭 -->
             <div id="lookupView" class="tab-content hidden">
+                <!-- 관리자: 마케팅 목적 예약 승인 대기 목록 -->
+                <div class="mb-4 md:mb-6 p-3 md:p-5 bg-white rounded-xl md:rounded-2xl border border-amber-200 card-shadow">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-2 md:mb-3">
+                        <h3 class="text-base md:text-xl font-extrabold text-navy-900 whitespace-nowrap">📝 마케팅 예약 승인 대기 <span id="approvalCount" class="text-amber-600">0</span>건</h3>
+                        <p class="text-[11px] md:text-xs text-gray-500">월 배정이 없는 직원의 마케팅 목적 예약입니다. 승인하면 '예약중'으로 바뀝니다.</p>
+                    </div>
+                    <div class="overflow-x-auto rounded-lg border border-gray-200">
+                        <table class="min-w-full bg-white text-xs md:text-sm">
+                            <thead class="bg-amber-50 text-gray-700 font-bold">
+                                <tr>
+                                    <th class="py-2 px-2 md:px-3 text-left">신청자</th>
+                                    <th class="py-2 px-2 md:px-3 text-left">골프장</th>
+                                    <th class="py-2 px-2 md:px-3 text-left">날짜</th>
+                                    <th class="py-2 px-2 md:px-3 text-center">팀</th>
+                                    <th class="py-2 px-2 md:px-3 text-left">참석자 (회사)</th>
+                                    <th class="py-2 px-2 md:px-3 text-left">비고</th>
+                                    <th class="py-2 px-2 md:px-3 text-center">처리</th>
+                                </tr>
+                            </thead>
+                            <tbody id="approvalTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
                 <div class="bg-gray-50 p-4 md:p-8 rounded-xl md:rounded-2xl border border-gray-200 mb-4 md:mb-8 flex flex-wrap gap-4 md:gap-6 items-center shadow-sm">
                     <div class="flex items-center gap-2 md:gap-3">
                         <label class="text-sm md:text-lg font-bold text-gray-700">성명:</label>
@@ -789,6 +817,26 @@
                         <label class="bm-label">전달여부</label>
                         <input type="text" id="deliveryStatus" class="bm-field">
                     </div>
+                    <!-- 마케팅 목적 예약 (월 배정 없는 직원): 참석자·회사명 입력 → 관리자 승인 후 확정 -->
+                    <div id="marketingSection" class="col-span-2 hidden rounded-lg border border-[#e3d3ad] bg-[#f6eedb]/70 px-2.5 py-2">
+                        <p class="text-[11px] md:text-xs font-bold text-[#8a6a2f] mb-1.5 leading-snug">
+                            📋 마케팅 목적 예약 <span class="font-normal text-[#9c8150]">— 월 배정이 없어 관리자 승인 후 확정됩니다. 참석자 1은 필수</span>
+                        </p>
+                        <div class="grid grid-cols-[auto_1fr_1fr] gap-x-2 gap-y-1.5 items-center">
+                            <span class="text-[11px] font-bold text-gray-600"></span>
+                            <span class="text-[11px] font-bold text-gray-600">참석자 성명</span>
+                            <span class="text-[11px] font-bold text-gray-600">회사명</span>
+                            <span class="text-[11px] md:text-xs font-bold text-gray-700 whitespace-nowrap">참석자 1</span>
+                            <input type="text" id="mkName1" maxlength="30" class="bm-field" placeholder="필수">
+                            <input type="text" id="mkComp1" maxlength="50" class="bm-field" placeholder="필수">
+                            <span class="text-[11px] md:text-xs font-bold text-gray-700 whitespace-nowrap">참석자 2</span>
+                            <input type="text" id="mkName2" maxlength="30" class="bm-field">
+                            <input type="text" id="mkComp2" maxlength="50" class="bm-field">
+                            <span class="text-[11px] md:text-xs font-bold text-gray-700 whitespace-nowrap">참석자 3</span>
+                            <input type="text" id="mkName3" maxlength="30" class="bm-field">
+                            <input type="text" id="mkComp3" maxlength="50" class="bm-field">
+                        </div>
+                    </div>
                     <div class="col-span-2">
                         <label class="bm-label" for="notes">비고</label>
                         <input type="text" id="notes" class="bm-field">
@@ -978,7 +1026,11 @@
         const MODAL_GOLF_COURSES = ['레이크우드', '스카이밸리', '벨루토', '힐드로사이', '중부'];
         // 관리자: 하루 여러 건 예약 가능한 골프장 (회원구분 무관)
         const MULTI_BOOKING_COURSES = ['스카이밸리', '힐드로사이'];
-        const INACTIVE_STATUSES = ['취소완료', '우천취소', '취소중'];
+        const INACTIVE_STATUSES = ['취소완료', '우천취소', '취소중', '반려'];
+        // 마케팅 목적 예약 (월 배정 없는 직원): 관리자 승인 전 상태
+        const PENDING_STATUS = '승인대기';
+        const MARKETING_FIELDS = ['참석자1', '참석자1회사', '참석자2', '참석자2회사', '참석자3', '참석자3회사'];
+        const QUOTA_FIELDS = ['Lakewood_Weekday', 'Lakewood_Weekend', 'SkyValley', 'HillydeSicy', 'Velluto_Weekday', 'Velluto_Weekend', 'Seragio_Weekday', 'Seragio_Weekend'];
         const MANAGER_ROLES = ['ADMIN', 'SIENA_ADMIN'];
         const GOLF_COURSE_COLORS = {
             '레이크우드': 'text-black',
@@ -1003,7 +1055,31 @@
         };
 
         const VALID_STATUSES = ['예약완료', '예약중'];
+        // 캘린더에 '자리 있음(occupied)'으로 표시할 상태 — 승인대기도 자리를 차지
+        const CALENDAR_STATUSES = ['예약완료', '예약중', '승인대기'];
         const IS_VALID_FOR_COUNTING = (b) => b.MP != 0 && VALID_STATUSES.includes(b.Status);
+
+        /** 월 배정이 전혀 없는 일반 직원인지 (→ 마케팅 목적 예약 + 관리자 승인) */
+        function isUnallocatedUser() {
+            if (!currentUser || getUserRole(currentUser.name) !== 'NORMAL_USER') return false;
+            const q = userQuotas[currentUser.name];
+            if (!q) return true;
+            return QUOTA_FIELDS.every(k => !(Number(q[k]) > 0));
+        }
+        /** 마케팅 신청 정보가 있는 예약인지 */
+        function isMarketingBooking(b) {
+            return !!(b && (String(b['마케팅'] || '').trim() === 'Y' || String(b['참석자1'] || '').trim()));
+        }
+        /** 참석자 목록 문자열: "홍길동(A사), 김철수(B사)" */
+        function attendeeText(b) {
+            const out = [];
+            for (let i = 1; i <= 3; i++) {
+                const n = String(b['참석자' + i] || '').trim();
+                const c = String(b['참석자' + i + '회사'] || '').trim();
+                if (n) out.push(c ? `${n}(${c})` : n);
+            }
+            return out.join(', ');
+        }
 
         const isWeekendBooking = (booking) => {
             if (!booking || !booking.Date) return false;
@@ -1313,8 +1389,12 @@
             document.getElementById('statusCourseFilterWrapper').classList.toggle('hidden', !isManager);
             document.getElementById('statusWeekendSummary').classList.toggle('hidden', !isManager);
             document.getElementById('adminEntertainmentFilter').classList.toggle('hidden', !isManager);
-            // 캘린더 기본/상세 토글은 관리자에게만 표시
-            document.getElementById('calViewToggle').classList.toggle('hidden', !isManager);
+            // 캘린더 기본/상세 토글: 모든 사용자 (관리자 외에는 본인 건만 이름·시간 표시)
+            document.getElementById('calViewToggle').classList.remove('hidden');
+            // 조회 탭 승인 대기 건수 배지 (관리자)
+            const pendingCnt = isManager ? bookings.filter(b => b.Status === PENDING_STATUS).length : 0;
+            const badge = document.getElementById('pendingBadge');
+            if (badge) { badge.textContent = pendingCnt; badge.classList.toggle('hidden', pendingCnt === 0); }
 
             const sienaFilter = document.getElementById('sienaCourseFilterWrapper');
             if (sienaFilter) sienaFilter.classList.toggle('hidden', role !== 'SIENA_ADMIN');
@@ -1338,6 +1418,7 @@
                 renderAnonymousView();
                 renderPrepaidView();
                 renderTodayView();
+                renderApprovalList();
             }
         }
 
@@ -1471,14 +1552,19 @@
                 const st = COURSE_DETAIL_STYLE[course] || { label: course, tab: '#e5e7eb', line: '#9ca3af', pill: '#f9fafb', border: '#9ca3af' };
                 const list = dayBookings.filter(b => b['Golf Course'] === course)
                     .sort((a, b) => (parseTeeTimes(a.Time)[0] || '').localeCompare(parseTeeTimes(b.Time)[0] || ''));
+                const isAdminView = role === 'ADMIN';
+                // 관리자: 모든 예약 이름·시간 / 그 외: 본인 예약만 이름·시간, 다른 사람 예약은 골프장명만
+                const visibleList = isAdminView ? list : list.filter(b => !b._redacted && b.Name === currentUser.name);
                 const group = document.createElement('div');
                 group.className = 'course-group';
                 const shortLabel = COURSE_ABBR[course] || st.label;
-                group.innerHTML = `<span class="course-tab" style="background:${st.tab}" title="${esc(st.label)} ${list.length}건">`
-                    + `<span class="lbl-full">${esc(st.label)} (${list.length}건)</span>`
-                    + `<span class="lbl-short">${esc(shortLabel)}<span class="lbl-count">(${list.length})</span></span>`
+                const countFull = isAdminView ? ` (${list.length}건)` : '';
+                const countShort = isAdminView ? `<span class="lbl-count">(${list.length})</span>` : '';
+                group.innerHTML = `<span class="course-tab" style="background:${st.tab}" title="${esc(st.label)}${isAdminView ? ' ' + list.length + '건' : ''}">`
+                    + `<span class="lbl-full">${esc(st.label)}${countFull}</span>`
+                    + `<span class="lbl-short">${esc(shortLabel)}${countShort}</span>`
                     + `</span><div class="course-line" style="background:${st.line}"></div>`;
-                list.forEach(b => {
+                visibleList.forEach(b => {
                     const pill = document.createElement('div');
                     pill.className = 'booking-pill';
                     pill.style.background = st.pill;
@@ -1489,8 +1575,13 @@
                     // 상세보기: 이용자 + 티오프 시간만 표시 (비고 제외)
                     // 첫 행: 이름 ▶ 시간1 / 다음 행부터: (빈칸) ▶ 시간2, 시간3 … 시간 열 정렬
                     const times = parseTeeTimes(b.Time);
-                    const rows = (times.length ? times : ['-']).map((t, i) =>
-                        `<span class="bp-name">${i === 0 ? nonMember + esc(b.Name) : ''}</span><span class="bp-arrow">▶</span><span class="bp-time">${esc(t)}</span>`);
+                    const isPending = b.Status === PENDING_STATUS;
+                    // 승인대기 건은 시간 대신 '대기' 표시
+                    const rows = isPending
+                        ? [`<span class="bp-name">${nonMember}${esc(b.Name)}</span><span class="bp-arrow">▶</span><span class="bp-time"><span class="pending-tag">대기</span></span>`]
+                        : (times.length ? times : ['-']).map((t, i) =>
+                            `<span class="bp-name">${i === 0 ? nonMember + esc(b.Name) : ''}</span><span class="bp-arrow">▶</span><span class="bp-time">${esc(t)}</span>`);
+                    if (isPending) pill.classList.add('is-pending');
                     pill.innerHTML = rows.join('');
                     pill.dataset.teeCount = times.length;
                     if (isNonMember) pill.title = '비회원가';
@@ -1562,8 +1653,8 @@
         function renderCalendar() {
             const calendarEl = document.getElementById('calendar');
             calendarEl.innerHTML = '';
-            // 상세보기는 관리자 전용 — 그 외 사용자는 항상 기본 보기
-            const isDetail = calendarViewMode === 'detail' && getUserRole(currentUser.name) === 'ADMIN';
+            // 상세보기: 모든 사용자 사용 가능 (관리자 외에는 본인 예약만 이름·시간 표시)
+            const isDetail = calendarViewMode === 'detail';
             calendarEl.classList.toggle('detail-mode', isDetail);
             updateCalViewToggle();
 
@@ -1577,7 +1668,7 @@
             }
 
             const checkedCourses = Array.from(document.querySelectorAll('input[name="calCourseFilter"]:checked')).map(cb => cb.value);
-            let filteredBookings = bookings.filter(b => isInSelectedPeriod(b.Date) && VALID_STATUSES.includes(b.Status));
+            let filteredBookings = bookings.filter(b => isInSelectedPeriod(b.Date) && CALENDAR_STATUSES.includes(b.Status));
             const role = getUserRole(currentUser.name);
 
             if (role === 'ADMIN') {
@@ -1612,7 +1703,7 @@
                 const lastDay = new Date(selectedYear, m + 1, 0);
 
                 const monthlyBookings = bookings.filter(b => {
-                    if (!VALID_STATUSES.includes(b.Status)) return false;
+                    if (!CALENDAR_STATUSES.includes(b.Status)) return false;
                     const d = new Date(String(b.Date).replace(/\./g, '-'));
                     return !isNaN(d) && d.getFullYear() === selectedYear && d.getMonth() === m;
                 });
@@ -1682,6 +1773,13 @@
                             courseEl.className = `booking-info ${GOLF_COURSE_COLORS[course] || ''} truncate`;
                             const label = COURSE_ABBR[course] || course;
                             courseEl.textContent = courseBookings.length > 1 ? `${label}(${courseBookings.length})` : label;
+                            // 승인대기 건이 있으면 라벨 옆에 작은 주황 점 (자리는 차지한 것으로 표시)
+                            if (courseBookings.some(b => b.Status === PENDING_STATUS)) {
+                                const dot = document.createElement('span');
+                                dot.className = 'pending-dot';
+                                dot.title = '승인 대기 중';
+                                courseEl.appendChild(dot);
+                            }
                             if (role === 'ADMIN') {
                                 courseEl.classList.add('cursor-pointer', 'hover:underline');
                                 courseEl.title = '클릭하여 예약 수정';
@@ -1762,7 +1860,7 @@
             if (!checkedStatuses.includes('전체')) {
                 filtered = filtered.filter(b => {
                     if (checkedStatuses.includes(b.Status)) return true;
-                    if (checkedStatuses.includes('취소') && ['우천취소', '취소완료', '취소중'].includes(b.Status)) return true;
+                    if (checkedStatuses.includes('취소') && ['우천취소', '취소완료', '취소중', '반려'].includes(b.Status)) return true;
                     return false;
                 });
             }
@@ -1804,12 +1902,19 @@
 
                 let rowClass = "border-b hover:bg-[#f3eee3] cursor-pointer transition-colors";
                 const status = b.Status || '';
-                if (['우천취소', '취소완료', '취소중'].includes(status)) {
+                if (['우천취소', '취소완료', '취소중', '반려'].includes(status)) {
                     rowClass = "border-b hover:bg-red-50 bg-red-50 text-red-900 cursor-pointer transition-colors";
                 }
                 let statusBgClass = "bg-white";
                 let statusBorderClass = "border-gray-300";
                 let statusTextClass = "";
+                // 마케팅 예약 승인대기 → '대기' 주황 배지
+                let statusLabel = status;
+                if (status === PENDING_STATUS) {
+                    statusLabel = '대기';
+                    statusBgClass = "bg-amber-100"; statusBorderClass = "border-amber-300"; statusTextClass = "text-amber-800";
+                }
+                const marketingBadge = isMarketingBooking(b) ? `<span class="ml-1 text-[10px] bg-sky-50 text-sky-700 border border-sky-200 px-1.5 py-0.5 rounded font-bold whitespace-nowrap" title="${esc(attendeeText(b))}">마케팅</span>` : '';
                 const smsStatus = b['문자현황'] || '';
 
                 if (status === '예약완료') {
@@ -1851,7 +1956,7 @@
                     <td class="p-2 md:p-4 font-bold text-gray-600 whitespace-nowrap">${esc(displayDate)}${dayLabel}</td>
                     <td class="p-2 md:p-4 text-center font-bold">${esc(b.Team)}</td>
                     <td class="p-2 md:p-4">${esc(b.Time) || '-'}</td>
-                    <td class="p-2 md:p-4"><span class="px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-bold border shadow-sm whitespace-nowrap ${statusBgClass} ${statusBorderClass} ${statusTextClass}">${esc(status) || '미정'}</span>${nonMemberBadge}</td>
+                    <td class="p-2 md:p-4"><span class="px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-bold border shadow-sm whitespace-nowrap ${statusBgClass} ${statusBorderClass} ${statusTextClass}">${esc(statusLabel) || '미정'}</span>${nonMemberBadge}${marketingBadge}</td>
                     <td class="p-2 md:p-4 text-center">${deliveryCellHtml}</td>
                     <td class="p-2 md:p-4 text-xs md:text-sm text-gray-500 col-comment" title="${esc(b.Comment) || ''}">${esc(b.Comment) || ''}</td>`;
                 row.onclick = (e) => {
@@ -1865,6 +1970,38 @@
                 };
                 statusTableBody.appendChild(row);
             });
+        }
+
+        /** 관리자: 마케팅 예약 승인 대기 목록 (날짜 오름차순) */
+        function renderApprovalList() {
+            const body = document.getElementById('approvalTableBody');
+            if (!body) return;
+            const list = bookings.filter(b => b.Status === PENDING_STATUS).sort(compareByDateTime);
+            document.getElementById('approvalCount').textContent = list.length;
+            if (list.length === 0) {
+                body.innerHTML = `<tr><td colspan="7" class="py-5 text-center text-gray-400 font-bold">승인 대기 중인 신청이 없습니다.</td></tr>`;
+                return;
+            }
+            const wd = ['일', '월', '화', '수', '목', '금', '토'];
+            body.innerHTML = list.map(b => {
+                const d = normDateStr(b.Date), dObj = new Date(d);
+                const people = [1, 2, 3].map(i => {
+                    const n = String(b['참석자' + i] || '').trim(), c = String(b['참석자' + i + '회사'] || '').trim();
+                    return n ? `<div class="whitespace-nowrap">${esc(n)} <span class="text-gray-500">(${esc(c)})</span></div>` : '';
+                }).join('');
+                return `<tr class="border-t hover:bg-amber-50/40">
+                    <td class="py-2 px-2 md:px-3 font-bold whitespace-nowrap">${esc(b.Name)}</td>
+                    <td class="py-2 px-2 md:px-3 whitespace-nowrap">${esc(b['Golf Course'])}</td>
+                    <td class="py-2 px-2 md:px-3 whitespace-nowrap">${esc(d)} <span class="text-gray-400">(${isNaN(dObj) ? '' : wd[dObj.getDay()]})</span></td>
+                    <td class="py-2 px-2 md:px-3 text-center">${esc(b.Team)}</td>
+                    <td class="py-2 px-2 md:px-3">${people || '-'}</td>
+                    <td class="py-2 px-2 md:px-3 text-gray-500 max-w-[160px] truncate" title="${esc(b.Comment)}">${esc(b.Comment)}</td>
+                    <td class="py-2 px-2 md:px-3 text-center whitespace-nowrap">
+                        <button type="button" data-approve="approve" data-id="${esc(b.id)}" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1 rounded-lg text-xs md:text-sm whitespace-nowrap">승인</button>
+                        <button type="button" data-approve="reject" data-id="${esc(b.id)}" class="ml-1 bg-white hover:bg-red-50 text-red-600 border border-red-300 font-bold px-3 py-1 rounded-lg text-xs md:text-sm whitespace-nowrap">반려</button>
+                    </td>
+                </tr>`;
+            }).join('');
         }
 
         function renderTodayView() {
@@ -2535,6 +2672,30 @@
             /* ----- 접대비 차감: 무기명 제외 / 금액 입력(콤마·실시간 잔여) / 반영 ----- */
             document.getElementById('entExcludeAnon').addEventListener('change', renderEntertainmentView);
             document.getElementById('entExcludeFuture').addEventListener('change', renderEntertainmentView);
+
+            /* ----- 마케팅 예약 승인 / 반려 (관리자) ----- */
+            document.getElementById('approvalTableBody').addEventListener('click', (e) => {
+                const btn = e.target.closest('button[data-approve]');
+                if (!btn) return;
+                const decision = btn.dataset.approve;
+                const b = bookings.find(x => String(x.id) === String(btn.dataset.id));
+                if (!b) return;
+                const label = decision === 'approve' ? '승인' : '반려';
+                const people = attendeeText(b);
+                showConfirm(`${b.Name}님의 마케팅 예약을 ${label}하시겠습니까?\n\n${b['Golf Course']} · ${normDateStr(b.Date)} · ${b.Team}팀\n참석자: ${people || '-'}`, async () => {
+                    showLoading(true, `${label} 처리 중입니다...`);
+                    try {
+                        const res = await postData('approveBooking', { id: b.id, decision }, true);
+                        await fetchInitialData();
+                        renderApp();
+                        showAlert(res.message);
+                    } catch (err) {
+                        if (sessionToken) showAlert(`${label} 실패: ${err.message}`);
+                    } finally {
+                        showLoading(false);
+                    }
+                });
+            });
             ['commonEntertainment', 'personalEntertainment'].forEach(id => {
                 document.getElementById(id).addEventListener('input', (e) => {
                     e.target.value = formatNumberWithCommas(e.target.value);
@@ -2789,6 +2950,7 @@
                 document.getElementById('deliveryStatus').value = booking.DeliveryStatus || '';
 
                 applyModalPermissions(isAdminUser, true);
+                setupMarketingSection(booking, isAdminUser);
                 updateAvailableGolfCourses(bDate, booking.id);
                 const courseSelect = document.getElementById('golfCourse');
                 // 기존 예약 골프장이 목록에 없으면(과거 중복 데이터 등) 강제로 추가
@@ -2810,9 +2972,43 @@
                 if (dateStr) document.getElementById('bookingDate').value = dateStr;
 
                 applyModalPermissions(isAdminUser, false);
+                setupMarketingSection(null, isAdminUser);
                 updateAvailableGolfCourses(dateStr || toLocalDateStr(new Date()));
             }
             openModalWithAnim('bookingModal');
+        }
+
+        /**
+         * 마케팅 참석자 입력란 표시
+         * - 신규: 월 배정이 없는 일반 직원에게만 표시
+         * - 수정: 마케팅 예약이면 표시 (본인은 승인대기 상태에서만 수정 가능, 관리자는 항상 수정 가능)
+         */
+        function setupMarketingSection(booking, isAdminUser) {
+            const sec = document.getElementById('marketingSection');
+            const show = booking ? isMarketingBooking(booking) : isUnallocatedUser();
+            sec.classList.toggle('hidden', !show);
+            if (!booking && show) setBookingStatusValue(PENDING_STATUS); // 신규 마케팅 신청은 상태를 '승인대기'로 표시
+            const editable = !booking || isAdminUser || booking.Status === PENDING_STATUS;
+            for (let i = 1; i <= 3; i++) {
+                const n = document.getElementById('mkName' + i), c = document.getElementById('mkComp' + i);
+                n.value = booking ? String(booking['참석자' + i] || '') : '';
+                c.value = booking ? String(booking['참석자' + i + '회사'] || '') : '';
+                n.readOnly = !editable; c.readOnly = !editable;
+            }
+        }
+
+        /** 참석자 입력값 확인 + 수집 (오류 시 문자열 반환) */
+        function collectMarketingFields() {
+            const data = {};
+            for (let i = 1; i <= 3; i++) {
+                const n = document.getElementById('mkName' + i).value.trim();
+                const c = document.getElementById('mkComp' + i).value.trim();
+                if (i === 1 && (!n || !c)) return { error: '참석자 1의 성명과 회사명을 입력해 주세요.' };
+                if ((n && !c) || (!n && c)) return { error: `참석자 ${i}의 성명과 회사명을 함께 입력해 주세요.` };
+                data['참석자' + i] = n;
+                data['참석자' + i + '회사'] = c;
+            }
+            return { data };
         }
 
         // 예약 상태 선택값 (관리자가 고르는 값)
@@ -3172,6 +3368,15 @@
                 showAlert("골프장을 선택해 주세요.");
                 return;
             }
+            // 마케팅 목적 예약: 참석자 확인 + 신규 신청은 '승인대기' 로 저장
+            const marketingVisible = !document.getElementById('marketingSection').classList.contains('hidden');
+            if (marketingVisible) {
+                const mk = collectMarketingFields();
+                if (mk.error) { showAlert(mk.error); return; }
+                Object.assign(bookingData, mk.data);
+                bookingData['마케팅'] = 'Y';
+                if (!bookingData.id && !isAdminUser) bookingData['Status'] = PENDING_STATUS;
+            }
             // 골프장 중복 검사 (관리자 다중 예약 규칙 포함)
             const originalDate = normDateStr(originalBooking.Date);
             const slotChanged = !bookingId || originalDate !== dateVal || originalBooking['Golf Course'] !== course || originalBooking['회원구분'] !== bookingData['회원구분'];
@@ -3195,7 +3400,8 @@
                         return;
                     }
                 }
-                if (!isAdminUser && currentUser.name === inputName) {
+                // 월 배정이 없는 직원(마케팅 예약)은 한도 검사 대신 관리자 승인
+                if (!isAdminUser && currentUser.name === inputName && !isUnallocatedUser()) {
                       const quotaError = checkQuota(bookingData);
                       if (quotaError) {
                           showAlert(quotaError);
