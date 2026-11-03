@@ -11,6 +11,8 @@
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
     <script>
       tailwind.config = {
+        // 터치 기기에서는 hover 스타일 미적용 (모바일에서 탭 터치 후 hover 색이 남는 문제 방지)
+        future: { hoverOnlyWhenSupported: true },
         theme: {
           extend: {
             fontFamily: { sans: ['Pretendard', 'system-ui', 'sans-serif'] },
@@ -43,7 +45,7 @@
         .detail-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-left: 1px solid #e5e7eb; border-top: 1px solid #e5e7eb; }
         .detail-head { background: #f3f4f8; text-align: center; font-weight: 700; font-size: 13px; padding: 10px 0; border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; }
         .detail-day { container-type: inline-size; min-width: 0; min-height: 120px; padding: 6px 6px 8px; background: #fff; border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; cursor: pointer; transition: background-color .2s; }
-        .detail-day:hover { background: #faf7ef; }
+        @media (hover: hover) { .detail-day:hover { background: #faf7ef; } }
         .detail-day.is-empty { background: #fafafa; cursor: default; }
         .detail-day.is-today { box-shadow: inset 0 0 0 1.5px #e8a23a; }
         .detail-daynum { font-size: 13px; font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; min-height: 22px; }
@@ -52,12 +54,22 @@
         .course-tab { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; font-size: 12px; font-weight: 800; color: #1f2937; padding: 2px 10px; border-radius: 6px 6px 0 0; white-space: nowrap; }
         .course-tab .lbl-short { display: none; }
         .course-line { height: 1.5px; margin-bottom: 3px; }
-        .booking-pill { display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 1.5; border: 1px solid; border-radius: 6px; padding: 1px 6px; margin-bottom: 3px; white-space: nowrap; overflow: hidden; }
-        .booking-pill:hover { filter: brightness(0.96); }
-        .booking-pill .bp-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-        .booking-pill .bp-time { font-weight: 700; color: #111827; }
+        /* 예약 줄: [이름 | ▶ | 시간] 3열 격자 — 티오프가 여러 개면 시간 열에 맞춰 다음 행에 정렬 */
+        .booking-pill { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; column-gap: 5px; align-items: center; font-size: 12px; line-height: 1.5; border: 1px solid; border-radius: 6px; padding: 1px 6px; margin-bottom: 3px; white-space: nowrap; overflow: hidden; }
+        @media (hover: hover) { .booking-pill:hover { filter: brightness(0.96); } }
+        .booking-pill .bp-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+        .booking-pill .bp-time { font-weight: 700; color: #111827; text-align: right; font-variant-numeric: tabular-nums; }
         .booking-pill .bp-arrow { color: #374151; font-size: 10px; }
         .booking-pill .bp-dot { display: inline-block; width: 6px; height: 6px; border-radius: 9999px; background: #dc2626; margin-right: 3px; vertical-align: middle; }
+
+        /* ===== 예약 신청/수정 팝업: 컴팩트 입력칸 (글자보다 약간 큰 높이) ===== */
+        #bookingModal .modal-content { padding: 24px; max-width: 520px; }
+        #bookingForm .bm-label { display: block; font-size: 12px; font-weight: 800; color: #374151; margin-bottom: 2px; white-space: nowrap; }
+        #bookingForm .bm-field { display: block; width: 100%; height: 34px; font-size: 14px !important; padding: 4px 8px !important; line-height: 1.2;
+            border: 1.5px solid #d1d5db; border-radius: 8px; background-color: #fff; color: #1f2937; font-weight: 500; transition: border-color .15s, box-shadow .15s; }
+        #bookingForm .bm-field:focus { outline: none; border-color: #b08d4f; box-shadow: 0 0 0 2px rgba(198, 166, 103, .35); }
+        #bookingForm .bm-field[readonly], #bookingForm .bm-field:disabled { background-color: #f3f4f6; color: #6b7280; cursor: not-allowed; }
+        #bookingForm input[type="date"].bm-field { -webkit-appearance: none; appearance: none; min-width: 0; }
 
         /* ===== 예약현황 플로팅 버튼 바 ===== */
         @keyframes floatBarIn { from { opacity: 0; transform: translate(-50%, -12px); } to { opacity: 1; transform: translate(-50%, 0); } }
@@ -71,24 +83,18 @@
             .course-tab .lbl-short { display: inline; }
         }
         @container (max-width: 100px) {
-            .booking-pill { flex-direction: column; align-items: flex-start; gap: 0; padding: 1px 4px; line-height: 1.3; }
+            /* 좁은 칸: 이름과 시간은 한 행 유지, 화살표만 생략하고 글자 축소 */
+            .booking-pill { grid-template-columns: minmax(0, 1fr) auto; font-size: 11px; column-gap: 3px; padding: 1px 4px; }
             .booking-pill .bp-arrow { display: none; }
-            /* 좁은 칸에서는 이름을 자르지 않고 줄바꿈해서 전부 보이게 */
-            .booking-pill .bp-name { width: 100%; white-space: normal; word-break: break-all; overflow: visible; }
         }
-        @container (max-width: 64px) {
-            .course-tab { font-size: 9px; padding: 1px 3px; border-radius: 4px 4px 0 0; }
-            .course-tab .lbl-count { display: none; }
-            .booking-pill { font-size: 10px; padding: 1px 2px; }
-            .detail-daynum { font-size: 11px; min-height: 18px; }
-            .detail-today-badge { width: 18px; height: 18px; font-size: 10px; }
-        }
+        /* 상세보기 달력은 칸이 너무 좁아지지 않도록 최소 폭 유지 (모바일은 달력 안에서 가로 스크롤) */
+        .detail-grid { min-width: 680px; }
 
         .day-cell {
             min-height: 80px; display: flex; flex-direction: column; justify-content: flex-start; align-items: center;
             cursor: pointer; border: 1px solid #e5e7eb; transition: all 0.2s ease-in-out;
         }
-        .day-cell:hover { background-color: #faf7ef; border-color: #b08d4f; transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        @media (hover: hover) { .day-cell:hover { background-color: #faf7ef; border-color: #b08d4f; transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); } }
         .booking-info { font-size: 14px; line-height: 1.4; margin-top: 2px; width: 100%; text-align: center; font-weight: 700; transition: opacity 0.2s; }
 
         @keyframes fadeInScale {
@@ -147,7 +153,7 @@
         .checkbox-label {
             display: flex; align-items: center; cursor: pointer; padding: 0.5rem 0.75rem; border-radius: 0.5rem; transition: background-color 0.2s ease;
         }
-        .checkbox-label:hover { background-color: #f3eee3; }
+        @media (hover: hover) { .checkbox-label:hover { background-color: #f3eee3; } }
         .checkbox-input { width: 1.2rem; height: 1.2rem; margin-right: 0.5rem; accent-color: #0c1a33; cursor: pointer; transition: transform 0.1s; }
         .checkbox-input:active { transform: scale(0.9); }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
@@ -174,6 +180,9 @@
             input, select { font-size: 13px !important; padding: 6px !important; }
             button { padding-top: 6px !important; padding-bottom: 6px !important; font-size: 13px !important; }
             .modal-content { padding: 20px !important; width: 98% !important; }
+            #bookingModal .modal-content { padding: 14px 14px 12px !important; }
+            #bookingForm .bm-field { height: 32px; font-size: 13px !important; padding: 3px 7px !important; }
+            #bookingForm .bm-label { font-size: 11px; }
 
             .checkbox-label { padding: 0.1rem 0.15rem; font-size: 11px; }
             .checkbox-input { width: 0.9rem; height: 0.9rem; margin-right: 0.15rem; }
@@ -604,66 +613,72 @@
     <!-- 예약 신청/수정 모달 -->
     <div id="bookingModal" class="modal-overlay">
         <div class="modal-content">
-            <h2 id="modalTitle" class="text-2xl md:text-3xl font-extrabold mb-4 md:mb-8 text-gray-800 border-b pb-2 md:pb-4">예약 신청</h2>
-            <form id="bookingForm" class="space-y-3 md:space-y-6">
+            <h2 id="modalTitle" class="text-lg md:text-2xl font-extrabold mb-3 md:mb-5 text-gray-800 border-b pb-2 md:pb-3">예약 신청</h2>
+            <form id="bookingForm" class="space-y-3 md:space-y-4">
                 <input type="hidden" id="bookingId">
-                <div class="grid grid-cols-2 gap-3 md:gap-6">
-                    <div class="col-span-2">
-                        <label class="block text-sm font-extrabold text-gray-700 mb-1">신청인</label>
-                        <input type="text" id="userName" required class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-gold-400 focus:border-gold-400 bg-gray-50 text-gray-600 transition-shadow">
+                <!-- 컴팩트 2열 배치: 신청인|예약일자 / 골프장|팀수 / 티오프|회원구분 / 상태 / 비고 -->
+                <div class="grid grid-cols-2 gap-x-2.5 gap-y-2 md:gap-x-4 md:gap-y-3">
+                    <div>
+                        <label class="bm-label" for="userName">신청인</label>
+                        <input type="text" id="userName" required class="bm-field">
                     </div>
                     <div class="col-span-2 hidden">
-                        <label class="block text-sm font-extrabold text-gray-700 mb-1">전화번호</label>
-                        <input type="text" id="userPhone" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-gold-400 focus:border-gold-400 bg-white">
+                        <label class="bm-label">전화번호</label>
+                        <input type="text" id="userPhone" class="bm-field">
                     </div>
                     <div>
-                        <label class="block text-sm font-extrabold text-gray-700 mb-1">예약일자</label>
-                        <input type="date" id="bookingDate" required max="9999-12-31" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-gold-400 focus:border-gold-400 bg-white font-medium transition-shadow">
+                        <label class="bm-label" for="bookingDate">예약일자</label>
+                        <input type="date" id="bookingDate" required max="9999-12-31" class="bm-field">
                     </div>
                     <div class="hidden">
-                         <label class="block text-sm font-extrabold text-gray-700 mb-1">요일</label>
-                         <input type="text" id="bookingDay" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base bg-gray-50 text-gray-600">
+                         <label class="bm-label">요일</label>
+                         <input type="text" id="bookingDay" class="bm-field">
                     </div>
                     <div>
-                        <label class="block text-sm font-extrabold text-gray-700 mb-1">골프장</label>
-                        <select id="golfCourse" required class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-gold-400 focus:border-gold-400 bg-white font-medium transition-shadow"></select>
+                        <label class="bm-label" for="golfCourse">골프장</label>
+                        <select id="golfCourse" required class="bm-field"></select>
                     </div>
                     <div>
-                        <label class="block text-sm font-extrabold text-gray-700 mb-1">팀 수</label>
-                        <input type="number" id="numberOfTeams" min="1" required class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-gold-400 focus:border-gold-400 bg-white font-medium transition-shadow">
+                        <label class="bm-label" for="numberOfTeams">팀 수</label>
+                        <input type="number" id="numberOfTeams" min="1" required inputmode="numeric" class="bm-field">
                     </div>
                     <div id="bookingTimeWrapper" class="hidden">
-                        <label class="block text-sm font-extrabold text-gray-700 mb-1">티오프 시간</label>
-                        <input type="text" id="bookingTime" placeholder="HH:MM" maxlength="5" oninput="formatTimeInput(event)" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-gold-400 focus:border-gold-400 bg-white">
+                        <label class="bm-label" for="bookingTime">티오프 시간</label>
+                        <input type="text" id="bookingTime" placeholder="HH:MM" maxlength="5" inputmode="numeric" oninput="formatTimeInput(event)" class="bm-field">
                     </div>
                     <div>
-                        <label class="block text-sm font-extrabold text-gray-700 mb-1">회원구분</label>
-                        <select id="memberType" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-gold-400 focus:border-gold-400 bg-white font-medium transition-shadow">
+                        <label class="bm-label" for="memberType">회원구분</label>
+                        <select id="memberType" class="bm-field">
                             <option value="회원가">회원가</option>
                             <option value="비회원가">비회원가</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-extrabold text-gray-700 mb-1">상태</label>
-                        <input type="text" id="bookingStatus" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base bg-gray-50 text-gray-600 font-medium" readonly>
+                        <label class="bm-label" for="bookingStatus">상태</label>
+                        <select id="bookingStatus" class="bm-field">
+                            <option value="예약완료">예약완료</option>
+                            <option value="취소중">취소중</option>
+                            <option value="취소완료">취소완료</option>
+                            <option value="우천취소">우천취소</option>
+                        </select>
                     </div>
                     <div class="hidden">
-                        <label class="block text-sm font-extrabold text-gray-700 mb-1">부킹일자</label>
-                        <input type="date" id="bookingRecordDate" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base bg-white">
+                        <label class="bm-label">부킹일자</label>
+                        <input type="date" id="bookingRecordDate" class="bm-field">
                     </div>
                     <div class="hidden">
-                        <label class="block text-sm font-extrabold text-gray-700 mb-1">전달여부</label>
-                        <input type="text" id="deliveryStatus" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base bg-white">
+                        <label class="bm-label">전달여부</label>
+                        <input type="text" id="deliveryStatus" class="bm-field">
                     </div>
                     <div class="col-span-2">
-                        <label class="block text-sm font-extrabold text-gray-700 mb-1">비고</label>
-                        <input type="text" id="notes" class="block w-full border-2 border-gray-300 rounded-lg shadow-sm px-3 py-2 text-base focus:ring-2 focus:ring-gold-400 focus:border-gold-400 bg-white font-medium transition-shadow">
+                        <label class="bm-label" for="notes">비고</label>
+                        <input type="text" id="notes" class="bm-field">
                     </div>
-                    <p id="multiBookingHint" class="col-span-2 hidden text-xs md:text-sm text-gold-500 font-semibold bg-gold-50 border border-gold-400/40 rounded-lg px-3 py-2"></p>
+                    <p id="multiBookingHint" class="col-span-2 hidden text-xs md:text-sm text-gold-500 font-semibold bg-gold-50 border border-gold-400/40 rounded-lg px-2.5 py-1.5"></p>
                 </div>
-                <div class="flex justify-end space-x-2 md:space-x-4 pt-4 md:pt-8 border-t">
-                    <button type="button" id="closeModalBtn" class="px-4 py-2 md:px-8 md:py-3 rounded-xl border-2 border-gray-300 font-bold text-gray-600 hover:bg-gray-100 text-sm md:text-lg transition-colors whitespace-nowrap">닫기</button>
-                    <button type="submit" class="px-4 py-2 md:px-8 md:py-3 rounded-xl bg-navy-900 text-white font-bold hover:bg-navy-800 text-sm md:text-lg shadow-md transition-colors whitespace-nowrap">저장하기</button>
+                <div class="flex justify-end space-x-2 md:space-x-3 pt-3 md:pt-4 border-t">
+                    <button type="button" id="closeModalBtn" class="px-4 py-1.5 md:px-6 md:py-2 rounded-lg border-2 border-gray-300 font-bold text-gray-600 hover:bg-gray-100 text-sm md:text-base transition-colors whitespace-nowrap">닫기</button>
+                    <button type="submit" class="px-4 py-1.5 md:px-6 md:py-2 rounded-lg bg-navy-900 text-white font-bold hover:bg-navy-800 text-sm md:text-base shadow-md transition-colors whitespace-nowrap">저장하기</button>
                 </div>
             </form>
         </div>
@@ -1136,6 +1151,8 @@
             document.getElementById('statusCourseFilterWrapper').classList.toggle('hidden', !isManager);
             document.getElementById('statusWeekendSummary').classList.toggle('hidden', !isManager);
             document.getElementById('adminEntertainmentFilter').classList.toggle('hidden', !isManager);
+            // 캘린더 기본/상세 토글은 관리자에게만 표시
+            document.getElementById('calViewToggle').classList.toggle('hidden', !isManager);
 
             const sienaFilter = document.getElementById('sienaCourseFilterWrapper');
             if (sienaFilter) sienaFilter.classList.toggle('hidden', role !== 'SIENA_ADMIN');
@@ -1251,7 +1268,7 @@
             uniqueCourses.forEach(course => {
                 const st = COURSE_DETAIL_STYLE[course] || { label: course, tab: '#e5e7eb', line: '#9ca3af', pill: '#f9fafb', border: '#9ca3af' };
                 const list = dayBookings.filter(b => b['Golf Course'] === course)
-                    .sort((a, b) => String(a.Time || '').localeCompare(String(b.Time || '')));
+                    .sort((a, b) => (parseTeeTimes(a.Time)[0] || '').localeCompare(parseTeeTimes(b.Time)[0] || ''));
                 const group = document.createElement('div');
                 group.className = 'course-group';
                 const shortLabel = COURSE_ABBR[course] || st.label;
@@ -1268,7 +1285,12 @@
                     const isNonMember = b['회원구분'] === '비회원가';
                     const nonMember = isNonMember ? `<span class="bp-dot" title="비회원가"></span>` : '';
                     // 상세보기: 이용자 + 티오프 시간만 표시 (비고 제외)
-                    pill.innerHTML = `<span class="bp-name">${nonMember}${esc(b.Name)}</span><span class="bp-arrow">▶</span><span class="bp-time">${esc(b.Time) || '-'}</span>`;
+                    // 첫 행: 이름 ▶ 시간1 / 다음 행부터: (빈칸) ▶ 시간2, 시간3 … 시간 열 정렬
+                    const times = parseTeeTimes(b.Time);
+                    const rows = (times.length ? times : ['-']).map((t, i) =>
+                        `<span class="bp-name">${i === 0 ? nonMember + esc(b.Name) : ''}</span><span class="bp-arrow">▶</span><span class="bp-time">${esc(t)}</span>`);
+                    pill.innerHTML = rows.join('');
+                    pill.dataset.teeCount = times.length;
                     if (isNonMember) pill.title = '비회원가';
                     if (role === 'ADMIN' || b.Name === currentUser.name) {
                         pill.classList.add('cursor-pointer');
@@ -1279,6 +1301,14 @@
                 });
                 dayCell.appendChild(group);
             });
+        }
+
+        /** 티오프 시간 문자열 → 배열 ('7:35, 7:42' / '7:35/7:42' / 줄바꿈 / 공백 구분 모두 지원) */
+        function parseTeeTimes(v) {
+            return String(v === null || v === undefined ? '' : v)
+                .split(/[,\/;\n\r]+|\s+/)
+                .map(s => s.trim())
+                .filter(Boolean);
         }
 
         /** 상세보기 한 달 격자 (가로 스크롤 지원) */
@@ -1330,7 +1360,8 @@
         function renderCalendar() {
             const calendarEl = document.getElementById('calendar');
             calendarEl.innerHTML = '';
-            const isDetail = calendarViewMode === 'detail';
+            // 상세보기는 관리자 전용 — 그 외 사용자는 항상 기본 보기
+            const isDetail = calendarViewMode === 'detail' && getUserRole(currentUser.name) === 'ADMIN';
             calendarEl.classList.toggle('detail-mode', isDetail);
             updateCalViewToggle();
 
@@ -1983,11 +2014,12 @@
                     btns.forEach(b => {
                         const el = document.getElementById(b);
                         el.classList.remove('bg-navy-900', 'text-white', 'shadow-md');
-                        el.classList.add('bg-white', 'text-gray-600', 'border');
+                        el.classList.add('bg-white', 'text-gray-600', 'border', 'hover:bg-gray-50');
                         document.getElementById(b.replace('TabBtn', 'View')).classList.add('hidden');
                     });
                     const target = document.getElementById(id);
-                    target.classList.remove('bg-white', 'text-gray-600', 'border');
+                    // 선택된 탭에서는 hover 배경 제거 (모바일 터치 시 흰 배경 + 흰 글씨 방지)
+                    target.classList.remove('bg-white', 'text-gray-600', 'border', 'hover:bg-gray-50');
                     target.classList.add('bg-navy-900', 'text-white', 'shadow-md');
                     document.getElementById(id.replace('TabBtn', 'View')).classList.remove('hidden');
                     updateStatusFloatingBar();
@@ -2428,7 +2460,7 @@
                 document.getElementById('bookingDate').value = bDate;
                 document.getElementById('numberOfTeams').value = booking.Team;
                 document.getElementById('bookingTime').value = booking.Time || '';
-                document.getElementById('bookingStatus').value = booking.Status || '예약중';
+                setBookingStatusValue(booking.Status || '예약중');
                 document.getElementById('notes').value = booking.Comment || '';
                 document.getElementById('memberType').value = booking['회원구분'] || '회원가';
 
@@ -2454,7 +2486,7 @@
                 form.reset();
                 document.getElementById('bookingId').value = '';
                 document.getElementById('userName').value = currentUser ? currentUser.name : '';
-                document.getElementById('bookingStatus').value = '예약중';
+                setBookingStatusValue('예약중');
                 document.getElementById('memberType').value = '회원가';
                 if (dateStr) document.getElementById('bookingDate').value = dateStr;
 
@@ -2464,28 +2496,35 @@
             openModalWithAnim('bookingModal');
         }
 
+        // 예약 상태 선택값 (관리자가 고르는 값)
+        const BOOKING_STATUS_OPTIONS = ['예약완료', '취소중', '취소완료', '우천취소'];
+
+        /** 상태 선택칸에 값 지정 — 목록 밖의 현재 값(신규 '예약중' 등)은 임시 옵션으로 보존 */
+        function setBookingStatusValue(v) {
+            const sel = document.getElementById('bookingStatus');
+            const val = String(v || '').trim();
+            sel.querySelectorAll('option[data-extra]').forEach(o => o.remove());
+            if (val && !BOOKING_STATUS_OPTIONS.includes(val)) {
+                const opt = document.createElement('option');
+                opt.value = val;
+                opt.textContent = val;
+                opt.dataset.extra = '1';
+                sel.prepend(opt);
+            }
+            sel.value = val || BOOKING_STATUS_OPTIONS[0];
+        }
+
         function applyModalPermissions(isAdminUser, isEdit) {
             const timeWrapper = document.getElementById('bookingTimeWrapper');
-            const statusInput = document.getElementById('bookingStatus');
+            const statusSelect = document.getElementById('bookingStatus');
             const memberSelect = document.getElementById('memberType');
             const nameInput = document.getElementById('userName');
             // 신청인: 관리자만 다른 사람 이름으로 입력 가능
             nameInput.readOnly = !isAdminUser;
-            if (isAdminUser) {
-                timeWrapper.classList.remove('hidden');
-                statusInput.readOnly = false;
-                statusInput.classList.remove('bg-gray-50', 'text-gray-600');
-                statusInput.classList.add('bg-white', 'focus:ring-2', 'focus:ring-gold-400', 'focus:border-gold-400');
-                memberSelect.disabled = false;
-                memberSelect.classList.remove('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
-            } else {
-                timeWrapper.classList.add('hidden');
-                statusInput.readOnly = true;
-                statusInput.classList.add('bg-gray-50', 'text-gray-600');
-                statusInput.classList.remove('bg-white', 'focus:ring-2', 'focus:ring-gold-400', 'focus:border-gold-400');
-                memberSelect.disabled = true;
-                memberSelect.classList.add('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
-            }
+            // 티오프 시간·상태·회원구분: 관리자만 변경 가능 (비활성 시 회색 표시는 CSS 처리)
+            timeWrapper.classList.toggle('hidden', !isAdminUser);
+            statusSelect.disabled = !isAdminUser;
+            memberSelect.disabled = !isAdminUser;
         }
 
         function openDeliveryStatusModal(booking) {
