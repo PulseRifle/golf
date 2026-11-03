@@ -72,6 +72,10 @@
         #bookingForm input[type="date"].bm-field { -webkit-appearance: none; appearance: none; min-width: 0; }
         /* 접대비 입력란 비활성(임원 공통접대비, 전체 보기) */
         #entertainmentView .ent-amount:disabled { background-color: #f3f4f6; color: #9ca3af; cursor: not-allowed; }
+        /* 접대비 블록 컴팩트 입력칸 (연도 선택·금액 입력) */
+        #entertainmentView .ent-compact { height: 32px; font-size: 14px !important; padding: 3px 8px !important; line-height: 1.2; }
+        #entertainmentView .ent-compact:focus { outline: none; border-color: #b08d4f; box-shadow: 0 0 0 2px rgba(198, 166, 103, .35); }
+        @media (max-width: 640px) { #entertainmentView .ent-compact { height: 30px; font-size: 13px !important; padding: 2px 6px !important; } }
         /* 알림·확인·로딩 창은 다른 팝업(비밀번호 변경 등) 위에 항상 표시 */
         #alertModal, #confirmModal { z-index: 1100; }
         #loadingOverlay { z-index: 1200; }
@@ -224,7 +228,7 @@
     </div>
     <div id="mainApp" class="hidden opacity-0 transition-opacity duration-500">
         <div class="bg-white rounded-2xl md:rounded-3xl card-shadow p-3 md:p-6 lg:p-8 w-full border border-[#e7e4dc]">
-            <header class="bg-navy-900 rounded-2xl px-5 py-4 md:px-9 md:py-6 mb-4 md:mb-8 card-shadow">
+            <header class="bg-navy-900 rounded-2xl px-5 py-4 md:px-9 md:py-6 mb-3 md:mb-4 card-shadow">
                 <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-start gap-3 md:gap-6">
                     <div class="text-left min-w-0">
                         <p class="text-[10px] md:text-xs font-bold tracking-[0.25em] text-gold-400 mb-1 whitespace-nowrap">GOLF RESERVATION</p>
@@ -240,13 +244,14 @@
                     </div>
                 </div>
             </header>
-            <div class="flex flex-wrap items-center gap-2 md:gap-4 mb-4 md:mb-8 p-3 md:p-6 bg-[#eef1f6] rounded-xl md:rounded-2xl border border-[#d9dde6] shadow-inner">
+            <!-- 기간(연도) 블록 — 접대비 차감 탭에서는 숨기고 탭 내부 블록의 연도 선택을 사용 -->
+            <div id="globalPeriodBlock" class="flex flex-wrap items-center gap-2 md:gap-3 mb-3 md:mb-4 px-3 py-2 md:px-4 md:py-3 bg-[#eef1f6] rounded-xl border border-[#d9dde6]">
                 <div class="flex items-center gap-2 md:gap-3 w-full md:w-auto">
-                    <label class="text-sm md:text-lg font-bold text-navy-900 whitespace-nowrap">기간(연도):</label>
-                    <select id="globalPeriodSelector" class="border-2 border-navy-800 rounded-lg bg-white text-gray-800 font-bold focus:ring-2 focus:ring-gold-400 outline-none w-full md:min-w-[280px] cursor-pointer shadow-sm text-sm transition-shadow"></select>
+                    <label for="globalPeriodSelector" class="text-sm md:text-base font-bold text-navy-900 whitespace-nowrap">기간(연도):</label>
+                    <select id="globalPeriodSelector" class="period-select border-2 border-navy-800 rounded-lg bg-white text-gray-800 font-bold focus:ring-2 focus:ring-gold-400 outline-none w-full md:min-w-[240px] cursor-pointer shadow-sm text-sm transition-shadow"></select>
                 </div>
             </div>
-            <div class="mb-4 md:mb-6 overflow-x-auto">
+            <div class="mb-2 md:mb-3 overflow-x-auto">
                 <nav class="flex space-x-2 md:space-x-4 pb-1" aria-label="Tabs">
                     <button id="calendarTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-navy-900 text-white whitespace-nowrap hover:shadow-md">캘린더</button>
                     <button id="statusTabBtn" class="px-3 py-2 md:px-6 md:py-3 font-bold text-sm md:text-lg rounded-xl transition-all shadow-sm bg-white text-gray-600 border hover:bg-gray-50 whitespace-nowrap hover:shadow-md">예약 현황</button>
@@ -405,35 +410,38 @@
 
             <!-- 접대비 차감 탭 -->
             <div id="entertainmentView" class="tab-content hidden">
-                <div class="mb-4 md:mb-6 p-4 md:p-6 bg-gradient-to-r from-[#f3f1ea] to-[#eef1f6] rounded-xl md:rounded-2xl border border-[#d9dde6] shadow-sm">
-                    <div class="grid grid-cols-2 lg:grid-cols-[1fr_1fr_minmax(0,1.7fr)_auto] gap-4 md:gap-6 items-end">
-                        <div>
-                            <h3 class="text-sm md:text-base font-bold text-gray-600 mb-1 md:mb-2">접대비 합계</h3>
-                            <p id="totalEntertainmentCost" class="text-xl md:text-3xl font-black text-navy-800 transition-all">₩0</p>
+                <!-- 기간(연도) + 합계/잔여 + 차감 금액 입력 + 반영 — 하나의 블록 -->
+                <div class="mb-3 md:mb-4 p-3 md:p-4 bg-white rounded-xl md:rounded-2xl border border-[#e2ddd0] card-shadow">
+                    <div class="flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-4">
+                        <div class="flex items-center gap-2 lg:pr-4 lg:border-r lg:border-gray-200">
+                            <span class="w-1 h-5 rounded-full bg-gold-500"></span>
+                            <label for="entYearSelect" class="text-xs md:text-sm font-bold text-navy-900 whitespace-nowrap">기간(연도)</label>
+                            <select id="entYearSelect" class="ent-compact border border-gray-300 rounded-lg bg-white font-bold text-navy-900 cursor-pointer"></select>
                         </div>
-                        <div>
-                            <h3 class="text-sm md:text-base font-bold text-gray-600 mb-1 md:mb-2">잔여 차감액</h3>
-                            <p id="remainingEntertainmentCost" class="text-xl md:text-3xl font-black text-green-700 transition-all">₩0</p>
-                            <p class="text-[10px] md:text-xs text-gray-500 mt-0.5 whitespace-nowrap">= 합계 − 공통 − 개인</p>
+                        <div class="grid grid-cols-2 gap-2 lg:flex-1">
+                            <div class="rounded-lg bg-[#f5f4f0] border border-[#ebe7dc] px-3 py-2">
+                                <p class="text-[11px] md:text-xs font-bold text-gray-500 whitespace-nowrap">접대비 합계</p>
+                                <p id="totalEntertainmentCost" class="text-lg md:text-2xl font-black text-navy-900 leading-tight tracking-tight">₩0</p>
+                            </div>
+                            <div id="entRemainTile" class="rounded-lg bg-emerald-50 border border-emerald-100 px-3 py-2 transition-colors">
+                                <p class="text-[11px] md:text-xs font-bold text-gray-500 whitespace-nowrap">잔여 차감액</p>
+                                <p id="remainingEntertainmentCost" class="text-lg md:text-2xl font-black text-green-700 leading-tight tracking-tight">₩0</p>
+                            </div>
                         </div>
-                        <div class="col-span-2 lg:col-span-1 space-y-2">
+                        <div class="flex flex-col gap-1.5 lg:w-[300px]">
                             <div class="flex items-center gap-2">
-                                <label for="commonEntertainment" class="w-[8.5rem] md:w-[9.5rem] flex-shrink-0 text-xs md:text-sm font-bold text-gray-700 whitespace-nowrap">공통접대비 차감 금액</label>
-                                <input type="text" id="commonEntertainment" inputmode="numeric" autocomplete="off" placeholder="0" class="ent-amount min-w-0 flex-1 border border-gray-300 rounded-lg bg-white text-right font-bold">
-                                <span class="text-xs md:text-sm text-gray-500">원</span>
+                                <label for="commonEntertainment" class="w-[7.6rem] flex-shrink-0 text-xs font-bold text-gray-700 whitespace-nowrap">공통접대비 차감 금액</label>
+                                <input type="text" id="commonEntertainment" inputmode="numeric" autocomplete="off" placeholder="0" class="ent-amount ent-compact min-w-0 flex-1 border border-gray-300 rounded-lg bg-white text-right font-bold">
+                                <span class="text-xs text-gray-500">원</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <label for="personalEntertainment" class="w-[8.5rem] md:w-[9.5rem] flex-shrink-0 text-xs md:text-sm font-bold text-gray-700 whitespace-nowrap">개인접대비 차감 금액</label>
-                                <input type="text" id="personalEntertainment" inputmode="numeric" autocomplete="off" placeholder="0" class="ent-amount min-w-0 flex-1 border border-gray-300 rounded-lg bg-white text-right font-bold">
-                                <span class="text-xs md:text-sm text-gray-500">원</span>
+                                <label for="personalEntertainment" class="w-[7.6rem] flex-shrink-0 text-xs font-bold text-gray-700 whitespace-nowrap">개인접대비 차감 금액</label>
+                                <input type="text" id="personalEntertainment" inputmode="numeric" autocomplete="off" placeholder="0" class="ent-amount ent-compact min-w-0 flex-1 border border-gray-300 rounded-lg bg-white text-right font-bold">
+                                <span class="text-xs text-gray-500">원</span>
                             </div>
-                            <p id="entExecNote" class="hidden text-[11px] md:text-xs font-semibold text-red-600">※ 임원은 공통접대비를 입력할 수 없습니다.</p>
-                            <p id="entLastSaved" class="text-[11px] md:text-xs text-gray-500"></p>
+                            <p id="entExecNote" class="hidden text-[11px] font-semibold text-red-600">※ 임원은 공통접대비를 입력할 수 없습니다.</p>
                         </div>
-                        <div class="col-span-2 lg:col-span-1 flex flex-col items-stretch gap-1">
-                            <span id="entYearLabel" class="text-[11px] md:text-xs text-gray-500 text-center whitespace-nowrap"></span>
-                            <button id="saveEntertainmentBtn" class="bg-navy-900 hover:bg-navy-800 text-white font-bold py-2 px-6 md:py-3 md:px-8 rounded-xl shadow-lg whitespace-nowrap text-sm md:text-base disabled:opacity-40 disabled:cursor-not-allowed">반영</button>
-                        </div>
+                        <button id="saveEntertainmentBtn" class="lg:self-stretch bg-navy-900 hover:bg-navy-800 text-white font-bold py-2 px-7 rounded-xl shadow-md whitespace-nowrap text-sm md:text-base disabled:opacity-40 disabled:cursor-not-allowed">반영</button>
                     </div>
                 </div>
                 <div class="mb-3 md:mb-5 flex flex-wrap items-center gap-2 md:gap-4">
@@ -1010,6 +1018,15 @@
             globalPeriodSelector.value = `${selectedYear}`;
             globalPeriodSelector.addEventListener('change', (e) => {
                 selectedYear = parseInt(e.target.value);
+                renderApp();
+            });
+            // 접대비 탭 내부 연도 선택 (전역 기간과 동기화)
+            const entYearSelect = document.getElementById('entYearSelect');
+            entYearSelect.innerHTML = periodOptions.replace(/ \(전체\)/g, '');
+            entYearSelect.value = `${selectedYear}`;
+            entYearSelect.addEventListener('change', (e) => {
+                selectedYear = parseInt(e.target.value);
+                globalPeriodSelector.value = `${selectedYear}`;
                 renderApp();
             });
 
@@ -2158,6 +2175,8 @@
                     target.classList.remove('bg-white', 'text-gray-600', 'border', 'hover:bg-gray-50');
                     target.classList.add('bg-navy-900', 'text-white', 'shadow-md');
                     document.getElementById(id.replace('TabBtn', 'View')).classList.remove('hidden');
+                    // 접대비 차감 탭은 블록 안에 연도 선택이 있으므로 상단 기간 블록 숨김
+                    document.getElementById('globalPeriodBlock').classList.toggle('hidden', id === 'entertainmentTabBtn');
                     updateStatusFloatingBar();
                 });
             });
@@ -2446,6 +2465,7 @@
             document.getElementById('saveEntertainmentBtn').addEventListener('click', () => {
                 const name = getEntertainmentTarget();
                 if (!name || name === '전체') { showAlert('반영할 대상자를 선택해 주세요.'); return; }
+                if (!isEntertainmentEditableYear()) { showAlert(`${new Date().getFullYear()}년(현재 연도)만 반영할 수 있습니다.`); return; }
                 const exec = isExecutiveName(name);
                 const common = exec ? 0 : amountOf('commonEntertainment');
                 const personal = amountOf('personalEntertainment');
@@ -2871,19 +2891,23 @@
             if (!list.length) return null;
             return list.reduce((a, b) => (String(b.Timestamp || '') >= String(a.Timestamp || '') ? b : a));
         }
-        function formatTimestamp(ts) {
-            const d = new Date(ts);
-            if (isNaN(d.getTime())) return '';
-            return `${toLocalDateStr(d)} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-        }
-
         /** 잔여 차감액 = 접대비 합계 − 공통접대비 − 개인접대비 (입력 즉시 갱신) */
         function updateRemainingEntertainment() {
             const remain = entertainmentTotal - amountOf('commonEntertainment') - amountOf('personalEntertainment');
             const el = document.getElementById('remainingEntertainmentCost');
+            const tile = document.getElementById('entRemainTile');
             el.textContent = wonText(remain);
             el.classList.toggle('text-red-600', remain < 0);
             el.classList.toggle('text-green-700', remain >= 0);
+            tile.classList.toggle('bg-red-50', remain < 0);
+            tile.classList.toggle('border-red-200', remain < 0);
+            tile.classList.toggle('bg-emerald-50', remain >= 0);
+            tile.classList.toggle('border-emerald-100', remain >= 0);
+        }
+
+        /** 반영은 현재 연도(오늘 날짜 기준)만 가능 */
+        function isEntertainmentEditableYear() {
+            return Number(selectedYear) === new Date().getFullYear();
         }
 
         /** 대상자의 최종 반영 금액을 입력란에 불러오기 */
@@ -2891,9 +2915,11 @@
             const common = document.getElementById('commonEntertainment');
             const personal = document.getElementById('personalEntertainment');
             const btn = document.getElementById('saveEntertainmentBtn');
-            const last = document.getElementById('entLastSaved');
             const note = document.getElementById('entExecNote');
-            document.getElementById('entYearLabel').textContent = `${selectedYear}년 기준`;
+            const editableYear = isEntertainmentEditableYear();
+            document.getElementById('entYearSelect').value = `${selectedYear}`;
+            // 과거·미래 연도: 반영 버튼 숨김 + 입력 잠금 (조회만)
+            btn.classList.toggle('hidden', !editableYear);
 
             if (!name || name === '전체') {
                 // 전체: 대상자별 최종 반영 금액 합계 (조회 전용)
@@ -2904,17 +2930,17 @@
                 personal.value = formatNumberWithCommas(sp);
                 common.disabled = true; personal.disabled = true; btn.disabled = true;
                 note.classList.add('hidden');
-                last.textContent = '대상자를 선택하면 입력·반영할 수 있습니다. (전체 = 대상자별 최종 반영 금액의 합)';
+                btn.title = '대상자를 선택하면 반영할 수 있습니다.';
             } else {
                 const latest = getLatestEntertainment(name, selectedYear);
                 const exec = isExecutiveName(name);
                 common.value = exec ? '0' : (latest ? formatNumberWithCommas(latest['공통접대비'] || 0) : '');
                 personal.value = latest ? formatNumberWithCommas(latest['개인접대비'] || 0) : '';
-                common.disabled = exec; personal.disabled = false; btn.disabled = false;
-                note.classList.toggle('hidden', !exec);
-                last.textContent = latest
-                    ? `최종 반영: ${formatTimestamp(latest.Timestamp)} · 공통 ${wonText(Number(latest['공통접대비']) || 0)} / 개인 ${wonText(Number(latest['개인접대비']) || 0)}`
-                    : `${selectedYear}년 반영 내역이 없습니다.`;
+                common.disabled = exec || !editableYear;
+                personal.disabled = !editableYear;
+                btn.disabled = !editableYear;
+                btn.title = '';
+                note.classList.toggle('hidden', !(exec && editableYear));
             }
             updateRemainingEntertainment();
         }
