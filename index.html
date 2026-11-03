@@ -38,24 +38,46 @@
             gap: 24px;
         }
 
-        /* ===== 캘린더 상세보기 모드 (한 행에 한 달) ===== */
-        .calendar-container.detail-mode { grid-template-columns: 1fr !important; }
+        /* ===== 캘린더 상세보기 모드 (화면 폭에 따라 한 행에 1~N개월) ===== */
+        .calendar-container.detail-mode { grid-template-columns: repeat(auto-fill, minmax(min(100%, 700px), 1fr)); gap: 20px; }
         .detail-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-left: 1px solid #e5e7eb; border-top: 1px solid #e5e7eb; }
         .detail-head { background: #f3f4f8; text-align: center; font-weight: 700; font-size: 13px; padding: 10px 0; border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; }
-        .detail-day { min-height: 140px; padding: 6px 6px 8px; background: #fff; border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; cursor: pointer; transition: background-color .2s; }
+        .detail-day { container-type: inline-size; min-width: 0; min-height: 120px; padding: 6px 6px 8px; background: #fff; border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; cursor: pointer; transition: background-color .2s; }
         .detail-day:hover { background: #faf7ef; }
         .detail-day.is-empty { background: #fafafa; cursor: default; }
         .detail-day.is-today { box-shadow: inset 0 0 0 1.5px #e8a23a; }
         .detail-daynum { font-size: 13px; font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; min-height: 22px; }
         .detail-today-badge { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 9999px; background: #f29d2b; color: #fff; font-size: 12px; }
         .course-group { margin-bottom: 4px; }
-        .course-tab { display: inline-block; font-size: 12px; font-weight: 800; color: #1f2937; padding: 2px 10px; border-radius: 6px 6px 0 0; white-space: nowrap; }
+        .course-tab { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; font-size: 12px; font-weight: 800; color: #1f2937; padding: 2px 10px; border-radius: 6px 6px 0 0; white-space: nowrap; }
+        .course-tab .lbl-short { display: none; }
         .course-line { height: 1.5px; margin-bottom: 3px; }
         .booking-pill { display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 1.5; border: 1px solid; border-radius: 6px; padding: 1px 6px; margin-bottom: 3px; white-space: nowrap; overflow: hidden; }
         .booking-pill:hover { filter: brightness(0.96); }
         .booking-pill .bp-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
         .booking-pill .bp-time { font-weight: 700; color: #111827; }
-        .booking-pill .bp-note { color: #4b5563; max-width: 3.5em; overflow: hidden; text-overflow: ellipsis; }
+        .booking-pill .bp-arrow { color: #374151; font-size: 10px; }
+        .booking-pill .bp-dot { display: inline-block; width: 6px; height: 6px; border-radius: 9999px; background: #dc2626; margin-right: 3px; vertical-align: middle; }
+
+        /* 칸 폭이 좁아지면 자동으로 축약 표시 (글자 겹침 방지) */
+        @container (max-width: 125px) {
+            .course-tab { font-size: 11px; padding: 2px 6px; }
+            .course-tab .lbl-full { display: none; }
+            .course-tab .lbl-short { display: inline; }
+        }
+        @container (max-width: 100px) {
+            .booking-pill { flex-direction: column; align-items: flex-start; gap: 0; padding: 1px 4px; line-height: 1.3; }
+            .booking-pill .bp-arrow { display: none; }
+            /* 좁은 칸에서는 이름을 자르지 않고 줄바꿈해서 전부 보이게 */
+            .booking-pill .bp-name { width: 100%; white-space: normal; word-break: break-all; overflow: visible; }
+        }
+        @container (max-width: 64px) {
+            .course-tab { font-size: 9px; padding: 1px 3px; border-radius: 4px 4px 0 0; }
+            .course-tab .lbl-count { display: none; }
+            .booking-pill { font-size: 10px; padding: 1px 2px; }
+            .detail-daynum { font-size: 11px; min-height: 18px; }
+            .detail-today-badge { width: 18px; height: 18px; font-size: 10px; }
+        }
 
         .day-cell {
             min-height: 80px; display: flex; flex-direction: column; justify-content: flex-start; align-items: center;
@@ -139,6 +161,8 @@
             body { padding: 0.5rem !important; font-size: 13px !important; }
             .calendar-container { grid-template-columns: 1fr; gap: 12px; }
             .day-cell { min-height: 50px; padding: 2px !important; }
+            .detail-day { min-height: 72px; padding: 3px 2px 4px; }
+            .detail-head { font-size: 11px; padding: 6px 0; }
             .booking-info { font-size: 10px; line-height: 1.1; margin-top: 1px; }
 
             th, td { padding: 6px 4px !important; font-size: 12px !important; }
@@ -156,7 +180,7 @@
         }
     </style>
 </head>
-<body class="bg-paper p-4 md:p-6 text-gray-800 transition-colors duration-300">
+<body class="bg-paper p-2 md:p-4 text-gray-800 transition-colors duration-300">
     <div id="loginScreen" class="flex flex-col items-center justify-center min-h-screen transition-opacity duration-500">
         <div class="bg-white rounded-3xl card-shadow p-6 md:p-10 w-full max-w-md border border-[#e7e4dc] transform transition-transform">
             <p class="text-[10px] md:text-xs font-bold tracking-[0.25em] text-gold-500 text-center mb-2">GOLF RESERVATION</p>
@@ -180,15 +204,15 @@
         </div>
     </div>
     <div id="mainApp" class="hidden opacity-0 transition-opacity duration-500">
-        <div class="bg-white rounded-2xl md:rounded-3xl card-shadow p-3 md:p-10 max-w-[1400px] mx-auto border border-[#e7e4dc]">
+        <div class="bg-white rounded-2xl md:rounded-3xl card-shadow p-3 md:p-6 lg:p-8 w-full border border-[#e7e4dc]">
             <header class="bg-navy-900 rounded-2xl px-5 py-4 md:px-9 md:py-6 mb-4 md:mb-8 card-shadow">
-                <div class="flex flex-row justify-between items-start gap-3 md:gap-6">
-                    <div class="text-center md:text-left">
-                        <p class="text-[10px] md:text-xs font-bold tracking-[0.25em] text-gold-400 mb-1">GOLF RESERVATION</p>
-                        <h1 class="text-xl md:text-4xl font-black text-white tracking-tight">골프 예약 시스템</h1>
-                        <a href="#" id="noticeLink" class="text-xs md:text-base text-gold-400 hover:text-gold-500 font-semibold inline-block mt-1 transition-colors">이용 및 취소 안내 보기 →</a>
+                <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-start gap-3 md:gap-6">
+                    <div class="text-left min-w-0">
+                        <p class="text-[10px] md:text-xs font-bold tracking-[0.25em] text-gold-400 mb-1 whitespace-nowrap">GOLF RESERVATION</p>
+                        <h1 class="text-xl md:text-4xl font-black text-white tracking-tight whitespace-nowrap">골프 예약 시스템</h1>
+                        <a href="#" id="noticeLink" class="text-xs md:text-base text-gold-400 hover:text-gold-500 font-semibold inline-block mt-1 transition-colors whitespace-nowrap">이용 및 취소 안내 보기 →</a>
                     </div>
-                    <div class="flex items-center gap-2 flex-shrink-0">
+                    <div class="flex items-center justify-end gap-2 flex-shrink-0">
                         <button id="openModalBtn" class="bg-gold-500 hover:bg-gold-400 text-navy-900 text-xs md:text-sm font-bold py-1.5 px-3 md:py-2 md:px-5 rounded-full shadow-sm hover:shadow-md transition-all flex items-center gap-1 whitespace-nowrap">
                             <span class="text-base md:text-lg leading-none">+</span> 예약 신청
                         </button>
@@ -217,7 +241,7 @@
             <!-- 캘린더 탭 -->
             <div id="calendarView" class="tab-content">
                 <div class="bg-gray-50 p-1.5 md:p-4 rounded-xl border border-gray-200 mb-2 md:mb-3 flex flex-wrap justify-between items-center gap-1 md:gap-4">
-                    <div class="flex flex-wrap gap-0.5 md:gap-2 items-center flex-shrink-0">
+                    <div class="flex flex-wrap gap-0.5 md:gap-2 items-center min-w-0">
                         <span class="font-bold text-gray-700 mr-0.5 md:mr-2 text-[10px] sm:text-[11px] md:text-base">골프장:</span>
                         <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calCourseFilter" value="레이크우드" checked class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm md:hidden">레이크</span><span class="hidden md:inline md:text-sm">레이크우드</span></label>
                         <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calCourseFilter" value="스카이밸리" checked class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm md:hidden">스카이</span><span class="hidden md:inline md:text-sm">스카이밸리</span></label>
@@ -225,10 +249,10 @@
                         <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calCourseFilter" value="벨루토" checked class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">벨루토</span></label>
                         <label id="calJungbuFilterLabel" class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calCourseFilter" value="중부" checked class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">중부</span></label>
                     </div>
-                    <div class="flex items-center gap-1 md:gap-2 flex-shrink-0 ml-auto">
+                    <div class="flex flex-wrap items-center justify-end gap-1 md:gap-2 min-w-0 ml-auto">
                         <div id="calendarNameFilterWrapper" class="hidden flex items-center gap-0.5 md:gap-2">
                              <label class="font-bold text-gray-700 text-[10px] sm:text-[11px] md:text-base">이름:</label>
-                             <select id="calendarNameSelect" class="border border-gray-300 rounded-lg p-0.5 md:p-2 text-[10px] sm:text-xs md:text-sm w-[55px] sm:w-[70px] md:min-w-[120px] h-[22px] md:h-auto leading-none bg-white transition-shadow"></select>
+                             <select id="calendarNameSelect" class="border border-gray-300 rounded-lg p-0.5 md:p-2 text-[10px] sm:text-xs md:text-sm w-[76px] md:w-auto md:min-w-[120px] h-auto leading-none bg-white transition-shadow"></select>
                         </div>
                         <label class="flex items-center cursor-pointer font-bold text-gold-500 bg-[#f3eee3] px-1.5 py-1 md:px-4 md:py-2 rounded-lg hover:bg-[#e9dfc8] transition text-[10px] sm:text-[11px] md:text-base flex-shrink-0 whitespace-nowrap">
                             <input type="checkbox" id="calNonMemberFilter" class="w-3 h-3 md:w-5 md:h-5 mr-1 md:mr-2 accent-[#b08d4f] transition-transform">
@@ -246,7 +270,7 @@
                 </div>
 
                 <div class="bg-gray-50 p-1.5 md:p-4 rounded-xl border border-gray-200 mb-3 md:mb-4 flex flex-wrap justify-start items-center gap-1 md:gap-4">
-                    <div class="flex flex-wrap gap-0.5 md:gap-2 items-center flex-shrink-0">
+                    <div class="flex flex-wrap gap-0.5 md:gap-2 items-center min-w-0">
                         <span class="font-bold text-gray-700 mr-0.5 md:mr-2 text-[10px] sm:text-[11px] md:text-base">월(Month):</span>
                         <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calMonthFilter" value="전체" checked class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">전체</span></label>
                         <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="calMonthFilter" value="0" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">1월</span></label>
@@ -276,7 +300,7 @@
                     <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="statusFilter" value="예약중" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">예약중</span></label>
                     <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="statusFilter" value="취소" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">취소</span></label>
                     <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" id="statusNonMemberFilter" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1" style="accent-color:#b08d4f"><span class="text-[10px] sm:text-[11px] md:text-sm font-bold text-gold-500">비회원가</span></label>
-                    <div id="sienaCourseFilterWrapper" class="hidden flex items-center gap-1 flex-shrink-0 ml-1 md:ml-2 pl-1 md:pl-2 border-l border-gray-300">
+                    <div id="sienaCourseFilterWrapper" class="hidden flex flex-wrap items-center gap-1 min-w-0 ml-1 md:ml-2 pl-1 md:pl-2 border-l border-gray-300">
                         <span class="font-bold text-gray-700 mr-0.5 text-[10px] sm:text-[11px] md:text-base flex-shrink-0">시에나:</span>
                         <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="sienaStatusFilter" value="전체" checked class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">전체</span></label>
                         <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="sienaStatusFilter" value="벨루토" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">벨루토</span></label>
@@ -284,15 +308,15 @@
                     </div>
                     <div id="statusCourseFilterWrapper" class="hidden flex items-center gap-1 flex-shrink-0 ml-1 md:ml-2">
                         <label class="font-bold text-gray-700 text-[10px] sm:text-[11px] md:text-sm flex-shrink-0">골프장:</label>
-                        <select id="statusCourseSelect" class="border border-gray-300 rounded-lg p-0.5 md:p-1 text-[10px] sm:text-xs md:text-sm w-[70px] md:min-w-[110px] h-[22px] md:h-auto leading-none bg-white transition-shadow"></select>
+                        <select id="statusCourseSelect" class="border border-gray-300 rounded-lg p-0.5 md:p-1 text-[10px] sm:text-xs md:text-sm w-[70px] md:min-w-[110px] h-auto leading-none bg-white transition-shadow"></select>
                     </div>
                     <div id="statusNameFilterWrapper" class="hidden flex items-center gap-1 flex-shrink-0 ml-1 md:ml-2">
                         <label class="font-bold text-gray-700 text-[10px] sm:text-[11px] md:text-sm flex-shrink-0">이름:</label>
-                        <select id="statusNameSelect" class="border border-gray-300 rounded-lg p-0.5 md:p-1 text-[10px] sm:text-xs md:text-sm w-[70px] md:min-w-[110px] h-[22px] md:h-auto leading-none bg-white transition-shadow"></select>
+                        <select id="statusNameSelect" class="border border-gray-300 rounded-lg p-0.5 md:p-1 text-[10px] sm:text-xs md:text-sm w-[70px] md:min-w-[110px] h-auto leading-none bg-white transition-shadow"></select>
                     </div>
                  </div>
                  <div class="bg-gray-50 p-1.5 md:p-4 rounded-xl border border-gray-200 mb-3 md:mb-4 flex flex-wrap justify-start items-center gap-1 md:gap-4">
-                    <div class="flex flex-wrap gap-0.5 md:gap-2 items-center flex-shrink-0">
+                    <div class="flex flex-wrap gap-0.5 md:gap-2 items-center min-w-0">
                         <span class="font-bold text-gray-700 mr-0.5 md:mr-2 text-[10px] sm:text-[11px] md:text-base">월(Month):</span>
                         <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="statusMonthFilter" value="전체" checked class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">전체</span></label>
                         <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="statusMonthFilter" value="0" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">1월</span></label>
@@ -309,7 +333,7 @@
                         <label class="checkbox-label !px-1 md:!px-2 flex-shrink-0"><input type="checkbox" name="statusMonthFilter" value="11" class="checkbox-input !w-3 !h-3 md:!w-4 md:!h-4 !mr-1"><span class="text-[10px] sm:text-[11px] md:text-sm">12월</span></label>
                     </div>
                  </div>
-                 <div class="flex items-center mb-3 md:mb-6 gap-2 md:gap-4">
+                 <div class="flex flex-wrap items-center mb-3 md:mb-6 gap-2 md:gap-4">
                     <div id="statusWeekendSummary" class="hidden flex items-center gap-2 md:gap-4 text-xs md:text-base font-bold whitespace-nowrap">
                         <span class="text-navy-800">주말: <span id="weekendCount">0</span>건</span>
                         <span class="text-gray-300">|</span>
@@ -317,8 +341,8 @@
                         <span class="text-gray-300">|</span>
                         <span class="text-gold-500">비회원가: <span id="nonMemberCount">0</span>건</span>
                     </div>
-                    <div class="flex gap-2 md:gap-3 ml-auto">
-                        <div id="adminOnlyControls" class="flex gap-2 md:gap-3 hidden">
+                    <div class="flex flex-wrap justify-end gap-2 md:gap-3 ml-auto">
+                        <div id="adminOnlyControls" class="flex flex-wrap gap-2 md:gap-3 hidden">
                             <button id="downloadExcelBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 md:py-2 md:px-5 rounded-lg text-xs md:text-base shadow-sm whitespace-nowrap hover:shadow-md">엑셀 다운</button>
                             <button id="uploadExcelBtn" class="bg-navy-900 hover:bg-navy-800 text-white font-bold py-1 px-3 md:py-2 md:px-5 rounded-lg text-xs md:text-base shadow-sm whitespace-nowrap hover:shadow-md">엑셀 업로드</button>
                         </div>
@@ -1213,14 +1237,22 @@
                     .sort((a, b) => String(a.Time || '').localeCompare(String(b.Time || '')));
                 const group = document.createElement('div');
                 group.className = 'course-group';
-                group.innerHTML = `<span class="course-tab" style="background:${st.tab}">${esc(st.label)} (${list.length}건)</span><div class="course-line" style="background:${st.line}"></div>`;
+                const shortLabel = COURSE_ABBR[course] || st.label;
+                group.innerHTML = `<span class="course-tab" style="background:${st.tab}" title="${esc(st.label)} ${list.length}건">`
+                    + `<span class="lbl-full">${esc(st.label)} (${list.length}건)</span>`
+                    + `<span class="lbl-short">${esc(shortLabel)}<span class="lbl-count">(${list.length})</span></span>`
+                    + `</span><div class="course-line" style="background:${st.line}"></div>`;
                 list.forEach(b => {
                     const pill = document.createElement('div');
                     pill.className = 'booking-pill';
                     pill.style.background = st.pill;
                     pill.style.borderColor = st.border;
-                    const nonMember = b['회원구분'] === '비회원가' ? `<span class="text-[10px] bg-red-100 text-red-600 px-1 rounded font-bold">비</span>` : '';
-                    pill.innerHTML = `<span class="bp-name">${esc(b.Name)}</span>${nonMember}<span class="text-gray-700">▶</span><span class="bp-time">${esc(b.Time) || '-'}</span>${b.Comment ? `<span class="bp-note" title="${esc(b.Comment)}">${esc(b.Comment)}</span>` : ''}`;
+                    // 비회원가는 공간을 덜 쓰도록 이름 앞 빨간 점으로 표시
+                    const isNonMember = b['회원구분'] === '비회원가';
+                    const nonMember = isNonMember ? `<span class="bp-dot" title="비회원가"></span>` : '';
+                    // 상세보기: 이용자 + 티오프 시간만 표시 (비고 제외)
+                    pill.innerHTML = `<span class="bp-name">${nonMember}${esc(b.Name)}</span><span class="bp-arrow">▶</span><span class="bp-time">${esc(b.Time) || '-'}</span>`;
+                    if (isNonMember) pill.title = '비회원가';
                     if (role === 'ADMIN' || b.Name === currentUser.name) {
                         pill.classList.add('cursor-pointer');
                         pill.title = '클릭하여 예약 수정';
@@ -1239,7 +1271,7 @@
             const wrap = document.createElement('div');
             wrap.className = 'overflow-x-auto rounded-xl border border-gray-200';
             const grid = document.createElement('div');
-            grid.className = 'detail-grid min-w-[840px]';
+            grid.className = 'detail-grid';
             const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
             grid.innerHTML = dayNames.map((n, i) =>
                 `<div class="detail-head ${i === 0 ? 'text-red-600' : i === 6 ? 'text-indigo-600' : 'text-gray-700'}">${n}</div>`).join('');
