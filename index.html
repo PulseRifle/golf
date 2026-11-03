@@ -64,12 +64,15 @@
 
         /* ===== 예약 신청/수정 팝업: 컴팩트 입력칸 (글자보다 약간 큰 높이) ===== */
         #bookingModal .modal-content { padding: 24px; max-width: 520px; }
-        #bookingForm .bm-label { display: block; font-size: 12px; font-weight: 800; color: #374151; margin-bottom: 2px; white-space: nowrap; }
-        #bookingForm .bm-field { display: block; width: 100%; height: 34px; font-size: 14px !important; padding: 4px 8px !important; line-height: 1.2;
+        :is(#bookingForm, #changePwForm) .bm-label { display: block; font-size: 12px; font-weight: 800; color: #374151; margin-bottom: 2px; white-space: nowrap; }
+        :is(#bookingForm, #changePwForm) .bm-field { display: block; width: 100%; height: 34px; font-size: 14px !important; padding: 4px 8px !important; line-height: 1.2;
             border: 1.5px solid #d1d5db; border-radius: 8px; background-color: #fff; color: #1f2937; font-weight: 500; transition: border-color .15s, box-shadow .15s; }
-        #bookingForm .bm-field:focus { outline: none; border-color: #b08d4f; box-shadow: 0 0 0 2px rgba(198, 166, 103, .35); }
-        #bookingForm .bm-field[readonly], #bookingForm .bm-field:disabled { background-color: #f3f4f6; color: #6b7280; cursor: not-allowed; }
+        :is(#bookingForm, #changePwForm) .bm-field:focus { outline: none; border-color: #b08d4f; box-shadow: 0 0 0 2px rgba(198, 166, 103, .35); }
+        :is(#bookingForm, #changePwForm) .bm-field[readonly], :is(#bookingForm, #changePwForm) .bm-field:disabled { background-color: #f3f4f6; color: #6b7280; cursor: not-allowed; }
         #bookingForm input[type="date"].bm-field { -webkit-appearance: none; appearance: none; min-width: 0; }
+        /* 알림·확인·로딩 창은 다른 팝업(비밀번호 변경 등) 위에 항상 표시 */
+        #alertModal, #confirmModal { z-index: 1100; }
+        #loadingOverlay { z-index: 1200; }
 
         /* ===== 예약현황 플로팅 버튼 바 ===== */
         @keyframes floatBarIn { from { opacity: 0; transform: translate(-50%, -12px); } to { opacity: 1; transform: translate(-50%, 0); } }
@@ -181,8 +184,8 @@
             button { padding-top: 6px !important; padding-bottom: 6px !important; font-size: 13px !important; }
             .modal-content { padding: 20px !important; width: 98% !important; }
             #bookingModal .modal-content { padding: 14px 14px 12px !important; }
-            #bookingForm .bm-field { height: 32px; font-size: 13px !important; padding: 3px 7px !important; }
-            #bookingForm .bm-label { font-size: 11px; }
+            :is(#bookingForm, #changePwForm) .bm-field { height: 32px; font-size: 13px !important; padding: 3px 7px !important; }
+            :is(#bookingForm, #changePwForm) .bm-label { font-size: 11px; }
 
             .checkbox-label { padding: 0.1rem 0.15rem; font-size: 11px; }
             .checkbox-input { width: 0.9rem; height: 0.9rem; margin-right: 0.15rem; }
@@ -230,6 +233,7 @@
                         <button id="openModalBtn" class="bg-gold-500 hover:bg-gold-400 text-navy-900 text-xs md:text-sm font-bold py-1.5 px-3 md:py-2 md:px-5 rounded-full shadow-sm hover:shadow-md transition-all flex items-center gap-1 whitespace-nowrap">
                             <span class="text-base md:text-lg leading-none">+</span> 예약 신청
                         </button>
+                        <button id="changePwBtn" class="bg-white/10 hover:bg-white/20 text-white text-xs md:text-sm font-bold py-1.5 px-3 md:py-2 md:px-4 rounded-full transition-colors whitespace-nowrap border border-white/20" title="비밀번호 변경">비밀번호</button>
                         <button id="logoutBtn" class="bg-white/10 hover:bg-white/20 text-white text-xs md:text-sm font-bold py-1.5 px-3 md:py-2 md:px-4 rounded-full transition-colors whitespace-nowrap border border-white/20">로그아웃</button>
                     </div>
                 </div>
@@ -452,6 +456,26 @@
                     <button id="lookupBtn" class="bg-navy-900 hover:bg-navy-800 text-white font-bold py-2 px-4 md:py-3 md:px-8 rounded-xl shadow-md text-sm md:text-lg whitespace-nowrap hover:shadow-lg">데이터 조회</button>
                 </div>
                 <div id="lookupResults" class="space-y-4 md:space-y-8"></div>
+
+                <!-- 관리자: 사용자 비밀번호 초기화 -->
+                <div class="mt-6 md:mt-10 p-4 md:p-6 bg-white rounded-xl md:rounded-2xl border border-red-200 shadow-sm">
+                    <h3 class="text-base md:text-xl font-extrabold text-navy-900 mb-1">🔑 사용자 비밀번호 초기화</h3>
+                    <p class="text-xs md:text-sm text-gray-500 mb-4 leading-relaxed">
+                        임시 비밀번호를 지정하면 해당 사용자의 기존 로그인은 모두 종료되고, 임시 비밀번호로 처음 로그인할 때 새 비밀번호로 변경하는 화면이 나타납니다.
+                    </p>
+                    <div class="flex flex-wrap items-end gap-2 md:gap-3">
+                        <div class="min-w-0">
+                            <label for="resetPwUser" class="block text-xs md:text-sm font-bold text-gray-700 mb-1">대상 사용자</label>
+                            <select id="resetPwUser" class="border border-gray-300 rounded-lg bg-white text-sm min-w-[130px]"></select>
+                        </div>
+                        <div class="min-w-0">
+                            <label for="resetPwValue" class="block text-xs md:text-sm font-bold text-gray-700 mb-1">임시 비밀번호</label>
+                            <input type="text" id="resetPwValue" autocomplete="off" placeholder="4자 이상" class="border border-gray-300 rounded-lg bg-white text-sm w-[150px] font-mono tracking-wider">
+                        </div>
+                        <button type="button" id="genTempPwBtn" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2 px-3 md:px-4 rounded-lg text-xs md:text-sm border border-gray-300 whitespace-nowrap">자동 생성</button>
+                        <button type="button" id="resetPwBtn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 md:px-5 rounded-lg text-xs md:text-sm shadow-sm whitespace-nowrap">비밀번호 초기화</button>
+                    </div>
+                </div>
             </div>
 
             <!-- 무기명 탭 -->
@@ -786,6 +810,37 @@
         </div>
     </div>
 
+    <!-- 비밀번호 변경 모달 (임시 비밀번호 로그인 시 강제 표시) -->
+    <div id="changePwModal" class="modal-overlay">
+        <div class="modal-content max-w-sm">
+            <h2 class="text-lg md:text-2xl font-extrabold mb-2 text-navy-900 border-b pb-2">비밀번호 변경</h2>
+            <p id="changePwNotice" class="hidden text-xs md:text-sm font-semibold text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2 mb-3 leading-relaxed">
+                임시 비밀번호로 로그인했습니다.<br>계속 이용하려면 새 비밀번호로 변경해 주세요.
+            </p>
+            <form id="changePwForm" class="space-y-2.5" autocomplete="off">
+                <div>
+                    <label for="pwCurrent" class="bm-label">현재 비밀번호</label>
+                    <input type="password" id="pwCurrent" required autocomplete="current-password" class="bm-field">
+                </div>
+                <div>
+                    <label for="pwNew" class="bm-label">새 비밀번호 <span class="font-normal text-gray-400">(4자 이상, 공백 불가)</span></label>
+                    <input type="password" id="pwNew" required minlength="4" maxlength="50" autocomplete="new-password" class="bm-field">
+                </div>
+                <div>
+                    <label for="pwConfirm" class="bm-label">새 비밀번호 확인</label>
+                    <input type="password" id="pwConfirm" required minlength="4" maxlength="50" autocomplete="new-password" class="bm-field">
+                </div>
+                <label class="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer select-none whitespace-nowrap">
+                    <input type="checkbox" id="pwShow" class="w-3.5 h-3.5 accent-[#0c1a33]"> 비밀번호 표시
+                </label>
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" id="closeChangePwBtn" class="px-4 py-1.5 md:px-5 md:py-2 rounded-lg border-2 border-gray-300 font-bold text-gray-600 hover:bg-gray-100 text-sm whitespace-nowrap">닫기</button>
+                    <button type="submit" class="px-4 py-1.5 md:px-5 md:py-2 rounded-lg bg-navy-900 text-white font-bold hover:bg-navy-800 text-sm shadow-md whitespace-nowrap">변경하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="confirmModal" class="modal-overlay">
         <div class="modal-content max-w-sm text-center">
             <h3 class="text-lg md:text-xl font-bold mb-3 md:mb-4 text-gray-800">확인</h3>
@@ -1113,7 +1168,10 @@
                     // 사이트 이전 안내는 로그인 세션당 1회만 표시
                     let shown = false;
                     try { shown = sessionStorage.getItem('golf_migrationShown') === '1'; } catch (e) {}
-                    if (!shown) {
+                    if (currentUser && currentUser.mustChange) {
+                        // 임시 비밀번호 로그인: 이전 안내 대신 비밀번호 변경 화면을 바로 표시
+                        setTimeout(() => openChangePwModal(true), 400);
+                    } else if (!shown) {
                         setTimeout(() => openModalWithAnim('migrationModal'), 500);
                         try { sessionStorage.setItem('golf_migrationShown', '1'); } catch (e) {}
                     }
@@ -1197,6 +1255,43 @@
             calSelect.value = currentCalVal;
             statSelect.value = currentStatVal;
             entSelect.value = currentEntVal;
+
+            // 비밀번호 초기화 대상: 실제 계정(Password 시트)만
+            const resetSel = document.getElementById('resetPwUser');
+            if (resetSel) {
+                const prev = resetSel.value;
+                const accounts = [...new Set(users.map(u => String(u.name)))].sort((a, b) => a.localeCompare(b));
+                resetSel.innerHTML = `<option value="">선택</option>` + accounts.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+                if (accounts.includes(prev)) resetSel.value = prev;
+            }
+        }
+
+        function doLogout() {
+            const t = sessionToken;
+            clearSession();
+            try {
+                fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'logout', token: t }) });
+            } catch (e) {}
+            location.reload();
+        }
+
+        /** 비밀번호 변경 모달 열기 (forced=true 면 임시 비밀번호 강제 변경 모드) */
+        function openChangePwModal(forced) {
+            document.getElementById('changePwForm').reset();
+            ['pwCurrent', 'pwNew', 'pwConfirm'].forEach(id => { document.getElementById(id).type = 'password'; });
+            document.getElementById('changePwNotice').classList.toggle('hidden', !forced);
+            document.querySelector('label[for="pwCurrent"]').textContent = forced ? '임시 비밀번호' : '현재 비밀번호';
+            document.getElementById('closeChangePwBtn').textContent = forced ? '로그아웃' : '닫기';
+            openModalWithAnim('changePwModal');
+            setTimeout(() => document.getElementById('pwCurrent').focus(), 350);
+        }
+
+        /** 임시 비밀번호 생성 (헷갈리는 문자 i/l/o/0/1 제외, 8자리) */
+        function generateTempPassword() {
+            const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+            const buf = new Uint32Array(8);
+            crypto.getRandomValues(buf);
+            return Array.from(buf, n => chars[n % chars.length]).join('');
         }
 
         function populateCourseOptions() {
@@ -1238,6 +1333,7 @@
                 currentUser.role = data.role;
                 currentUser.name = data.userName || currentUser.name;
                 currentUser.isVIP = !!data.isVIP;
+                currentUser.mustChange = !!data.mustChange;
                 sessionStorage.setItem('golf_currentUser', JSON.stringify(currentUser));
             }
         }
@@ -2042,14 +2138,67 @@
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
 
-            document.getElementById('logoutBtn').onclick = () => {
-                const t = sessionToken;
-                clearSession();
+            document.getElementById('logoutBtn').onclick = doLogout;
+
+            /* ----- 비밀번호 변경 (본인) ----- */
+            document.getElementById('changePwBtn').addEventListener('click', () => openChangePwModal(false));
+            document.getElementById('closeChangePwBtn').addEventListener('click', () => {
+                // 강제 변경 상태에서는 닫기 대신 로그아웃
+                if (currentUser && currentUser.mustChange) { doLogout(); return; }
+                closeModalWithAnim('changePwModal');
+            });
+            document.getElementById('pwShow').addEventListener('change', (e) => {
+                ['pwCurrent', 'pwNew', 'pwConfirm'].forEach(id => { document.getElementById(id).type = e.target.checked ? 'text' : 'password'; });
+            });
+            document.getElementById('changePwForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const cur = document.getElementById('pwCurrent').value;
+                const next = document.getElementById('pwNew').value;
+                const confirmVal = document.getElementById('pwConfirm').value;
+                if (next.length < 4) { showAlert('새 비밀번호는 4자 이상으로 입력해 주세요.'); return; }
+                if (/\s/.test(next)) { showAlert('비밀번호에는 공백을 사용할 수 없습니다.'); return; }
+                if (next !== confirmVal) { showAlert('새 비밀번호와 확인 값이 일치하지 않습니다.'); return; }
+                if (next === cur) { showAlert('새 비밀번호가 현재 비밀번호와 같습니다.'); return; }
+                showLoading(true, '비밀번호를 변경하고 있습니다...');
                 try {
-                    fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'logout', token: t }) });
-                } catch (e) {}
-                location.reload();
-            };
+                    await postData('changePassword', { currentPassword: cur, newPassword: next }, true);
+                    currentUser.mustChange = false;
+                    sessionStorage.setItem('golf_currentUser', JSON.stringify(currentUser));
+                    closeModalWithAnim('changePwModal');
+                    document.getElementById('changePwForm').reset();
+                    showAlert('비밀번호가 변경되었습니다.\n다른 기기에서의 로그인은 종료되었습니다.');
+                } catch (err) {
+                    if (sessionToken) showAlert(`변경 실패: ${err.message}`);
+                } finally {
+                    showLoading(false);
+                }
+            });
+
+            /* ----- 비밀번호 초기화 (관리자) ----- */
+            document.getElementById('genTempPwBtn').addEventListener('click', () => {
+                document.getElementById('resetPwValue').value = generateTempPassword();
+            });
+            document.getElementById('resetPwBtn').addEventListener('click', () => {
+                const target = document.getElementById('resetPwUser').value;
+                const temp = document.getElementById('resetPwValue').value.trim();
+                if (!target) { showAlert('초기화할 사용자를 선택해 주세요.'); return; }
+                if (temp.length < 4 || /\s/.test(temp)) { showAlert('임시 비밀번호는 공백 없이 4자 이상으로 입력해 주세요.'); return; }
+                if (temp.toLowerCase().startsWith('iw')) { showAlert("임시 비밀번호는 'iw'로 시작할 수 없습니다.\n(기존 VIP 자동지정 규칙과의 혼동 방지)"); return; }
+                showConfirm(`${target}님의 비밀번호를 초기화하시겠습니까?\n\n임시 비밀번호: ${temp}\n\n해당 사용자의 기존 로그인은 모두 종료됩니다.`, async () => {
+                    showLoading(true, '비밀번호를 초기화하고 있습니다...');
+                    try {
+                        await postData('resetPassword', { targetUser: target, newPassword: temp }, true);
+                        let copied = false;
+                        try { await navigator.clipboard.writeText(temp); copied = true; } catch (err) {}
+                        document.getElementById('resetPwValue').value = '';
+                        showAlert(`${target}님의 비밀번호가 초기화되었습니다.\n\n임시 비밀번호: ${temp}${copied ? '\n(클립보드에 복사됨)' : ''}\n\n사용자에게 전달해 주세요. 첫 로그인 시 새 비밀번호로 변경하게 됩니다.`);
+                    } catch (err) {
+                        if (sessionToken) showAlert(`초기화 실패: ${err.message}`);
+                    } finally {
+                        showLoading(false);
+                    }
+                });
+            });
 
             document.getElementById('noticeLink').addEventListener('click', (e) => {
                 e.preventDefault();
