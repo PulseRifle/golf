@@ -201,9 +201,23 @@
 
             .hidden-mobile { display: none; }
         }
+
+        /* ===== 사이트 배경 이미지 (화면에 고정, 모바일 호환을 위해 fixed 레이어 사용) ===== */
+        #siteBg {
+            position: fixed; inset: 0; z-index: -1; pointer-events: none;
+            background-color: #f5f4f0;
+            background-image: url('golf-bg.jpg');
+            background-size: cover; background-position: center 60%; background-repeat: no-repeat;
+        }
+        body { background-color: transparent !important; }
+        /* 본문 카드는 살짝 투명 + 블러로 배경이 은은하게 비치도록 */
+        #mainApp > div { background-color: rgba(255, 255, 255, 0.92) !important; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+        #loginScreen > div { background-color: rgba(255, 255, 255, 0.94) !important; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
     </style>
 </head>
 <body class="bg-paper p-2 md:p-4 text-gray-800 transition-colors duration-300">
+    <!-- 배경 이미지 (golf-bg.jpg 를 index.html 과 같은 폴더에 업로드) -->
+    <div id="siteBg" aria-hidden="true"></div>
     <div id="loginScreen" class="flex flex-col items-center justify-center min-h-screen transition-opacity duration-500">
         <div class="bg-white rounded-3xl card-shadow p-6 md:p-10 w-full max-w-md border border-[#e7e4dc] transform transition-transform">
             <p class="text-[10px] md:text-xs font-bold tracking-[0.25em] text-gold-500 text-center mb-2">GOLF RESERVATION</p>
@@ -453,6 +467,10 @@
                         <input type="checkbox" id="entExcludeAnon" class="w-3.5 h-3.5 md:w-5 md:h-5 accent-[#0c1a33]">
                         무기명 제외 <span class="font-normal text-gray-500 text-[10px] md:text-xs">(레이크우드·벨루토·중부)</span>
                     </label>
+                    <label class="flex items-center gap-1.5 cursor-pointer font-bold text-navy-800 bg-[#eef1f6] px-2.5 py-1.5 md:px-4 md:py-2 rounded-lg text-xs md:text-base whitespace-nowrap select-none">
+                        <input type="checkbox" id="entExcludeFuture" class="w-3.5 h-3.5 md:w-5 md:h-5 accent-[#0c1a33]">
+                        이용예정 제외 <span class="font-normal text-gray-500 text-[10px] md:text-xs">(오늘 이후 건, 합계 포함)</span>
+                    </label>
                 </div>
                 <div class="overflow-x-auto rounded-xl border border-gray-300 shadow-sm">
                     <table class="min-w-full bg-white">
@@ -465,6 +483,7 @@
                                 <th class="py-2 px-2 md:py-4 md:px-4 text-left">시간</th>
                                 <th class="py-2 px-2 md:py-4 md:px-4 text-left">상태</th>
                                 <th class="py-2 px-2 md:py-4 md:px-4 text-right">접대비</th>
+                                <th class="py-2 px-2 md:py-4 md:px-4 text-center whitespace-nowrap">반영</th>
                             </tr>
                         </thead>
                         <tbody id="entertainmentTableBody" class="text-gray-700 text-xs md:text-base"></tbody>
@@ -1957,7 +1976,15 @@
             } else {
                 filtered = filtered.filter(b => b.Name === currentUser.name);
             }
-            // 합계는 무기명 제외 체크와 무관하게 전체 기준
+            // 반영 상태 계산: 사람별 최종 반영 금액(공통+개인)을 오래된 건부터 차례대로 적용
+            const appliedMap = computeEntertainmentApplied(filtered);
+
+            // 이용예정 제외: 오늘(접속일) 이후 건은 그리드와 접대비 합계에서 모두 제외
+            const todayStr = toLocalDateStr(new Date());
+            if (document.getElementById('entExcludeFuture')?.checked) {
+                filtered = filtered.filter(b => normDateStr(b.Date) <= todayStr);
+            }
+            // 합계는 무기명 제외 체크와 무관 (이용예정 제외는 반영)
             let total = 0;
             filtered.forEach(b => { total += parseInt(b.EE) || 0; });
             entertainmentTotal = total;
@@ -1967,19 +1994,24 @@
             if (document.getElementById('entExcludeAnon')?.checked) {
                 gridRows = gridRows.filter(b => !ANONYMOUS_COURSES.includes(b['Golf Course']));
             }
-            gridRows = gridRows.slice().sort((a, b) => {
-                const da = normDateStr(a.Date), db = normDateStr(b.Date);
-                if (da !== db) return da.localeCompare(db);
-                return (parseTeeTimes(a.Time)[0] || '').padStart(5, '0').localeCompare((parseTeeTimes(b.Time)[0] || '').padStart(5, '0'));
-            });
+            gridRows = gridRows.slice().sort(compareByDateTime);
             if (gridRows.length === 0) {
-                entertainmentTableBody.innerHTML = `<tr><td colspan="7" class="text-center py-6 md:py-10 text-gray-500 font-bold text-sm md:text-base">조건에 맞는 내역이 없습니다.</td></tr>`;
+                entertainmentTableBody.innerHTML = `<tr><td colspan="8" class="text-center py-6 md:py-10 text-gray-500 font-bold text-sm md:text-base">조건에 맞는 내역이 없습니다.</td></tr>`;
             }
             gridRows.forEach(b => {
                 const displayDate = normDateStr(b.Date);
+                const isFuture = displayDate > todayStr;
+                const ap = appliedMap.get(b) || { state: '' };
+                let appliedHtml = '';
+                if (ap.state === 'full') {
+                    appliedHtml = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] md:text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200 whitespace-nowrap">✓ 반영완료</span>`;
+                } else if (ap.state === 'partial') {
+                    appliedHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] md:text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 whitespace-nowrap" title="${wonText(ap.applied)} 반영 / 미반영 ${wonText(ap.remain)}">일부 ${wonText(ap.applied)}</span>`;
+                }
+                const futureBadge = isFuture ? ` <span class="text-[10px] font-bold text-sky-600 bg-sky-50 border border-sky-100 rounded px-1 py-px whitespace-nowrap">예정</span>` : '';
                 const row = document.createElement('tr');
-                row.className = "border-b text-xs md:text-sm hover:bg-gray-50";
-                row.innerHTML = `<td class="p-2 md:p-4 font-bold">${esc(b['Golf Course'])}</td><td class="p-2 md:p-4">${esc(b.Name)}</td><td class="p-2 md:p-4">${esc(displayDate)}</td><td class="p-2 md:p-4 text-center">${esc(b.Team)}</td><td class="p-2 md:p-4">${esc(b.Time) || ''}</td><td class="p-2 md:p-4">${esc(b.Status) || ''}</td><td class="p-2 md:p-4 text-right font-black text-navy-800 text-sm md:text-lg">₩${(parseInt(b.EE)||0).toLocaleString()}</td>`;
+                row.className = "border-b text-xs md:text-sm hover:bg-gray-50" + (ap.state === 'full' ? ' bg-emerald-50/40' : '');
+                row.innerHTML = `<td class="p-2 md:p-4 font-bold">${esc(b['Golf Course'])}</td><td class="p-2 md:p-4">${esc(b.Name)}</td><td class="p-2 md:p-4 whitespace-nowrap">${esc(displayDate)}${futureBadge}</td><td class="p-2 md:p-4 text-center">${esc(b.Team)}</td><td class="p-2 md:p-4">${esc(b.Time) || ''}</td><td class="p-2 md:p-4">${esc(b.Status) || ''}</td><td class="p-2 md:p-4 text-right font-black text-navy-800 text-sm md:text-lg">₩${(parseInt(b.EE)||0).toLocaleString()}</td><td class="p-2 md:p-4 text-center">${appliedHtml}</td>`;
                 entertainmentTableBody.appendChild(row);
             });
             document.getElementById('totalEntertainmentCost').textContent = `₩${total.toLocaleString()}`;
@@ -2456,6 +2488,7 @@
 
             /* ----- 접대비 차감: 무기명 제외 / 금액 입력(콤마·실시간 잔여) / 반영 ----- */
             document.getElementById('entExcludeAnon').addEventListener('change', renderEntertainmentView);
+            document.getElementById('entExcludeFuture').addEventListener('change', renderEntertainmentView);
             ['commonEntertainment', 'personalEntertainment'].forEach(id => {
                 document.getElementById(id).addEventListener('input', (e) => {
                     e.target.value = formatNumberWithCommas(e.target.value);
@@ -2891,6 +2924,36 @@
             if (!list.length) return null;
             return list.reduce((a, b) => (String(b.Timestamp || '') >= String(a.Timestamp || '') ? b : a));
         }
+        /** 날짜 → 첫 티오프 시간 오름차순 비교 */
+        function compareByDateTime(a, b) {
+            const da = normDateStr(a.Date), db = normDateStr(b.Date);
+            if (da !== db) return da.localeCompare(db);
+            return (parseTeeTimes(a.Time)[0] || '').padStart(5, '0').localeCompare((parseTeeTimes(b.Time)[0] || '').padStart(5, '0'));
+        }
+
+        /**
+         * 반영완료 계산: 사람별 해당 연도 최종 반영 금액(공통+개인)을
+         * 접대비가 있는 예약 건에 '가장 오래된 건부터' 차례로 채워 넣음
+         * @returns Map<booking, {state:'full'|'partial'|'', applied, remain}>
+         */
+        function computeEntertainmentApplied(list) {
+            const result = new Map();
+            const byName = {};
+            list.forEach(b => { const n = String(b.Name || '').trim(); (byName[n] = byName[n] || []).push(b); });
+            Object.keys(byName).forEach(name => {
+                const latest = getLatestEntertainment(name, selectedYear);
+                let pool = latest ? (Number(latest['공통접대비']) || 0) + (Number(latest['개인접대비']) || 0) : 0;
+                byName[name].slice().sort(compareByDateTime).forEach(b => {
+                    const cost = parseInt(b.EE) || 0;
+                    if (cost <= 0) { result.set(b, { state: '' }); return; }
+                    if (pool >= cost) { pool -= cost; result.set(b, { state: 'full', applied: cost, remain: 0 }); }
+                    else if (pool > 0) { result.set(b, { state: 'partial', applied: pool, remain: cost - pool }); pool = 0; }
+                    else result.set(b, { state: '' });
+                });
+            });
+            return result;
+        }
+
         /** 잔여 차감액 = 접대비 합계 − 공통접대비 − 개인접대비 (입력 즉시 갱신) */
         function updateRemainingEntertainment() {
             const remain = entertainmentTotal - amountOf('commonEntertainment') - amountOf('personalEntertainment');
