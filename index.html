@@ -38,6 +38,25 @@
             gap: 24px;
         }
 
+        /* ===== 캘린더 상세보기 모드 (한 행에 한 달) ===== */
+        .calendar-container.detail-mode { grid-template-columns: 1fr !important; }
+        .detail-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-left: 1px solid #e5e7eb; border-top: 1px solid #e5e7eb; }
+        .detail-head { background: #f3f4f8; text-align: center; font-weight: 700; font-size: 13px; padding: 10px 0; border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; }
+        .detail-day { min-height: 140px; padding: 6px 6px 8px; background: #fff; border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; cursor: pointer; transition: background-color .2s; }
+        .detail-day:hover { background: #faf7ef; }
+        .detail-day.is-empty { background: #fafafa; cursor: default; }
+        .detail-day.is-today { box-shadow: inset 0 0 0 1.5px #e8a23a; }
+        .detail-daynum { font-size: 13px; font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; min-height: 22px; }
+        .detail-today-badge { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 9999px; background: #f29d2b; color: #fff; font-size: 12px; }
+        .course-group { margin-bottom: 4px; }
+        .course-tab { display: inline-block; font-size: 12px; font-weight: 800; color: #1f2937; padding: 2px 10px; border-radius: 6px 6px 0 0; white-space: nowrap; }
+        .course-line { height: 1.5px; margin-bottom: 3px; }
+        .booking-pill { display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 1.5; border: 1px solid; border-radius: 6px; padding: 1px 6px; margin-bottom: 3px; white-space: nowrap; overflow: hidden; }
+        .booking-pill:hover { filter: brightness(0.96); }
+        .booking-pill .bp-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+        .booking-pill .bp-time { font-weight: 700; color: #111827; }
+        .booking-pill .bp-note { color: #4b5563; max-width: 3.5em; overflow: hidden; text-overflow: ellipsis; }
+
         .day-cell {
             min-height: 80px; display: flex; flex-direction: column; justify-content: flex-start; align-items: center;
             cursor: pointer; border: 1px solid #e5e7eb; transition: all 0.2s ease-in-out;
@@ -219,6 +238,10 @@
                             <input type="checkbox" id="calMyBookingFilter" class="w-3 h-3 md:w-5 md:h-5 mr-1 md:mr-2 accent-[#0c1a33] transition-transform">
                             내 예약만
                         </label>
+                        <div id="calViewToggle" class="flex items-center bg-white border border-gray-300 rounded-lg overflow-hidden flex-shrink-0 shadow-sm">
+                            <button type="button" data-view="summary" class="cal-view-btn px-2 py-1 md:px-3 md:py-2 text-[10px] sm:text-[11px] md:text-sm font-bold whitespace-nowrap">기본</button>
+                            <button type="button" data-view="detail" class="cal-view-btn px-2 py-1 md:px-3 md:py-2 text-[10px] sm:text-[11px] md:text-sm font-bold whitespace-nowrap border-l border-gray-300">상세</button>
+                        </div>
                     </div>
                 </div>
 
@@ -819,6 +842,9 @@
         let openSchedule = {};
         let selectedYear = new Date().getFullYear();
         let calendarMyBookingFilter = false;
+        // 캘린더 보기 모드: 'summary'(기본, 여러 달 격자) / 'detail'(상세, 한 행에 한 달)
+        let calendarViewMode = 'summary';
+        try { if (localStorage.getItem('golf_calViewMode') === 'detail') calendarViewMode = 'detail'; } catch (e) {}
         let calendarNameFilter = '전체';
         let statusNameFilter = '전체';
         let statusCourseFilter = '전체';
@@ -869,6 +895,15 @@
                 calendarMyBookingFilter = e.target.checked;
                 renderCalendar();
             });
+            // 캘린더 기본/상세 보기 토글
+            document.querySelectorAll('.cal-view-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    calendarViewMode = btn.dataset.view;
+                    try { localStorage.setItem('golf_calViewMode', calendarViewMode); } catch (e) {}
+                    renderCalendar();
+                });
+            });
+            updateCalViewToggle();
             document.getElementById('calNonMemberFilter').addEventListener('change', renderCalendar);
             document.getElementById('statusNonMemberFilter').addEventListener('change', renderStatus);
             document.getElementById('bookingDate').addEventListener('change', (e) => {
@@ -1149,9 +1184,106 @@
             }
         }
 
+        function updateCalViewToggle() {
+            document.querySelectorAll('.cal-view-btn').forEach(btn => {
+                const active = btn.dataset.view === calendarViewMode;
+                btn.classList.toggle('bg-navy-900', active);
+                btn.classList.toggle('text-white', active);
+                btn.classList.toggle('text-gray-600', !active);
+                btn.classList.toggle('hover:bg-gray-50', !active);
+            });
+        }
+
+        // 상세보기 골프장별 색상/표시명
+        const COURSE_DETAIL_STYLE = {
+            '레이크우드': { label: '레이크우드',    tab: '#e3cfa3', line: '#c9a45c', pill: '#fdf8ec', border: '#c9a45c' },
+            '벨루토':     { label: '시에나 벨루토', tab: '#f3c4c4', line: '#e39a9a', pill: '#fdf0f0', border: '#e08a8a' },
+            '스카이밸리': { label: '스카이밸리',    tab: '#d3bde2', line: '#a77bc4', pill: '#f8f3fb', border: '#8e44ad' },
+            '힐드로사이': { label: '힐드로사이',    tab: '#a3cfac', line: '#5aa26c', pill: '#f1f8f2', border: '#2e8b4f' },
+            '중부':       { label: '중부CC',        tab: '#bcdaf4', line: '#6ea8dc', pill: '#eef6fd', border: '#4a8fd1' }
+        };
+
+        /** 상세보기용 하루 칸 내용 (골프장 탭 + 예약자/시간 목록) */
+        function buildDetailDayContent(dayCell, dayBookings, role) {
+            const uniqueCourses = [...new Set(dayBookings.map(b => b['Golf Course']))];
+            uniqueCourses.sort((a, b) => (COURSE_PRIORITY[a] || 99) - (COURSE_PRIORITY[b] || 99));
+            uniqueCourses.forEach(course => {
+                const st = COURSE_DETAIL_STYLE[course] || { label: course, tab: '#e5e7eb', line: '#9ca3af', pill: '#f9fafb', border: '#9ca3af' };
+                const list = dayBookings.filter(b => b['Golf Course'] === course)
+                    .sort((a, b) => String(a.Time || '').localeCompare(String(b.Time || '')));
+                const group = document.createElement('div');
+                group.className = 'course-group';
+                group.innerHTML = `<span class="course-tab" style="background:${st.tab}">${esc(st.label)} (${list.length}건)</span><div class="course-line" style="background:${st.line}"></div>`;
+                list.forEach(b => {
+                    const pill = document.createElement('div');
+                    pill.className = 'booking-pill';
+                    pill.style.background = st.pill;
+                    pill.style.borderColor = st.border;
+                    const nonMember = b['회원구분'] === '비회원가' ? `<span class="text-[10px] bg-red-100 text-red-600 px-1 rounded font-bold">비</span>` : '';
+                    pill.innerHTML = `<span class="bp-name">${esc(b.Name)}</span>${nonMember}<span class="text-gray-700">▶</span><span class="bp-time">${esc(b.Time) || '-'}</span>${b.Comment ? `<span class="bp-note" title="${esc(b.Comment)}">${esc(b.Comment)}</span>` : ''}`;
+                    if (role === 'ADMIN' || b.Name === currentUser.name) {
+                        pill.classList.add('cursor-pointer');
+                        pill.title = '클릭하여 예약 수정';
+                        pill.addEventListener('click', (e) => { e.stopPropagation(); openBookingModal(b); });
+                    }
+                    group.appendChild(pill);
+                });
+                dayCell.appendChild(group);
+            });
+        }
+
+        /** 상세보기 한 달 격자 (가로 스크롤 지원) */
+        function buildDetailMonthGrid(m, bookingMap, role, todayStr) {
+            const firstDay = new Date(selectedYear, m, 1);
+            const lastDay = new Date(selectedYear, m + 1, 0);
+            const wrap = document.createElement('div');
+            wrap.className = 'overflow-x-auto rounded-xl border border-gray-200';
+            const grid = document.createElement('div');
+            grid.className = 'detail-grid min-w-[840px]';
+            const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+            grid.innerHTML = dayNames.map((n, i) =>
+                `<div class="detail-head ${i === 0 ? 'text-red-600' : i === 6 ? 'text-indigo-600' : 'text-gray-700'}">${n}</div>`).join('');
+
+            for (let i = 0; i < firstDay.getDay(); i++) {
+                const empty = document.createElement('div');
+                empty.className = 'detail-day is-empty';
+                grid.appendChild(empty);
+            }
+            for (let d = 1; d <= lastDay.getDate(); d++) {
+                const dateStr = `${selectedYear}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const dow = new Date(selectedYear, m, d).getDay();
+                const cell = document.createElement('div');
+                cell.className = 'detail-day';
+                const isToday = dateStr === todayStr;
+                if (isToday) cell.classList.add('is-today');
+
+                let numColor = 'text-gray-800';
+                if (dow === 0 || holidays[dateStr]) numColor = 'text-red-600';
+                else if (dow === 6) numColor = 'text-indigo-600';
+                const numHtml = isToday ? `<span class="detail-today-badge">${d}</span>` : `<span class="${numColor}">${d}</span>`;
+                const holidayHtml = holidays[dateStr] ? `<span class="text-[10px] font-semibold text-red-500 truncate">${esc(holidays[dateStr])}</span>` : '';
+                cell.innerHTML = `<div class="detail-daynum">${numHtml}${holidayHtml}</div>`;
+
+                if (bookingMap.has(dateStr)) buildDetailDayContent(cell, bookingMap.get(dateStr), role);
+                cell.onclick = () => openBookingModal(null, dateStr);
+                grid.appendChild(cell);
+            }
+            const trailing = (7 - ((firstDay.getDay() + lastDay.getDate()) % 7)) % 7;
+            for (let i = 0; i < trailing; i++) {
+                const empty = document.createElement('div');
+                empty.className = 'detail-day is-empty';
+                grid.appendChild(empty);
+            }
+            wrap.appendChild(grid);
+            return wrap;
+        }
+
         function renderCalendar() {
             const calendarEl = document.getElementById('calendar');
             calendarEl.innerHTML = '';
+            const isDetail = calendarViewMode === 'detail';
+            calendarEl.classList.toggle('detail-mode', isDetail);
+            updateCalViewToggle();
 
             let renderMonths = [];
             const checkedMonthsRaw = Array.from(document.querySelectorAll('input[name="calMonthFilter"]:checked')).map(cb => cb.value);
@@ -1228,6 +1360,13 @@
                 const warningHtml = warnings.length > 0
                     ? `<div class="mb-2 md:mb-3 text-[10px] md:text-xs font-bold text-red-600 bg-red-50 p-1 md:p-2 rounded-lg text-center border border-red-100">${warnings.join('<br>')}</div>`
                     : `<div class="mb-2 md:mb-3 border-b"></div>`;
+                if (isDetail) {
+                    // 상세보기: 한도/마감 요약은 한 줄로, 달력은 한 행 전체 폭 사용
+                    monthContainer.innerHTML = `<div class="flex flex-wrap items-end justify-between gap-2 mb-2 md:mb-3"><div class="text-lg md:text-2xl font-black text-gray-800">${selectedYear}년 ${m + 1}월</div>${quotaHtml.replace('grid grid-cols-2', 'flex flex-wrap gap-x-3').replace('mb-1 md:mb-2', '')}</div>${warnings.length > 0 ? warningHtml : ''}`;
+                    monthContainer.appendChild(buildDetailMonthGrid(m, bookingMap, role, todayStrGlobal));
+                    calendarEl.appendChild(monthContainer);
+                    continue;
+                }
                 monthContainer.innerHTML = `${quotaHtml}${warningHtml}<div class="text-base md:text-xl font-black text-center mb-2 md:mb-4 text-gray-800">${selectedYear}년 ${m + 1}월</div><div class="grid grid-cols-7 gap-1 text-center text-xs md:text-sm font-bold text-gray-400 mb-1 md:mb-2"><div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div></div>`;
 
                 const dayGrid = document.createElement('div');
