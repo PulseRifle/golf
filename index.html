@@ -63,6 +63,10 @@
         .booking-pill .bp-dot { display: inline-block; width: 6px; height: 6px; border-radius: 9999px; background: #dc2626; margin-right: 3px; vertical-align: middle; }
         /* 승인대기(마케팅) 표시 */
         .booking-pill.is-pending { border-style: dashed !important; }
+        /* 취소중: 시간 자리에 '취소중' 문구 + 오른쪽 끝 빨간 표시줄 */
+        .booking-pill.is-cancelling { position: relative; padding-right: 12px; }
+        .booking-pill.is-cancelling::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 6px; background: #ef4444; }
+        .booking-pill .bp-cancel { font-weight: 600; color: #374151; }
         .pending-tag { display: inline-block; font-size: 10px; font-weight: 800; color: #92400e; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 4px; padding: 0 4px; line-height: 1.4; }
         .pending-dot { display: inline-block; width: 6px; height: 6px; border-radius: 9999px; background: #f59e0b; margin-left: 2px; vertical-align: middle; }
 
@@ -1576,12 +1580,16 @@
                     // 첫 행: 이름 ▶ 시간1 / 다음 행부터: (빈칸) ▶ 시간2, 시간3 … 시간 열 정렬
                     const times = parseTeeTimes(b.Time);
                     const isPending = b.Status === PENDING_STATUS;
-                    // 승인대기 건은 시간 대신 '대기' 표시
+                    const isCancelling = b.Status === '취소중';
+                    // 승인대기 건은 시간 대신 '대기', 취소중 건은 시간 대신 '취소중' + 오른쪽 빨간 표시줄
                     const rows = isPending
                         ? [`<span class="bp-name">${nonMember}${esc(b.Name)}</span><span class="bp-arrow">▶</span><span class="bp-time"><span class="pending-tag">대기</span></span>`]
+                        : isCancelling
+                        ? [`<span class="bp-name">${nonMember}${esc(b.Name)}</span><span class="bp-arrow">▶</span><span class="bp-time bp-cancel">취소중</span>`]
                         : (times.length ? times : ['-']).map((t, i) =>
                             `<span class="bp-name">${i === 0 ? nonMember + esc(b.Name) : ''}</span><span class="bp-arrow">▶</span><span class="bp-time">${esc(t)}</span>`);
                     if (isPending) pill.classList.add('is-pending');
+                    if (isCancelling) pill.classList.add('is-cancelling');
                     pill.innerHTML = rows.join('');
                     pill.dataset.teeCount = times.length;
                     if (isNonMember) pill.title = '비회원가';
@@ -1668,7 +1676,9 @@
             }
 
             const checkedCourses = Array.from(document.querySelectorAll('input[name="calCourseFilter"]:checked')).map(cb => cb.value);
-            let filteredBookings = bookings.filter(b => isInSelectedPeriod(b.Date) && CALENDAR_STATUSES.includes(b.Status));
+            // 상세보기에서는 '취소중' 건도 표시 (기본보기·자리 계산에는 포함하지 않음)
+            const shownStatuses = isDetail ? CALENDAR_STATUSES.concat(['취소중']) : CALENDAR_STATUSES;
+            let filteredBookings = bookings.filter(b => isInSelectedPeriod(b.Date) && shownStatuses.includes(b.Status));
             const role = getUserRole(currentUser.name);
 
             if (role === 'ADMIN') {
