@@ -1033,6 +1033,8 @@
         const INACTIVE_STATUSES = ['취소완료', '우천취소', '취소중', '반려'];
         // 마케팅 목적 예약 (월 배정 없는 직원): 관리자 승인 전 상태
         const PENDING_STATUS = '승인대기';
+        // 티오프 시간이 입력되면 '예약완료'로 자동 확정해도 되는 상태 (그 외 상태는 사용자가 고른 값 유지)
+        const AUTO_CONFIRM_STATUSES = ['', '예약중', '승인대기'];
         const MARKETING_FIELDS = ['참석자1', '참석자1회사', '참석자2', '참석자2회사', '참석자3', '참석자3회사'];
         const QUOTA_FIELDS = ['Lakewood_Weekday', 'Lakewood_Weekend', 'SkyValley', 'HillydeSicy', 'Velluto_Weekday', 'Velluto_Weekend', 'Seragio_Weekday', 'Seragio_Weekend'];
         const MANAGER_ROLES = ['ADMIN', 'SIENA_ADMIN'];
@@ -2510,10 +2512,13 @@
             document.getElementById('closeModalBtn').onclick = () => closeModalWithAnim('bookingModal');
             document.getElementById('closeEditChooserBtn').addEventListener('click', () => closeModalWithAnim('editChooserModal'));
 
+            // 티오프 시간 입력 시: 아직 확정 전(예약중·승인대기)인 경우에만 '예약완료'로 자동 변경
+            // (취소중·취소완료·우천취소 등 직접 고른 상태는 그대로 유지)
             document.getElementById('bookingTime').addEventListener('input', () => {
                 const timeVal = (document.getElementById('bookingTime').value || '').trim();
-                if (timeVal) {
-                    document.getElementById('bookingStatus').value = '예약완료';
+                const statusSel = document.getElementById('bookingStatus');
+                if (timeVal && AUTO_CONFIRM_STATUSES.includes(statusSel.value)) {
+                    setBookingStatusValue('예약완료');
                 }
             });
 
@@ -3362,10 +3367,11 @@
             };
             if (isAdminUser) {
                 bookingData['회원구분'] = document.getElementById('memberType').value;
+                // 상태 선택값을 그대로 저장 — 시간이 있어도 취소중·취소완료 등은 덮어쓰지 않음
                 bookingData['Status'] = document.getElementById('bookingStatus').value;
                 const timeVal = (document.getElementById('bookingTime').value || '').trim();
                 bookingData['Time'] = timeVal;
-                if (timeVal) {
+                if (timeVal && AUTO_CONFIRM_STATUSES.includes(bookingData['Status'])) {
                     bookingData['Status'] = '예약완료';
                 }
             }
